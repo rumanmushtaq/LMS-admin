@@ -24,7 +24,7 @@ export const CardAgents = () => {
             px: '$6',
          }}
       >
-         <Card.Body css={{py: '$10', gap: '$4'}}>
+         <Card.Body css={{ paddingTop: '$10', paddingBottom: '$10', gap: '$4' }}>
             <Flex
                css={{
                   width: '100%',

@@ -101,13 +101,14 @@ export const TableWrapper = ({ addButton }: Props) => {
   // Initial load
   useEffect(() => {
     fetchTeachers(1, searchTerm, status, sortBy, sortOrder);
-  }, []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [fetchTeachers, searchTerm, status, sortBy, sortOrder]);
 
   // Debounced search
   const debouncedSearch = useCallback(
-    debounce((term: string) => {
+    (term: string) => {
       fetchTeachers(1, term, status, sortBy, sortOrder);
-    }, 500),
+    },
     [fetchTeachers, status, sortBy, sortOrder],
   );
 
@@ -117,12 +118,14 @@ export const TableWrapper = ({ addButton }: Props) => {
     } else {
       fetchTeachers(1, "", status, sortBy, sortOrder);
     }
-  }, [searchTerm]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchTerm, debouncedSearch, fetchTeachers, status, sortBy, sortOrder]);
 
   // Effect for filters
   useEffect(() => {
     fetchTeachers(1, searchTerm, status, sortBy, sortOrder);
-  }, [status]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [status, searchTerm, fetchTeachers, sortBy, sortOrder]);
 
   // Handle page change
   const handlePageChange = (page: number) => {
@@ -201,7 +204,6 @@ export const TableWrapper = ({ addButton }: Props) => {
             <Pagination
               shadow
               noMargin
-              align="center"
               total={meta.totalPages}
               initialPage={meta.page}
               onChange={handlePageChange}

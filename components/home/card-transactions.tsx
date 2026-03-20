@@ -16,7 +16,7 @@ export const CardTransactions = () => {
             px: '$6',
          }}
       >
-         <Card.Body css={{py: '$10'}}>
+         <Card.Body css={{ paddingTop: '$10', paddingBottom: '$10' }}>
             <Flex css={{gap: '$5'}} justify={'center'}>
                <Text h3 css={{textAlign: 'center'}}>
                   Latest Transactions

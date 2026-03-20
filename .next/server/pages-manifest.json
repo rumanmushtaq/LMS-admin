@@ -2,5 +2,11 @@
   "/_app": "pages/_app.js",
   "/_error": "pages/_error.js",
   "/_document": "pages/_document.js",
-  "/login": "pages/login.js"
+  "/accounts": "pages/accounts.html",
+  "/debug-tokens": "pages/debug-tokens.html",
+  "/": "pages/index.html",
+  "/login": "pages/login.html",
+  "/students": "pages/students.html",
+  "/teachers": "pages/teachers.html",
+  "/404": "pages/404.html"
 }

@@ -78,7 +78,7 @@ export default function DebugTokens() {
       <div style={{ marginTop: '30px', padding: '15px', background: '#fff3cd', borderRadius: '8px' }}>
         <Text b>Tips:</Text>
         <ul>
-          <li>If tokens show "NOT FOUND", you need to login again</li>
+          <li>If tokens show {"\"NOT FOUND\""}, you need to login again</li>
           <li>If isAuthenticated is false but cookies exist, try clearing tokens and logging in again</li>
           <li>Check browser console for any API errors</li>
           <li>The middleware checks for access_token OR refresh_token cookies</li>

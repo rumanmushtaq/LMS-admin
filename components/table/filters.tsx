@@ -72,8 +72,7 @@ export const TableFilters = ({
               onAction={onStatusChange}
               selectedKeys={status ? [status] : []}
             >
-              <Dropdown.Item key="all">All Status</Dropdown.Item>
-              {statusOptions.map((opt) => (
+              {[{ key: "all", label: "All Status" }, ...statusOptions].map((opt) => (
                 <Dropdown.Item key={opt.key}>{opt.label}</Dropdown.Item>
               ))}
             </Dropdown.Menu>

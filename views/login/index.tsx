@@ -120,8 +120,10 @@ export const LoginView = () => {
               css={{ mt: "$2", mb: "$6" }}
             >
               <Checkbox
-                {...register("rememberMe")}
                 size="sm"
+                onChange={(isSelected: boolean) => {
+                  form.setValue("rememberMe", isSelected);
+                }}
                 css={{
                   "& .nextui-checkbox-text": {
                     color: "#444",

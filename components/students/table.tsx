@@ -13,6 +13,7 @@ import { columns, statusOptions } from "./data";
 import { RenderCell } from "./render-cell";
 import adminService from "../../services/admin";
 import { TableFilters } from "../table/filters";
+import { Flex } from "../styles/flex";
 
 interface Student {
   _id: string;
@@ -101,13 +102,14 @@ export const TableWrapper = ({ addButton }: Props) => {
   // Initial load
   useEffect(() => {
     fetchStudents(1, searchTerm, status, startDate, endDate, sortBy, sortOrder);
-  }, []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [fetchStudents, searchTerm, status, startDate, endDate, sortBy, sortOrder]);
 
   // Debounced search
   const debouncedSearch = useCallback(
-    debounce((term: string) => {
+    (term: string) => {
       fetchStudents(1, term, status, startDate, endDate, sortBy, sortOrder);
-    }, 500),
+    },
     [fetchStudents, status, startDate, endDate, sortBy, sortOrder],
   );
 
@@ -117,12 +119,14 @@ export const TableWrapper = ({ addButton }: Props) => {
     } else {
       fetchStudents(1, "", status, startDate, endDate, sortBy, sortOrder);
     }
-  }, [searchTerm]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchTerm, debouncedSearch, fetchStudents, status, startDate, endDate, sortBy, sortOrder]);
 
   // Effect for filters
   useEffect(() => {
     fetchStudents(1, searchTerm, status, startDate, endDate, sortBy, sortOrder);
-  }, [status, startDate, endDate]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [status, startDate, endDate, searchTerm, fetchStudents, sortBy, sortOrder]);
 
   // Handle page change
   const handlePageChange = (page: number) => {
@@ -221,7 +225,6 @@ export const TableWrapper = ({ addButton }: Props) => {
             <Pagination
               shadow
               noMargin
-              align="center"
               total={meta.totalPages}
               initialPage={meta.page}
               onChange={handlePageChange}

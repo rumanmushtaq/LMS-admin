@@ -25,15 +25,17 @@ const apiEndpoints = {
     ACTIVATE_USER: (id: string) => `/api/v1/admin/users/${id}/activate`,
     DELETE_USER: (id: string) => `/api/v1/admin/users/${id}`,
     CREATE_ADMIN: "/api/v1/admin/users/admin",
-
+    HERO_BANNER: "/api/v1/admin/hero-banner",
+    HERO_BANNER_BY_ID: (id: string) => `/api/v1/admin/hero-banner/${id}`,
+    UPLOAD_IMAGE: "/api/v1/admin/upload/image",
   },
   Students: {
-    
     // Student endpoints
     STUDENTS: "/api/v1/admin/students",
     STUDENT_BY_ID: (id: string) => `/api/v1/admin/students/${id}`,
     UPDATE_STUDENT: (id: string) => `/api/v1/admin/students/${id}`,
-    UPDATE_STUDENT_STATUS: (id: string) => `/api/v1/admin/students/${id}/status`,
+    UPDATE_STUDENT_STATUS: (id: string) =>
+      `/api/v1/admin/students/${id}/status`,
     SUSPEND_STUDENT: (id: string) => `/api/v1/admin/students/${id}/suspend`,
     ACTIVATE_STUDENT: (id: string) => `/api/v1/admin/students/${id}/activate`,
     DELETE_STUDENT: (id: string) => `/api/v1/admin/students/${id}`,

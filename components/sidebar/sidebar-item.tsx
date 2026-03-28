@@ -1,8 +1,6 @@
-import {Text, Link} from '@nextui-org/react';
 import NextLink from 'next/link';
 import React from 'react';
 import {useSidebarContext} from '../layout/layout-context';
-import {Flex} from '../styles/flex';
 
 interface Props {
    title: string;
@@ -12,60 +10,29 @@ interface Props {
 }
 
 export const SidebarItem = ({icon, title, isActive, href = ''}: Props) => {
-   const {collapsed, setCollapsed} = useSidebarContext();
+   const {setCollapsed} = useSidebarContext();
 
    const handleClick = () => {
       if (window.innerWidth < 768) {
          setCollapsed();
       }
    };
+   
    return (
       <NextLink href={href}>
-         <Link
-            css={{
-               color: '$accents9',
-               maxWidth: '100%',
-            }}
+         <a
+            onClick={handleClick}
+            className={`flex items-center gap-4 w-full min-h-[44px] h-full px-7 rounded-lg cursor-pointer transition-all duration-150 active:scale-95 ${
+               isActive
+                  ? 'bg-blue-50 text-blue-600 [&_svg_path]:fill-blue-600 font-semibold shadow-sm'
+                  : 'text-gray-600 hover:bg-gray-50'
+            }`}
          >
-            <Flex
-               onClick={handleClick}
-               css={{
-                  'gap': '$6',
-                  'width': '100%',
-                  'minHeight': '44px',
-                  'height': '100%',
-                  'alignItems': 'center',
-                  'px': '$7',
-                  'borderRadius': '8px',
-                  'cursor': 'pointer',
-                  'transition': 'all 0.15s ease',
-                  '&:active': {
-                     transform: 'scale(0.98)',
-                  },
-                  ...(isActive
-                     ? {
-                          'bg': '$blue200',
-                          '& svg path': {
-                             fill: '$blue600',
-                          },
-                       }
-                     : {'&:hover': {bg: '$accents2'}}),
-               }}
-               align={'center'}
-            >
-               {icon}
-               <Text
-                  span
-                  weight={'normal'}
-                  size={'$base'}
-                  css={{
-                     color: '$accents9',
-                  }}
-               >
-                  {title}
-               </Text>
-            </Flex>
-         </Link>
+            {icon}
+            <span className="text-base font-normal">
+               {title}
+            </span>
+         </a>
       </NextLink>
    );
 };

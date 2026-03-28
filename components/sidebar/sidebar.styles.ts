@@ -1,7 +1,7 @@
 import {styled} from '@nextui-org/react';
 
 export const SidebarWrapper = styled('div', {
-   'backgroundColor': '$background',
+   'backgroundColor': '#1e1b4b',
    'transition': 'transform 0.2s ease',
    'height': '100%',
    'position': 'fixed',

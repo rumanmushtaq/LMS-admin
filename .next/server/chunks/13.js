@@ -119,6 +119,10 @@ const TableFilters = ({ searchTerm , onSearchChange , startDate , onStartDateCha
                         flat: true,
                         iconRight: /*#__PURE__*/ react_jsx_runtime__WEBPACK_IMPORTED_MODULE_0__.jsx(_icons_accounts_export_icon__WEBPACK_IMPORTED_MODULE_4__/* .ExportIcon */ .H, {}),
                         onClick: onExport,
+                        css: {
+                            bg: "#7047EB",
+                            color: "$white"
+                        },
                         children: "Export"
                     })
                 ]

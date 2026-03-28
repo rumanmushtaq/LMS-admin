@@ -13,7 +13,7 @@ export const AddStudent = () => {
 
   return (
     <div>
-      <Button auto onClick={handler}>
+      <Button auto onClick={handler} css={{ bg: '#7047EB', color: '$white' }}>
         Add Student
       </Button>
       <Modal
@@ -116,7 +116,7 @@ export const AddStudent = () => {
         </Modal.Body>
         <Divider css={{ my: "$5" }} />
         <Modal.Footer>
-          <Button auto onClick={closeHandler}>
+          <Button auto onClick={closeHandler} css={{ bg: '#7047EB', color: '$white' }}>
             Add Student
           </Button>
         </Modal.Footer>

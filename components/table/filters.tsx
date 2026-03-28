@@ -104,7 +104,7 @@ export const TableFilters = ({
 
       <Flex direction={"row"} css={{ gap: "$6" }} wrap={"wrap"}>
         {addButton}
-        <Button auto flat iconRight={<ExportIcon />} onClick={onExport}>
+        <Button auto flat iconRight={<ExportIcon />} onClick={onExport} css={{ bg: '#7047EB', color: '$white' }}>
           Export
         </Button>
       </Flex>

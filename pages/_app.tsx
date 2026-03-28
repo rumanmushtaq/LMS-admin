@@ -10,14 +10,28 @@ import { useRouter } from 'next/router';
 const lightTheme = createTheme({
    type: 'light',
    theme: {
-      colors: {},
+      colors: {
+         primary: '#7047EB', 
+         primaryLight: '#f3e8ff',
+         sidebarBg: '#1e1b4b', 
+         sidebarActive: '#2d2645',
+         sidebarText: '#a19db5',  
+      },
    },
 });
 
 const darkTheme = createTheme({
    type: 'dark',
    theme: {
-      colors: {},
+      colors: {
+         primary: '#7047EB',
+         primaryLight: '#f3e8ff',
+         sidebarBg: '#1e1b4b',
+         sidebarActive: '#2d2645',
+         sidebarText: '#a19db5',
+         dangerLight: '#ffe4e6',
+         dangerLightHover: '#fecdd3',
+      },
    },
 });
 
@@ -28,7 +42,7 @@ function MyApp({Component, pageProps}: AppProps) {
    return (
       <QueryClientProvider client={queryClient}>
          <NextThemesProvider
-            defaultTheme="system"
+            defaultTheme="light"
             attribute="class"
             value={{
                light: lightTheme.className,

@@ -5,7 +5,7 @@ exports.id = 888;
 exports.ids = [888];
 exports.modules = {
 
-/***/ 273:
+/***/ 5136:
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
 
@@ -318,9 +318,13 @@ const NotificationsDropdown = ()=>{
     return /*#__PURE__*/ (0,jsx_runtime_.jsxs)(react_.Dropdown, {
         placement: "bottom-right",
         children: [
-            /*#__PURE__*/ jsx_runtime_.jsx(react_.Dropdown.Trigger, {
-                children: /*#__PURE__*/ jsx_runtime_.jsx(react_.Navbar.Item, {
-                    children: /*#__PURE__*/ jsx_runtime_.jsx(NotificationIcon, {})
+            /*#__PURE__*/ jsx_runtime_.jsx(react_.Navbar.Item, {
+                children: /*#__PURE__*/ jsx_runtime_.jsx(react_.Dropdown.Trigger, {
+                    children: /*#__PURE__*/ jsx_runtime_.jsx("button", {
+                        "aria-label": "Notifications",
+                        className: "bg-transparent border-none p-0 cursor-pointer outline-none flex items-center justify-center",
+                        children: /*#__PURE__*/ jsx_runtime_.jsx(NotificationIcon, {})
+                    })
                 })
             }),
             /*#__PURE__*/ jsx_runtime_.jsx(react_.Dropdown.Menu, {
@@ -533,6 +537,7 @@ const NavbarWrapper = ({ children  })=>{
                             width: "100%"
                         },
                         children: /*#__PURE__*/ jsx_runtime_.jsx(react_.Input, {
+                            "aria-label": "Search",
                             clearable: true,
                             contentLeft: /*#__PURE__*/ jsx_runtime_.jsx(SearchIcon, {
                                 fill: "var(--nextui-colors-accents6)",
@@ -581,6 +586,7 @@ const NavbarWrapper = ({ children  })=>{
                             }),
                             /*#__PURE__*/ jsx_runtime_.jsx(react_.Navbar.Content, {
                                 children: /*#__PURE__*/ jsx_runtime_.jsx(react_.Link, {
+                                    "aria-label": "Github link",
                                     href: "https://github.com/",
                                     target: "_blank",
                                     children: /*#__PURE__*/ jsx_runtime_.jsx(GithubIcon, {})
@@ -618,7 +624,7 @@ const NavbarWrapper = ({ children  })=>{
 ;// CONCATENATED MODULE: ./components/sidebar/sidebar.styles.ts
 
 const sidebar_styles_SidebarWrapper = (0,react_.styled)("div", {
-    "backgroundColor": "$background",
+    "backgroundColor": "#1e1b4b",
     "transition": "transform 0.2s ease",
     "height": "100%",
     "position": "fixed",
@@ -698,240 +704,51 @@ const Sidebar = Object.assign(sidebar_styles_SidebarWrapper, {
     Footer
 });
 
-;// CONCATENATED MODULE: ./components/icons/acme-icon.tsx
-
-
-
-const AcmeIcon = ()=>{
-    return /*#__PURE__*/ (0,jsx_runtime_.jsxs)(svg/* Svg */.n, {
-        width: "42",
-        height: "42",
-        viewBox: "0 0 56 56",
-        fill: "none",
-        xmlns: "http://www.w3.org/2000/svg",
-        css: {
-            "& rect": {
-                fill: "$background",
-                stroke: "$border"
-            },
-            "& path": {
-                fill: "$accents7"
-            }
-        },
-        children: [
-            /*#__PURE__*/ jsx_runtime_.jsx("rect", {
-                x: "0.5",
-                y: "0.5",
-                width: "55",
-                height: "55",
-                rx: "7.5"
-            }),
-            /*#__PURE__*/ jsx_runtime_.jsx("path", {
-                fillRule: "evenodd",
-                clipRule: "evenodd",
-                d: "M20.0007 29.3334C19.2673 29.3334 18.6673 29.9334 18.6673 30.6667C18.6673 31.4 19.2673 32 20.0007 32C20.734 32 21.334 31.4 21.334 30.6667C21.334 29.9334 20.734 29.3334 20.0007 29.3334ZM20.0007 34.6667C19.2673 34.6667 18.6673 35.2667 18.6673 36C18.6673 36.7334 19.2673 37.3334 20.0007 37.3334C20.734 37.3334 21.334 36.7334 21.334 36C21.334 35.2667 20.734 34.6667 20.0007 34.6667ZM20.0007 24C19.2673 24 18.6673 24.6 18.6673 25.3334C18.6673 26.0667 19.2673 26.6667 20.0007 26.6667C20.734 26.6667 21.334 26.0667 21.334 25.3334C21.334 24.6 20.734 24 20.0007 24ZM16.0007 24.6667C15.6273 24.6667 15.334 24.96 15.334 25.3334C15.334 25.7067 15.6273 26 16.0007 26C16.374 26 16.6673 25.7067 16.6673 25.3334C16.6673 24.96 16.374 24.6667 16.0007 24.6667ZM20.0007 18.6667C19.2673 18.6667 18.6673 19.2667 18.6673 20C18.6673 20.7334 19.2673 21.3334 20.0007 21.3334C20.734 21.3334 21.334 20.7334 21.334 20C21.334 19.2667 20.734 18.6667 20.0007 18.6667ZM40.0007 26C40.374 26 40.6673 25.7067 40.6673 25.3334C40.6673 24.96 40.374 24.6667 40.0007 24.6667C39.6273 24.6667 39.334 24.96 39.334 25.3334C39.334 25.7067 39.6273 26 40.0007 26ZM30.6673 21.3334C31.4007 21.3334 32.0007 20.7334 32.0007 20C32.0007 19.2667 31.4007 18.6667 30.6673 18.6667C29.934 18.6667 29.334 19.2667 29.334 20C29.334 20.7334 29.934 21.3334 30.6673 21.3334ZM30.6673 16.6667C31.0407 16.6667 31.334 16.3734 31.334 16C31.334 15.6267 31.0407 15.3334 30.6673 15.3334C30.294 15.3334 30.0007 15.6267 30.0007 16C30.0007 16.3734 30.294 16.6667 30.6673 16.6667ZM16.0007 30C15.6273 30 15.334 30.2934 15.334 30.6667C15.334 31.04 15.6273 31.3334 16.0007 31.3334C16.374 31.3334 16.6673 31.04 16.6673 30.6667C16.6673 30.2934 16.374 30 16.0007 30ZM25.334 39.3334C24.9607 39.3334 24.6673 39.6267 24.6673 40C24.6673 40.3734 24.9607 40.6667 25.334 40.6667C25.7073 40.6667 26.0007 40.3734 26.0007 40C26.0007 39.6267 25.7073 39.3334 25.334 39.3334ZM25.334 16.6667C25.7073 16.6667 26.0007 16.3734 26.0007 16C26.0007 15.6267 25.7073 15.3334 25.334 15.3334C24.9607 15.3334 24.6673 15.6267 24.6673 16C24.6673 16.3734 24.9607 16.6667 25.334 16.6667ZM25.334 21.3334C26.0673 21.3334 26.6673 20.7334 26.6673 20C26.6673 19.2667 26.0673 18.6667 25.334 18.6667C24.6007 18.6667 24.0007 19.2667 24.0007 20C24.0007 20.7334 24.6007 21.3334 25.334 21.3334ZM25.334 28.6667C24.2273 28.6667 23.334 29.56 23.334 30.6667C23.334 31.7734 24.2273 32.6667 25.334 32.6667C26.4407 32.6667 27.334 31.7734 27.334 30.6667C27.334 29.56 26.4407 28.6667 25.334 28.6667ZM36.0007 29.3334C35.2673 29.3334 34.6673 29.9334 34.6673 30.6667C34.6673 31.4 35.2673 32 36.0007 32C36.734 32 37.334 31.4 37.334 30.6667C37.334 29.9334 36.734 29.3334 36.0007 29.3334ZM36.0007 34.6667C35.2673 34.6667 34.6673 35.2667 34.6673 36C34.6673 36.7334 35.2673 37.3334 36.0007 37.3334C36.734 37.3334 37.334 36.7334 37.334 36C37.334 35.2667 36.734 34.6667 36.0007 34.6667ZM36.0007 24C35.2673 24 34.6673 24.6 34.6673 25.3334C34.6673 26.0667 35.2673 26.6667 36.0007 26.6667C36.734 26.6667 37.334 26.0667 37.334 25.3334C37.334 24.6 36.734 24 36.0007 24ZM36.0007 18.6667C35.2673 18.6667 34.6673 19.2667 34.6673 20C34.6673 20.7334 35.2673 21.3334 36.0007 21.3334C36.734 21.3334 37.334 20.7334 37.334 20C37.334 19.2667 36.734 18.6667 36.0007 18.6667ZM40.0007 30C39.6273 30 39.334 30.2934 39.334 30.6667C39.334 31.04 39.6273 31.3334 40.0007 31.3334C40.374 31.3334 40.6673 31.04 40.6673 30.6667C40.6673 30.2934 40.374 30 40.0007 30ZM30.6673 34.6667C29.934 34.6667 29.334 35.2667 29.334 36C29.334 36.7334 29.934 37.3334 30.6673 37.3334C31.4007 37.3334 32.0007 36.7334 32.0007 36C32.0007 35.2667 31.4007 34.6667 30.6673 34.6667ZM30.6673 39.3334C30.294 39.3334 30.0007 39.6267 30.0007 40C30.0007 40.3734 30.294 40.6667 30.6673 40.6667C31.0407 40.6667 31.334 40.3734 31.334 40C31.334 39.6267 31.0407 39.3334 30.6673 39.3334ZM25.334 23.3334C24.2273 23.3334 23.334 24.2267 23.334 25.3334C23.334 26.44 24.2273 27.3334 25.334 27.3334C26.4407 27.3334 27.334 26.44 27.334 25.3334C27.334 24.2267 26.4407 23.3334 25.334 23.3334ZM25.334 34.6667C24.6007 34.6667 24.0007 35.2667 24.0007 36C24.0007 36.7334 24.6007 37.3334 25.334 37.3334C26.0673 37.3334 26.6673 36.7334 26.6673 36C26.6673 35.2667 26.0673 34.6667 25.334 34.6667ZM30.6673 28.6667C29.5607 28.6667 28.6673 29.56 28.6673 30.6667C28.6673 31.7734 29.5607 32.6667 30.6673 32.6667C31.774 32.6667 32.6673 31.7734 32.6673 30.6667C32.6673 29.56 31.774 28.6667 30.6673 28.6667ZM30.6673 23.3334C29.5607 23.3334 28.6673 24.2267 28.6673 25.3334C28.6673 26.44 29.5607 27.3334 30.6673 27.3334C31.774 27.3334 32.6673 26.44 32.6673 25.3334C32.6673 24.2267 31.774 23.3334 30.6673 23.3334Z",
-                fill: "#969696"
-            })
-        ]
-    });
-};
-
-;// CONCATENATED MODULE: ./components/icons/acmelogo.tsx
-
-
-
-const AcmeLogo = ()=>/*#__PURE__*/ (0,jsx_runtime_.jsxs)(svg/* Svg */.n, {
-        className: "",
-        fill: "none",
-        height: "42",
-        viewBox: "0 0 32 32",
-        width: "42",
-        xmlns: "http://www.w3.org/2000/svg",
-        css: {
-            "& path": {
-                fill: "$accents7"
-            },
-            "backgroundColor": "$background",
-            "border": "1px solid $border",
-            "borderRadius": "$xs"
-        },
-        children: [
-            /*#__PURE__*/ jsx_runtime_.jsx("rect", {
-                height: "100%",
-                rx: "16",
-                width: "100%"
-            }),
-            /*#__PURE__*/ jsx_runtime_.jsx("path", {
-                clipRule: "evenodd",
-                d: "M17.6482 10.1305L15.8785 7.02583L7.02979 22.5499H10.5278L17.6482 10.1305ZM19.8798 14.0457L18.11 17.1983L19.394 19.4511H16.8453L15.1056 22.5499H24.7272L19.8798 14.0457Z",
-                fill: "currentColor",
-                fillRule: "evenodd"
-            })
-        ]
-    });
-
-;// CONCATENATED MODULE: ./components/icons/sidebar/bottom-icon.tsx
-
-
-
-const BottomIcon = ()=>{
-    return /*#__PURE__*/ jsx_runtime_.jsx(svg/* Svg */.n, {
-        width: "10",
-        height: "7",
-        viewBox: "0 0 10 7",
-        fill: "none",
-        xmlns: "http://www.w3.org/2000/svg",
-        css: {
-            "& path": {
-                fill: "$accents7"
-            }
-        },
-        children: /*#__PURE__*/ jsx_runtime_.jsx(svg/* Svg.Path */.n.Path, {
-            fillRule: "evenodd",
-            clipRule: "evenodd",
-            d: "M0.412893 2.38145L4.01989 5.98845C4.56303 6.53159 5.44041 6.53159 5.98354 5.98845L9.59054 2.38145C10.4679 1.50408 9.84122 0 8.60175 0H1.38776C0.148287 0 -0.464485 1.50408 0.412893 2.38145Z",
-            fill: "#969696"
-        })
-    });
-};
-
 ;// CONCATENATED MODULE: ./components/sidebar/companies-dropdown.tsx
 
 
 
 
 
-
-
-
 const CompaniesDropdown = ()=>{
-    const { 0: company , 1: setCompany  } = (0,external_react_.useState)({
-        name: "Acme Co.",
-        location: "Palo Alto, CA",
-        logo: /*#__PURE__*/ jsx_runtime_.jsx(AcmeIcon, {})
-    });
-    return /*#__PURE__*/ (0,jsx_runtime_.jsxs)(react_.Dropdown, {
-        placement: "bottom-right",
-        borderWeight: "extrabold",
-        children: [
-            /*#__PURE__*/ jsx_runtime_.jsx(react_.Dropdown.Trigger, {
-                css: {
-                    cursor: "pointer"
-                },
-                children: /*#__PURE__*/ jsx_runtime_.jsx(box/* Box */.x, {
-                    children: /*#__PURE__*/ (0,jsx_runtime_.jsxs)(flex/* Flex */.k, {
-                        align: "center",
+    return /*#__PURE__*/ jsx_runtime_.jsx(box/* Box */.x, {
+        children: /*#__PURE__*/ (0,jsx_runtime_.jsxs)(flex/* Flex */.k, {
+            align: "center",
+            css: {
+                gap: "$7"
+            },
+            children: [
+                /*#__PURE__*/ jsx_runtime_.jsx(box/* Box */.x, {
+                    css: {
+                        bg: "#7047EB",
+                        minWidth: "36px",
+                        width: "36px",
+                        height: "36px",
+                        borderRadius: "$md",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        color: "$white",
+                        fontWeight: "$bold",
+                        fontSize: "$lg"
+                    },
+                    children: "A"
+                }),
+                /*#__PURE__*/ jsx_runtime_.jsx(box/* Box */.x, {
+                    children: /*#__PURE__*/ jsx_runtime_.jsx(react_.Text, {
+                        h3: true,
+                        size: "$lg",
+                        weight: "medium",
                         css: {
-                            gap: "$7"
+                            margin: 0,
+                            color: "#111827",
+                            lineHeight: "$lg"
                         },
-                        children: [
-                            company.logo,
-                            /*#__PURE__*/ (0,jsx_runtime_.jsxs)(box/* Box */.x, {
-                                children: [
-                                    /*#__PURE__*/ jsx_runtime_.jsx(react_.Text, {
-                                        h3: true,
-                                        size: "$xl",
-                                        weight: "medium",
-                                        css: {
-                                            m: 0,
-                                            color: "$accents9",
-                                            lineHeight: "$lg",
-                                            mb: "-$5"
-                                        },
-                                        children: company.name
-                                    }),
-                                    /*#__PURE__*/ jsx_runtime_.jsx(react_.Text, {
-                                        span: true,
-                                        weight: "medium",
-                                        size: "$xs",
-                                        css: {
-                                            color: "$accents8"
-                                        },
-                                        children: company.location
-                                    })
-                                ]
-                            }),
-                            /*#__PURE__*/ jsx_runtime_.jsx(BottomIcon, {})
-                        ]
+                        children: "Admin Panel"
                     })
                 })
-            }),
-            /*#__PURE__*/ jsx_runtime_.jsx(react_.Dropdown.Menu, {
-                onAction: (e)=>{
-                    if (e === "1") {
-                        setCompany({
-                            name: "Facebook",
-                            location: "San Fransico, CA",
-                            logo: /*#__PURE__*/ jsx_runtime_.jsx(AcmeIcon, {})
-                        });
-                    }
-                    if (e === "2") {
-                        setCompany({
-                            name: "Instagram",
-                            location: "Austin, Tx",
-                            logo: /*#__PURE__*/ jsx_runtime_.jsx(AcmeLogo, {})
-                        });
-                    }
-                    if (e === "3") {
-                        setCompany({
-                            name: "Twitter",
-                            location: "Brooklyn, NY",
-                            logo: /*#__PURE__*/ jsx_runtime_.jsx(AcmeIcon, {})
-                        });
-                    }
-                    if (e === "4") {
-                        setCompany({
-                            name: "Acme Co.",
-                            location: "Palo Alto, CA",
-                            logo: /*#__PURE__*/ jsx_runtime_.jsx(AcmeIcon, {})
-                        });
-                    }
-                },
-                "aria-label": "Avatar Actions",
-                css: {
-                    "$$dropdownMenuWidth": "340px",
-                    "$$dropdownItemHeight": "60px",
-                    "& .nextui-dropdown-item": {
-                        "py": "$2",
-                        // dropdown item left icon
-                        "svg": {
-                            color: "$secondary",
-                            mr: "$4"
-                        },
-                        // dropdown item title
-                        "& .nextui-dropdown-item-content": {
-                            w: "100%",
-                            fontWeight: "$semibold"
-                        }
-                    }
-                },
-                children: /*#__PURE__*/ (0,jsx_runtime_.jsxs)(react_.Dropdown.Section, {
-                    title: "Companies",
-                    children: [
-                        /*#__PURE__*/ jsx_runtime_.jsx(react_.Dropdown.Item, {
-                            icon: /*#__PURE__*/ jsx_runtime_.jsx(AcmeIcon, {}),
-                            description: "San Fransico, CA",
-                            children: "Facebook"
-                        }, "1"),
-                        /*#__PURE__*/ jsx_runtime_.jsx(react_.Dropdown.Item, {
-                            icon: /*#__PURE__*/ jsx_runtime_.jsx(AcmeLogo, {}),
-                            description: "Austin, Tx",
-                            children: "Instagram"
-                        }, "2"),
-                        /*#__PURE__*/ jsx_runtime_.jsx(react_.Dropdown.Item, {
-                            icon: /*#__PURE__*/ jsx_runtime_.jsx(AcmeIcon, {}),
-                            description: "Brooklyn, NY",
-                            children: "Twitter"
-                        }, "3"),
-                        /*#__PURE__*/ jsx_runtime_.jsx(react_.Dropdown.Item, {
-                            icon: /*#__PURE__*/ jsx_runtime_.jsx(AcmeIcon, {}),
-                            description: "Palo Alto, CA",
-                            children: "Acme Co."
-                        }, "4")
-                    ]
-                })
-            })
-        ]
+            ]
+        })
     });
 };
 
@@ -993,10 +810,8 @@ var link_default = /*#__PURE__*/__webpack_require__.n(next_link);
 
 
 
-
-
 const SidebarItem = ({ icon , title , isActive , href =""  })=>{
-    const { collapsed , setCollapsed  } = useSidebarContext();
+    const { setCollapsed  } = useSidebarContext();
     const handleClick = ()=>{
         if (window.innerWidth < 768) {
             setCollapsed();
@@ -1004,51 +819,16 @@ const SidebarItem = ({ icon , title , isActive , href =""  })=>{
     };
     return /*#__PURE__*/ jsx_runtime_.jsx((link_default()), {
         href: href,
-        children: /*#__PURE__*/ jsx_runtime_.jsx(react_.Link, {
-            css: {
-                color: "$accents9",
-                maxWidth: "100%"
-            },
-            children: /*#__PURE__*/ (0,jsx_runtime_.jsxs)(flex/* Flex */.k, {
-                onClick: handleClick,
-                css: {
-                    "gap": "$6",
-                    "width": "100%",
-                    "minHeight": "44px",
-                    "height": "100%",
-                    "alignItems": "center",
-                    "px": "$7",
-                    "borderRadius": "8px",
-                    "cursor": "pointer",
-                    "transition": "all 0.15s ease",
-                    "&:active": {
-                        transform: "scale(0.98)"
-                    },
-                    ...isActive ? {
-                        "bg": "$blue200",
-                        "& svg path": {
-                            fill: "$blue600"
-                        }
-                    } : {
-                        "&:hover": {
-                            bg: "$accents2"
-                        }
-                    }
-                },
-                align: "center",
-                children: [
-                    icon,
-                    /*#__PURE__*/ jsx_runtime_.jsx(react_.Text, {
-                        span: true,
-                        weight: "normal",
-                        size: "$base",
-                        css: {
-                            color: "$accents9"
-                        },
-                        children: title
-                    })
-                ]
-            })
+        children: /*#__PURE__*/ (0,jsx_runtime_.jsxs)("a", {
+            onClick: handleClick,
+            className: `flex items-center gap-4 w-full min-h-[44px] h-full px-7 rounded-lg cursor-pointer transition-all duration-150 active:scale-95 ${isActive ? "bg-blue-50 text-blue-600 [&_svg_path]:fill-blue-600 font-semibold shadow-sm" : "text-gray-600 hover:bg-gray-50"}`,
+            children: [
+                icon,
+                /*#__PURE__*/ jsx_runtime_.jsx("span", {
+                    className: "text-base font-normal",
+                    children: title
+                })
+            ]
         })
     });
 };
@@ -1071,7 +851,8 @@ const SidebarMenu = ({ title , children  })=>{
                 weight: "normal",
                 css: {
                     letterSpacing: "0.04em",
-                    lineHeight: "$xs"
+                    lineHeight: "$xs",
+                    color: "#6b7280"
                 },
                 children: title
             }),
@@ -1103,9 +884,35 @@ const FilterIcon = ()=>{
     });
 };
 
+;// CONCATENATED MODULE: ./components/icons/sidebar/products-icon.tsx
+
+
+
+const ProductsIcon = ()=>{
+    return /*#__PURE__*/ jsx_runtime_.jsx(svg/* Svg */.n, {
+        width: "24",
+        height: "24",
+        viewBox: "0 0 24 24",
+        fill: "none",
+        xmlns: "http://www.w3.org/2000/svg",
+        css: {
+            "& path": {
+                fill: "$accents6"
+            }
+        },
+        children: /*#__PURE__*/ jsx_runtime_.jsx("path", {
+            fillRule: "evenodd",
+            clipRule: "evenodd",
+            d: "M20 6H16V4C16 2.89 15.11 2 14 2H10C8.89 2 8 2.89 8 4V6H4C2.89 6 2.01 6.89 2.01 8L2 19C2 20.11 2.89 21 4 21H20C21.11 21 22 20.11 22 19V8C22 6.89 21.11 6 20 6ZM14 6H10V4H14V6Z",
+            fill: "#969696"
+        })
+    });
+};
+
 // EXTERNAL MODULE: external "next/router"
 var router_ = __webpack_require__(1853);
 ;// CONCATENATED MODULE: ./components/sidebar/sidebar.tsx
+
 
 
 
@@ -1177,6 +984,12 @@ const sidebar_SidebarWrapper = ()=>{
                                                 title: "Students",
                                                 icon: /*#__PURE__*/ jsx_runtime_.jsx(AccountsIcon, {}),
                                                 href: "students"
+                                            }),
+                                            /*#__PURE__*/ jsx_runtime_.jsx(SidebarItem, {
+                                                isActive: router.pathname === "/shop",
+                                                title: "Shop",
+                                                icon: /*#__PURE__*/ jsx_runtime_.jsx(ProductsIcon, {}),
+                                                href: "shop"
                                             })
                                         ]
                                     })
@@ -1263,7 +1076,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _nextui_org_react__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(_nextui_org_react__WEBPACK_IMPORTED_MODULE_1__);
 /* harmony import */ var next_themes__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(1162);
 /* harmony import */ var next_themes__WEBPACK_IMPORTED_MODULE_2___default = /*#__PURE__*/__webpack_require__.n(next_themes__WEBPACK_IMPORTED_MODULE_2__);
-/* harmony import */ var _components_layout_layout__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(273);
+/* harmony import */ var _components_layout_layout__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(5136);
 /* harmony import */ var _tanstack_react_query__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(9752);
 /* harmony import */ var react__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(6689);
 /* harmony import */ var react__WEBPACK_IMPORTED_MODULE_5___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_5__);
@@ -1282,13 +1095,27 @@ _tanstack_react_query__WEBPACK_IMPORTED_MODULE_4__ = (__webpack_async_dependenci
 const lightTheme = (0,_nextui_org_react__WEBPACK_IMPORTED_MODULE_1__.createTheme)({
     type: "light",
     theme: {
-        colors: {}
+        colors: {
+            primary: "#7047EB",
+            primaryLight: "#f3e8ff",
+            sidebarBg: "#1e1b4b",
+            sidebarActive: "#2d2645",
+            sidebarText: "#a19db5"
+        }
     }
 });
 const darkTheme = (0,_nextui_org_react__WEBPACK_IMPORTED_MODULE_1__.createTheme)({
     type: "dark",
     theme: {
-        colors: {}
+        colors: {
+            primary: "#7047EB",
+            primaryLight: "#f3e8ff",
+            sidebarBg: "#1e1b4b",
+            sidebarActive: "#2d2645",
+            sidebarText: "#a19db5",
+            dangerLight: "#ffe4e6",
+            dangerLightHover: "#fecdd3"
+        }
     }
 });
 function MyApp({ Component , pageProps  }) {
@@ -1297,7 +1124,7 @@ function MyApp({ Component , pageProps  }) {
     return /*#__PURE__*/ react_jsx_runtime__WEBPACK_IMPORTED_MODULE_0__.jsx(_tanstack_react_query__WEBPACK_IMPORTED_MODULE_4__.QueryClientProvider, {
         client: queryClient,
         children: /*#__PURE__*/ react_jsx_runtime__WEBPACK_IMPORTED_MODULE_0__.jsx(next_themes__WEBPACK_IMPORTED_MODULE_2__.ThemeProvider, {
-            defaultTheme: "system",
+            defaultTheme: "light",
             attribute: "class",
             value: {
                 light: lightTheme.className,
@@ -1532,7 +1359,7 @@ module.exports = import("@tanstack/react-query");;
 var __webpack_require__ = require("../webpack-runtime.js");
 __webpack_require__.C(exports);
 var __webpack_exec__ = (moduleId) => (__webpack_require__(__webpack_require__.s = moduleId))
-var __webpack_exports__ = __webpack_require__.X(0, [676,664,965], () => (__webpack_exec__(5656)));
+var __webpack_exports__ = __webpack_require__.X(0, [676,664,483,86], () => (__webpack_exec__(5656)));
 module.exports = __webpack_exports__;
 
 })();

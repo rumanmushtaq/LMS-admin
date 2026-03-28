@@ -9,6 +9,7 @@ import {AccountsIcon} from '../icons/sidebar/accounts-icon';
 import {SidebarItem} from './sidebar-item';
 import {SidebarMenu} from './sidebar-menu';
 import {FilterIcon} from '../icons/sidebar/filter-icon';
+import {ProductsIcon} from '../icons/sidebar/products-icon';
 import {useSidebarContext} from '../layout/layout-context';
 import {useRouter} from 'next/router';
 
@@ -62,6 +63,12 @@ export const SidebarWrapper = () => {
                         title="Students"
                         icon={<AccountsIcon />}
                         href="students"
+                     />
+                     <SidebarItem
+                        isActive={router.pathname === '/shop'}
+                        title="Shop"
+                        icon={<ProductsIcon />}
+                        href="shop"
                      />
                   </SidebarMenu>
                </Sidebar.Body>

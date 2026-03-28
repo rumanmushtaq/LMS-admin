@@ -223,6 +223,7 @@ export const TableWrapper = ({ addButton }: Props) => {
           </Table>
           <Flex justify="center" css={{ mt: "$10" }}>
             <Pagination
+              color="secondary"
               shadow
               noMargin
               total={meta.totalPages}

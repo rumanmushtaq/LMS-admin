@@ -1,6 +1,6 @@
-import { useState, useRef, useCallback, useEffect } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/router";
-import Image from "next/image";
+import dynamic from 'next/dynamic';
 import {
   ArrowLeft,
   Plus,
@@ -31,6 +31,8 @@ import {
 import { Flex } from "../styles/flex";
 import { Box } from "../styles/box";
 
+const ReactQuill = dynamic(() => import('react-quill'), { ssr: false });
+
 const MAX_ITEMS = 4;
 
 type FieldsetProps = {
@@ -56,37 +58,11 @@ const Fieldset = ({ label, children }: FieldsetProps) => (
   </Card>
 );
 
-const TOOLBAR_GROUPS = [
-  [
-    { icon: Undo2, label: "Undo", command: "undo" },
-    { icon: Redo2, label: "Redo", command: "redo" },
-  ],
-  [
-    { icon: Bold, label: "Bold", command: "bold" },
-    { icon: Italic, label: "Italic", command: "italic" },
-    { icon: Underline, label: "Underline", command: "underline" },
-    { icon: Strikethrough, label: "Strikethrough", command: "strikeThrough" },
-  ],
-  [
-    { icon: Link, label: "Link", command: "createLink" },
-    { icon: ImageIcon, label: "Image", command: "insertImage" },
-    { icon: Code, label: "Code", command: "formatBlock_pre" },
-  ],
-  [
-    { icon: List, label: "Bullet List", command: "insertUnorderedList" },
-    { icon: ListOrdered, label: "Ordered List", command: "insertOrderedList" },
-  ],
-  [
-    { icon: AlignLeft, label: "Left", command: "justifyLeft" },
-    { icon: AlignCenter, label: "Center", command: "justifyCenter" },
-    { icon: AlignRight, label: "Right", command: "justifyRight" },
-  ],
-];
-
 const AddProduct = () => {
   const router = useRouter();
 
   const [title, setTitle] = useState("");
+  const [description, setDescription] = useState("");
   const [price, setPrice] = useState("");
   const [images, setImages] = useState<
     { id: number; file?: File; preview?: string }[]
@@ -98,7 +74,6 @@ const AddProduct = () => {
   const [errorMsg, setErrorMsg] = useState("");
   const [isEditing, setIsEditing] = useState(false);
 
-  // Pre-fill form if Edit ID exists in Pages Router
   useEffect(() => {
     if (router.query.id) {
       setIsEditing(true);
@@ -107,16 +82,12 @@ const AddProduct = () => {
       if (product) {
         setTitle(product.title);
         setPrice(product.price.toString());
-        if (editorRef.current) {
-          editorRef.current.innerHTML = product.description;
-        }
-        setImages([{ id: 1, preview: product.image }, { id: 2 }]);
-        setSizes(
-          product.sizes.map((s: string, i: number) => ({
-            id: i + 1,
-            value: s,
-          })),
-        );
+        setDescription(product.description || "");
+        setImages([
+           { id: 1, preview: product.image },
+           { id: 2 }
+        ]);
+        setSizes(product.sizes.map((s: string, i: number) => ({ id: i + 1, value: s })));
       }
     }
   }, [router.query.id]);
@@ -124,16 +95,11 @@ const AddProduct = () => {
   const handleSubmit = () => {
     setErrorMsg("");
     if (!title.trim()) return setErrorMsg("Product Title is required.");
-    if (!price || Number(price) <= 0)
-      return setErrorMsg("A valid Price is required.");
-    const rawDesc = editorRef.current?.innerText?.trim();
-    if (!rawDesc) return setErrorMsg("Product Description is required.");
-
-    const activeSizes = sizes
-      .filter((s) => s.value.trim() !== "")
-      .map((s) => s.value.trim());
-    if (activeSizes.length === 0)
-      return setErrorMsg("Please select at least one shirt size.");
+    if (!price || Number(price) <= 0) return setErrorMsg("A valid Price is required.");
+    if (!description || description === '<p><br></p>') return setErrorMsg("Product Description is required.");
+    
+    const activeSizes = sizes.filter(s => s.value.trim() !== "").map(s => s.value.trim());
+    if (activeSizes.length === 0) return setErrorMsg("Please select at least one shirt size.");
 
     const hasImages = images.some((img) => img.preview);
     if (!hasImages)
@@ -152,7 +118,7 @@ const AddProduct = () => {
         images.find((img) => img.preview)?.preview ||
         "/images/tshirt-black.png",
       title,
-      description: editorRef.current?.innerHTML || "",
+      description,
       price: Number(price),
       sizes: activeSizes,
       status: true,
@@ -171,30 +137,6 @@ const AddProduct = () => {
   };
 
   const fileInputRefs = useRef<Record<number, HTMLInputElement | null>>({});
-  const editorRef = useRef<HTMLDivElement>(null);
-
-  const execCommand = useCallback((command: string) => {
-    // DO NOT invoke editorRef.current?.focus() here, otherwise it drops the user's highlighted selection!
-
-    if (command === "createLink") {
-      const url = prompt("Enter URL:");
-      if (url) document.execCommand("createLink", false, url);
-      return;
-    }
-
-    if (command === "insertImage") {
-      const url = prompt("Enter image URL:");
-      if (url) document.execCommand("insertImage", false, url);
-      return;
-    }
-
-    if (command.startsWith("formatBlock_")) {
-      document.execCommand("formatBlock", false, command.split("_")[1]);
-      return;
-    }
-
-    document.execCommand(command, false);
-  }, []);
 
   const handleFileChange = (
     id: number,
@@ -203,7 +145,6 @@ const AddProduct = () => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    // Convert file strictly to Base64 so it securely persists in LocalStorage across page reloads
     const reader = new FileReader();
     reader.onloadend = () => {
       const base64String = reader.result as string;
@@ -239,48 +180,17 @@ const AddProduct = () => {
 
   return (
     <Box css={{ bg: "$background" }}>
-      {/* Header */}
-      <Flex
-        css={{
-          position: "sticky",
-          top: 0,
-          zIndex: 10,
-          bg: "$background",
-          borderBottom: "1px solid $border",
-          p: "$4",
-          px: "$8",
-          gap: "$6",
-          mb: "$8",
-          backdropFilter: "blur(8px)",
-        }}
-        align="center"
-      >
-        <Button
-          auto
-          light
-          icon={<ArrowLeft size={20} />}
-          onPress={() => router.back()}
-          css={{ minWidth: "40px", height: "40px", padding: 0 }}
-        />
-        <Flex align="center" css={{ gap: "$4" }}>
-          <Box
-            css={{
-              bg: "$primaryLight",
-              p: "$4",
-              borderRadius: "$md",
-              color: "$primary",
-            }}
-          >
-            <Package size={20} />
-          </Box>
-          <Text h3 css={{ m: 0 }}>
-            Add / Edit Product
-          </Text>
+      <Flex css={{ position: 'sticky', top: 0, zIndex: 10, bg: '$background', borderBottom: '1px solid $border', p: '$4', px: '$8', gap: '$6', mb: '$8', backdropFilter: 'blur(8px)' }} align="center">
+        <Button auto light icon={<ArrowLeft size={20} />} onPress={() => router.back()} css={{ minWidth: "40px", height: "40px", padding: 0 }} />
+        <Flex align="center" css={{ gap: '$4' }}>
+           <Box css={{ bg: '$primaryLight', p: '$4', borderRadius: '$md', color: '$primary' }}>
+              <Package size={20} />
+           </Box>
+           <Text h3 css={{ m: 0 }}>Add / Edit Product</Text>
         </Flex>
       </Flex>
 
       <Box css={{ maxWidth: "800px", margin: "0 auto", px: "$6", pb: "$12" }}>
-        {/* Title */}
         <Fieldset label="Product Title">
           <Input
             placeholder="e.g. Premium Cotton T-Shirt"
@@ -292,71 +202,21 @@ const AddProduct = () => {
           />
         </Fieldset>
 
-        {/* Description */}
         <Fieldset label="Description">
-          <Flex
-            wrap="wrap"
-            align="center"
-            css={{
-              border: "1px solid $border",
-              p: "$2",
-              gap: "$4",
-              borderRadius: "$md",
-              mb: "$4",
-            }}
-          >
-            {TOOLBAR_GROUPS.map((group, gi) => (
-              <Flex
-                key={gi}
-                align="center"
-                css={{
-                  gap: "$2",
-                  borderRight:
-                    gi !== TOOLBAR_GROUPS.length - 1
-                      ? "1px solid $border"
-                      : "none",
-                  pr: "$4",
-                }}
-              >
-                {group.map((btn) => (
-                  <Button
-                    key={btn.command}
-                    auto
-                    light
-                    color="secondary"
-                    onMouseDown={(e: any) => {
-                      e.preventDefault();
-                      execCommand(btn.command);
-                    }}
-                    icon={<btn.icon size={16} />}
-                    css={{ minWidth: "32px", height: "32px", padding: 0 }}
-                  />
-                ))}
-              </Flex>
-            ))}
-          </Flex>
-
-          <Box
-            ref={editorRef}
-            contentEditable
-            data-placeholder="Enter comprehensive product description here..."
-            css={{
-              minHeight: "150px",
-              border: "1px solid $border",
-              p: "$6",
-              borderRadius: "$md",
-              outline: "none",
-              "&:focus": { borderColor: "$primary" },
-              "&[contenteditable]:empty::before": {
-                content: "attr(data-placeholder)",
-                color: "$accents6",
-                pointerEvents: "none",
-              },
-            }}
-          />
+          <Box css={{ 
+            '& .quill': { bg: '$white', borderRadius: '$md' }, 
+            '& .ql-container.ql-snow': { border: '1px solid $border', borderBottomLeftRadius: '$md', borderBottomRightRadius: '$md', minHeight: '150px' },
+            '& .ql-toolbar.ql-snow': { border: '1px solid $border', borderTopLeftRadius: '$md', borderTopRightRadius: '$md', borderBottom: 'none' }
+          }}>
+            <ReactQuill 
+              theme="snow" 
+              value={description} 
+              onChange={setDescription} 
+              placeholder="Enter comprehensive product description here..." 
+            />
+          </Box>
         </Fieldset>
 
-        {/* Price */}
         <Fieldset label="Price">
           <Input
             type="number"
@@ -369,7 +229,6 @@ const AddProduct = () => {
           />
         </Fieldset>
 
-        {/* Images */}
         <Fieldset label="Product Images">
           <Flex css={{ gap: "$8", width: "100%", flexWrap: "wrap" }}>
             {images.map((img, index) => (
@@ -446,19 +305,12 @@ const AddProduct = () => {
           </Flex>
 
           {images.length < MAX_ITEMS && (
-            <Button
-              auto
-              flat
-              color="secondary"
-              icon={<Plus size={16} />}
-              onPress={addImage}
-            >
-              Add Image Slot
+            <Button css={{ mt: '$6' }} auto flat color="secondary" icon={<Plus size={16} />} onPress={addImage}>
+               Add Image Slot
             </Button>
           )}
         </Fieldset>
 
-        {/* Sizes */}
         <Fieldset label="Sizes">
           {sizes.map((size) => (
             <Flex key={size.id} align="center" css={{ gap: "$4", mb: "$4" }}>
@@ -498,7 +350,6 @@ const AddProduct = () => {
           )}
         </Fieldset>
 
-        {/* Actions */}
         <Flex direction="column" css={{ gap: "$4", pt: "$8" }}>
           {errorMsg && (
             <Text color="error" css={{ fontWeight: "bold" }}>

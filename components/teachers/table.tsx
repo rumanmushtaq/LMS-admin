@@ -336,7 +336,7 @@ export const TableWrapper = ({ addButton }: Props) => {
             <Table.Body items={teachers}>
               {(item: any) => (
                 <Table.Row key={item._id}>
-                  {(columnKey) => (
+                  {(columnKey: any) => (
                     <Table.Cell>
                       {RenderCell({
                         teacher: item,

@@ -143,7 +143,10 @@ export default function ProductTable() {
 
         <h5 className="text-lg font-semibold text-purple-700">Product</h5>
 
-        <button className="flex items-center gap-2 bg-purple-600 text-white px-4 py-2 rounded-lg shadow hover:bg-purple-700 transition">
+        <button 
+          onClick={() => router.push('/create-product')}
+          className="flex items-center gap-2 bg-purple-600 text-white px-4 py-2 rounded-lg shadow hover:bg-purple-700 transition"
+        >
           <Plus className="w-4 h-4" />
           Add Product
         </button>
@@ -229,7 +232,10 @@ export default function ProductTable() {
                   </td>
 
                   <td className="p-3 flex gap-2">
-                    <button className="p-2 rounded-lg hover:bg-purple-100 text-purple-600">
+                    <button 
+                      onClick={() => router.push('/create-product')}
+                      className="p-2 rounded-lg hover:bg-purple-100 text-purple-600"
+                    >
                       <Pencil size={16} />
                     </button>
                     <button className="p-2 rounded-lg hover:bg-pink-100 text-pink-600">

@@ -60,7 +60,7 @@ export const SidebarCollapseItem = ({icon, items, title, isActive}: Props) => {
                {items.map((item, index) => {
                   const isSubActive = router.pathname === item.href;
                   return (
-                     <NextLink href={item.href} key={index}>
+                     <NextLink href={item.href} key={index} legacyBehavior>
                         <a
                            onClick={handleClick}
                            className={`px-4 py-2.5 rounded-lg transition-colors text-sm font-medium ${

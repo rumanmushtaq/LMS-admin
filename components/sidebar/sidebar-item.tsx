@@ -19,7 +19,7 @@ export const SidebarItem = ({icon, title, isActive, href = ''}: Props) => {
    };
    
    return (
-      <NextLink href={href}>
+      <NextLink href={href} legacyBehavior>
          <a
             onClick={handleClick}
             className={`flex items-center gap-4 w-full min-h-[44px] h-full px-7 rounded-lg cursor-pointer transition-all duration-150 active:scale-95 ${

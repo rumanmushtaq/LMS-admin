@@ -7,6 +7,7 @@ import {CompaniesDropdown} from './companies-dropdown';
 import {HomeIcon} from '../icons/sidebar/home-icon';
 import {AccountsIcon} from '../icons/sidebar/accounts-icon';
 import {SidebarItem} from './sidebar-item';
+import {SidebarCollapseItem} from './sidebar-collapse-item';
 import {SidebarMenu} from './sidebar-menu';
 import {FilterIcon} from '../icons/sidebar/filter-icon';
 import {ProductsIcon} from '../icons/sidebar/products-icon';
@@ -64,11 +65,14 @@ export const SidebarWrapper = () => {
                         icon={<AccountsIcon />}
                         href="students"
                      />
-                     <SidebarItem
-                        isActive={router.pathname === '/shop'}
+                     <SidebarCollapseItem
+                        isActive={router.pathname === '/shop' || router.pathname === '/create-product'}
                         title="Shop"
                         icon={<ProductsIcon />}
-                        href="shop"
+                        items={[
+                           { title: 'Product List', href: '/shop' },
+                           { title: 'Add Product', href: '/create-product' }
+                        ]}
                      />
                   </SidebarMenu>
                </Sidebar.Body>

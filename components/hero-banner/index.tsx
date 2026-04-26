@@ -24,7 +24,7 @@ export const HeroBanners = () => {
       <Breadcrumbs>
         <Crumb>
           <HouseIcon />
-          <Link href={"/"}>
+          <Link href={"/"} legacyBehavior>
             <CrumbLink href="#">Home</CrumbLink>
           </Link>
           <Text>/</Text>

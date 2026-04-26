@@ -285,6 +285,61 @@ class AdminService {
     );
     return data;
   }
+
+  // =====================
+  // TUTOR MANAGEMENT
+  // =====================
+
+  /**
+   * GET /api/v1/admin/tutors
+   */
+  async getTutors(query: StudentQuery = {}): Promise<any> {
+    const params = new URLSearchParams();
+    if (query.search) params.append("search", query.search);
+    if (query.status) params.append("status", query.status);
+    if (query.startDate) params.append("startDate", query.startDate);
+    if (query.endDate) params.append("endDate", query.endDate);
+    if (query.page) params.append("page", String(query.page));
+    if (query.limit) params.append("limit", String(query.limit));
+    if (query.sortBy) params.append("sortBy", query.sortBy);
+    if (query.sortOrder) params.append("sortOrder", query.sortOrder);
+    if (query.emailVerified !== undefined)
+      params.append("emailVerified", String(query.emailVerified));
+
+    const { data } = await HTTP_CLIENT.get(
+      `${apiEndpoints.Admin.TUTORS}?${params.toString()}`,
+    );
+    return data;
+  }
+
+  /**
+   * GET /api/v1/admin/tutors/:id
+   */
+  async getTutorById(id: string): Promise<any> {
+    const { data } = await HTTP_CLIENT.get(apiEndpoints.Admin.TUTOR_BY_ID(id));
+    return data;
+  }
+
+  /**
+   * POST /api/v1/admin/tutors/:id/approve
+   */
+  async approveTutor(id: string): Promise<any> {
+    const { data } = await HTTP_CLIENT.post(
+      apiEndpoints.Admin.APPROVE_TUTOR(id),
+    );
+    return data;
+  }
+
+  /**
+   * POST /api/v1/admin/tutors/:id/reject
+   */
+  async rejectTutor(id: string, reason?: string): Promise<any> {
+    const { data } = await HTTP_CLIENT.post(
+      apiEndpoints.Admin.REJECT_TUTOR(id),
+      { reason },
+    );
+    return data;
+  }
 }
 
 export default new AdminService();

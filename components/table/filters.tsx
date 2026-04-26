@@ -13,6 +13,8 @@ interface Props {
   status?: string;
   onStatusChange?: (value: any) => void;
   statusOptions?: { key: string; label: string }[];
+  emailVerified?: string;
+  onEmailVerifiedChange?: (value: any) => void;
   onExport?: () => void;
   addButton?: React.ReactNode;
 }
@@ -27,6 +29,8 @@ export const TableFilters = ({
   status,
   onStatusChange,
   statusOptions,
+  emailVerified,
+  onEmailVerifiedChange,
   onExport,
   addButton,
 }: Props) => {
@@ -72,9 +76,32 @@ export const TableFilters = ({
               onAction={onStatusChange}
               selectedKeys={status ? [status] : []}
             >
-              {[{ key: "all", label: "All Status" }, ...statusOptions].map((opt) => (
-                <Dropdown.Item key={opt.key}>{opt.label}</Dropdown.Item>
-              ))}
+              {[{ key: "all", label: "All Status" }, ...statusOptions].map(
+                (opt) => (
+                  <Dropdown.Item key={opt.key}>{opt.label}</Dropdown.Item>
+                ),
+              )}
+            </Dropdown.Menu>
+          </Dropdown>
+        )}
+
+        {onEmailVerifiedChange && (
+          <Dropdown>
+            <Dropdown.Button flat color="secondary" css={{ tt: "capitalize" }}>
+              {emailVerified === "true"
+                ? "Verified"
+                : emailVerified === "false"
+                  ? "Not Verified"
+                  : "All Verification"}
+            </Dropdown.Button>
+            <Dropdown.Menu
+              aria-label="Email Verification Filter"
+              onAction={onEmailVerifiedChange}
+              selectedKeys={emailVerified ? [emailVerified] : []}
+            >
+              <Dropdown.Item key="all">All Verification</Dropdown.Item>
+              <Dropdown.Item key="true">Verified</Dropdown.Item>
+              <Dropdown.Item key="false">Not Verified</Dropdown.Item>
             </Dropdown.Menu>
           </Dropdown>
         )}
@@ -83,10 +110,11 @@ export const TableFilters = ({
           <Input
             type="date"
             bordered
-            labelLeft="From"
+            label="From"
+            labelPlaceholder="From Date"
             value={startDate}
             onChange={(e) => onStartDateChange(e.target.value)}
-            css={{ maxW: "180px" }}
+            css={{ width: "200px" }}
           />
         )}
 
@@ -94,17 +122,24 @@ export const TableFilters = ({
           <Input
             type="date"
             bordered
-            labelLeft="To"
+            label="To"
+            labelPlaceholder="To Date"
             value={endDate}
             onChange={(e) => onEndDateChange(e.target.value)}
-            css={{ maxW: "180px" }}
+            css={{ width: "200px" }}
           />
         )}
       </Flex>
 
       <Flex direction={"row"} css={{ gap: "$6" }} wrap={"wrap"}>
         {addButton}
-        <Button auto flat iconRight={<ExportIcon />} onClick={onExport} css={{ bg: '#7047EB', color: '$white' }}>
+        <Button
+          auto
+          flat
+          iconRight={<ExportIcon />}
+          onClick={onExport}
+          css={{ bg: "#7047EB", color: "$white" }}
+        >
           Export
         </Button>
       </Flex>

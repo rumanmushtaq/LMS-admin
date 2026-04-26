@@ -10,6 +10,7 @@ import {
   Search,
   Plus,
 } from "lucide-react";
+import Image from "next/image";
 
 interface Product {
   id: number;
@@ -22,12 +23,60 @@ interface Product {
 }
 
 const PRODUCTS: Product[] = [
-  { id: 1, image: "/images/tshirt-blue.png", title: "Classic Blue T-Shirt", description: "Comfortable and lightweight blue T-shirt.", price: 22.99, sizes: ["S","M","L","XL"], status: true },
-  { id: 2, image: "/images/tshirt-red.png", title: "Classic Red T-Shirt", description: "Comfortable and lightweight red T-shirt.", price: 18.99, sizes: ["S","M","L","XL"], status: true },
-  { id: 3, image: "/images/tshirt-white.png", title: "Classic White T-Shirt", description: "Comfortable and lightweight white T-shirt.", price: 18.99, sizes: ["S","M","L","XL"], status: true },
-  { id: 4, image: "/images/tshirt-white2.png", title: "Stylish White T-Shirt", description: "Bright stylish white T-shirt.", price: 21.99, sizes: ["S","M","L","XL"], status: true },
-  { id: 5, image: "/images/tshirt-blue.png", title: "Ocean Blue T-Shirt", description: "Cool ocean blue casual t-shirt.", price: 24.99, sizes: ["S","M","L"], status: true },
-  { id: 6, image: "/images/tshirt-white.png", title: "Premium White Tee", description: "Premium quality white cotton tee.", price: 29.99, sizes: ["M","L","XL"], status: false },
+  {
+    id: 1,
+    image: "/images/tshirt-blue.png",
+    title: "Classic Blue T-Shirt",
+    description: "Comfortable and lightweight blue T-shirt.",
+    price: 22.99,
+    sizes: ["S", "M", "L", "XL"],
+    status: true,
+  },
+  {
+    id: 2,
+    image: "/images/tshirt-red.png",
+    title: "Classic Red T-Shirt",
+    description: "Comfortable and lightweight red T-shirt.",
+    price: 18.99,
+    sizes: ["S", "M", "L", "XL"],
+    status: true,
+  },
+  {
+    id: 3,
+    image: "/images/tshirt-white.png",
+    title: "Classic White T-Shirt",
+    description: "Comfortable and lightweight white T-shirt.",
+    price: 18.99,
+    sizes: ["S", "M", "L", "XL"],
+    status: true,
+  },
+  {
+    id: 4,
+    image: "/images/tshirt-white2.png",
+    title: "Stylish White T-Shirt",
+    description: "Bright stylish white T-shirt.",
+    price: 21.99,
+    sizes: ["S", "M", "L", "XL"],
+    status: true,
+  },
+  {
+    id: 5,
+    image: "/images/tshirt-blue.png",
+    title: "Ocean Blue T-Shirt",
+    description: "Cool ocean blue casual t-shirt.",
+    price: 24.99,
+    sizes: ["S", "M", "L"],
+    status: true,
+  },
+  {
+    id: 6,
+    image: "/images/tshirt-white.png",
+    title: "Premium White Tee",
+    description: "Premium quality white cotton tee.",
+    price: 29.99,
+    sizes: ["M", "L", "XL"],
+    status: false,
+  },
 ];
 
 export default function ProductTable() {
@@ -36,27 +85,27 @@ export default function ProductTable() {
   const [search, setSearch] = useState("");
   const [entriesPerPage, setEntriesPerPage] = useState(5);
   const [currentPage, setCurrentPage] = useState(1);
-  const [sortField, setSortField] = useState<"title" | "description" | null>(null);
+  const [sortField, setSortField] = useState<"title" | "description" | null>(
+    null,
+  );
   const [sortDir, setSortDir] = useState<"asc" | "desc">("asc");
 
   const [statusMap, setStatusMap] = useState(() =>
-    Object.fromEntries(PRODUCTS.map((p) => [p.id, p.status]))
+    Object.fromEntries(PRODUCTS.map((p) => [p.id, p.status])),
   );
 
   const filtered = useMemo(() => {
     let list = PRODUCTS.filter(
       (p) =>
         p.title.toLowerCase().includes(search.toLowerCase()) ||
-        p.description.toLowerCase().includes(search.toLowerCase())
+        p.description.toLowerCase().includes(search.toLowerCase()),
     );
 
     if (sortField) {
       list = [...list].sort((a, b) => {
         const va = a[sortField].toLowerCase();
         const vb = b[sortField].toLowerCase();
-        return sortDir === "asc"
-          ? va.localeCompare(vb)
-          : vb.localeCompare(va);
+        return sortDir === "asc" ? va.localeCompare(vb) : vb.localeCompare(va);
       });
     }
 
@@ -68,7 +117,7 @@ export default function ProductTable() {
   const paginatedData = useMemo(() => {
     return filtered.slice(
       (currentPage - 1) * entriesPerPage,
-      currentPage * entriesPerPage
+      currentPage * entriesPerPage,
     );
   }, [filtered, currentPage, entriesPerPage]);
 
@@ -83,7 +132,6 @@ export default function ProductTable() {
 
   return (
     <div className="flex-1 min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-white">
-
       {/* Header */}
       <header className="h-16 bg-white/70 backdrop-blur-md border-b flex items-center justify-between px-6 shadow-sm">
         <button
@@ -93,9 +141,7 @@ export default function ProductTable() {
           <ArrowLeft className="w-5 h-5 text-purple-600" />
         </button>
 
-        <h5 className="text-lg font-semibold text-purple-700">
-          Product 
-        </h5>
+        <h5 className="text-lg font-semibold text-purple-700">Product</h5>
 
         <button className="flex items-center gap-2 bg-purple-600 text-white px-4 py-2 rounded-lg shadow hover:bg-purple-700 transition">
           <Plus className="w-4 h-4" />
@@ -104,7 +150,6 @@ export default function ProductTable() {
       </header>
 
       <div className="p-6">
-
         {/* Search */}
         <div className="relative mb-6 max-w-md">
           <Search className="absolute left-3 top-3 w-4 h-4 text-gray-400" />
@@ -121,7 +166,6 @@ export default function ProductTable() {
 
         {/* Table Card */}
         <div className="bg-white rounded-2xl shadow-lg overflow-hidden">
-
           <table className="w-full text-sm">
             <thead className="bg-gradient-to-r from-purple-600 to-pink-400 text-white">
               <tr>
@@ -149,19 +193,18 @@ export default function ProductTable() {
                   <td className="p-3">{p.id}</td>
 
                   <td className="p-3">
-                    <img
+                    <Image
                       src={p.image}
-                      className="w-10 h-10 rounded-lg object-cover border"
+                      alt={p.title}
+                      width={40}
+                      height={40}
+                      className="rounded-lg object-cover border"
                     />
                   </td>
 
-                  <td className="p-3 font-medium text-gray-800">
-                    {p.title}
-                  </td>
+                  <td className="p-3 font-medium text-gray-800">{p.title}</td>
 
-                  <td className="p-3 text-gray-500">
-                    {p.description}
-                  </td>
+                  <td className="p-3 text-gray-500">{p.description}</td>
 
                   <td className="p-3 font-semibold text-purple-600">
                     ${p.price}

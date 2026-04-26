@@ -1,34 +1,34 @@
-import React, {useState} from 'react';
-import {Box} from '../styles/box';
-import {Sidebar} from './sidebar.styles';
-import {Avatar, Tooltip} from '@nextui-org/react';
-import {Flex} from '../styles/flex';
-import {CompaniesDropdown} from './companies-dropdown';
-import {HomeIcon} from '../icons/sidebar/home-icon';
-import {AccountsIcon} from '../icons/sidebar/accounts-icon';
-import {SidebarItem} from './sidebar-item';
-import {SidebarCollapseItem} from './sidebar-collapse-item';
-import {SidebarMenu} from './sidebar-menu';
-import {FilterIcon} from '../icons/sidebar/filter-icon';
-import {ProductsIcon} from '../icons/sidebar/products-icon';
-import {useSidebarContext} from '../layout/layout-context';
-import {useRouter} from 'next/router';
+import React, { useState } from "react";
+import { Box } from "../styles/box";
+import { Sidebar } from "./sidebar.styles";
+import { Avatar, Tooltip } from "@nextui-org/react";
+import { Flex } from "../styles/flex";
+import { CompaniesDropdown } from "./companies-dropdown";
+import { HomeIcon } from "../icons/sidebar/home-icon";
+import { AccountsIcon } from "../icons/sidebar/accounts-icon";
+import { SidebarItem } from "./sidebar-item";
+import { SidebarMenu } from "./sidebar-menu";
+import { FilterIcon } from "../icons/sidebar/filter-icon";
+import { ProductsIcon } from "../icons/sidebar/products-icon";
+import { useSidebarContext } from "../layout/layout-context";
+import { useRouter } from "next/router";
+import { SidebarCollapseItem } from "./sidebar-collapse-item";
 
 export const SidebarWrapper = () => {
-   const router = useRouter();
-   const {collapsed, setCollapsed} = useSidebarContext();
+  const router = useRouter();
+  const { collapsed, setCollapsed } = useSidebarContext();
 
-   return (
-      <Box
-         as="aside"
-         css={{
-            height: '100vh',
-            zIndex: 202,
-            position: 'sticky',
-            top: '0',
-         }}
-      >
-         {collapsed ? <Sidebar.Overlay onClick={setCollapsed} /> : null}
+  return (
+    <Box
+      as="aside"
+      css={{
+        height: "100vh",
+        zIndex: 202,
+        position: "sticky",
+        top: "0",
+      }}
+    >
+      {collapsed ? <Sidebar.Overlay onClick={setCollapsed} /> : null}
 
          <Sidebar collapsed={collapsed}>
             <Sidebar.Header>

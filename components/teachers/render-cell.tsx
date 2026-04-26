@@ -1,4 +1,5 @@
 import { Col, Row, Text, Tooltip, User, Dropdown } from "@nextui-org/react";
+import Link from "next/link";
 import React from "react";
 import { DeleteIcon } from "../icons/table/delete-icon";
 import { EditIcon } from "../icons/table/edit-icon";
@@ -9,9 +10,15 @@ interface Props {
   teacher: any;
   columnKey: string | React.Key;
   onRefresh?: () => void;
+  onVerify?: () => void;
 }
 
-export const RenderCell = ({ teacher, columnKey, onRefresh }: Props) => {
+export const RenderCell = ({
+  teacher,
+  columnKey,
+  onRefresh,
+  onVerify,
+}: Props) => {
   // @ts-ignore
   const cellValue = teacher[columnKey];
 
@@ -26,9 +33,18 @@ export const RenderCell = ({ teacher, columnKey, onRefresh }: Props) => {
   switch (columnKey) {
     case "name":
       return (
-        <User squared src={teacher.avatar} name={getFullName()} css={{ p: 0 }}>
-          {teacher.email}
-        </User>
+        <Link href={`/teachers/${teacher._id || teacher.id}`}>
+          <div style={{ cursor: "pointer" }}>
+            <User
+              squared
+              src={teacher.avatar}
+              name={getFullName()}
+              css={{ p: 0 }}
+            >
+              {teacher.email}
+            </User>
+          </div>
+        </Link>
       );
     case "subject":
       return (
@@ -72,13 +88,12 @@ export const RenderCell = ({ teacher, columnKey, onRefresh }: Props) => {
           css={{ gap: "$8", "@md": { gap: 0 } }}
         >
           <Col css={{ d: "flex" }}>
-            <Tooltip content="Details">
-              <IconButton
-                onClick={() =>
-                  console.log("View teacher", teacher._id || teacher.id)
-                }
-              >
-                <EyeIcon size={20} fill="#979797" />
+            <Tooltip content="Review & Verify">
+              <IconButton onClick={() => onVerify && onVerify()}>
+                <EyeIcon
+                  size={20}
+                  fill={teacher.status === "pending" ? "#6366f1" : "#979797"}
+                />
               </IconButton>
             </Tooltip>
           </Col>
@@ -115,7 +130,11 @@ export const RenderCell = ({ teacher, columnKey, onRefresh }: Props) => {
               <Dropdown.Menu
                 aria-label="Teacher Actions"
                 onAction={(action) => {
-                  if (action === "delete") {
+                  if (action === "view") {
+                    window.location.href = `/teachers/${
+                      teacher._id || teacher.id
+                    }`;
+                  } else if (action === "delete") {
                     if (
                       confirm(
                         `Are you sure you want to delete ${getFullName()}?`,
@@ -169,6 +188,9 @@ export const RenderCell = ({ teacher, columnKey, onRefresh }: Props) => {
                   }
                 }}
               >
+                <Dropdown.Item key="view" color="primary">
+                  View Detail
+                </Dropdown.Item>
                 <Dropdown.Item key="suspend" color="warning">
                   Suspend Teacher
                 </Dropdown.Item>

@@ -53,7 +53,7 @@ export const TableWrapper = ({ addButton }: TableWrapperProps) => {
         >
           {(item: any) => (
             <Table.Row key={item._id}>
-              {(columnKey) => (
+              {(columnKey: any) => (
                 <Table.Cell>
                   {RenderCell({ user: item, columnKey: columnKey })}
                 </Table.Cell>

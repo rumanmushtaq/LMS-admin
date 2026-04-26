@@ -36,9 +36,9 @@ export const TableWrapper = () => {
           )}
         </Table.Header>
         <Table.Body items={users}>
-          {(item) => (
+          {(item: any) => (
             <Table.Row key={item.id}>
-              {(columnKey) => (
+              {(columnKey: any) => (
                 <Table.Cell>
                   {RenderCell({ user: item, columnKey: columnKey })}
                 </Table.Cell>

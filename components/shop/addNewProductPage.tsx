@@ -2,9 +2,32 @@ import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/router";
 import dynamic from 'next/dynamic';
 import {
-  ArrowLeft, Plus, X, Package
+  ArrowLeft,
+  Plus,
+  X,
+  Bold,
+  Italic,
+  Link,
+  Image as ImageIcon,
+  Code,
+  List,
+  ListOrdered,
+  AlignLeft,
+  AlignCenter,
+  AlignRight,
+  Undo2,
+  Redo2,
+  Underline,
+  Strikethrough,
+  Package,
 } from "lucide-react";
-import { Input, Button, Text, Card } from "@nextui-org/react";
+import {
+  Input,
+  Button,
+  Text,
+  Card,
+  Image as NextUIImage,
+} from "@nextui-org/react";
 import { Flex } from "../styles/flex";
 import { Box } from "../styles/box";
 
@@ -18,8 +41,17 @@ type FieldsetProps = {
 };
 
 const Fieldset = ({ label, children }: FieldsetProps) => (
-  <Card css={{ p: "$8", mb: "$8", overflow: 'visible', w: '100%' }}>
-    <Text h4 css={{ mb: "$6", color: "$accents8", textTransform: 'uppercase', letterSpacing: '0.05em', fontSize: '$sm' }}>
+  <Card css={{ p: "$8", mb: "$8", overflow: "visible", w: "100%" }}>
+    <Text
+      h4
+      css={{
+        mb: "$6",
+        color: "$accents8",
+        textTransform: "uppercase",
+        letterSpacing: "0.05em",
+        fontSize: "$sm",
+      }}
+    >
       {label}
     </Text>
     {children}
@@ -32,9 +64,9 @@ const AddProduct = () => {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [price, setPrice] = useState("");
-  const [images, setImages] = useState<{ id: number; file?: File; preview?: string }[]>([
-    { id: 1 }, { id: 2 },
-  ]);
+  const [images, setImages] = useState<
+    { id: number; file?: File; preview?: string }[]
+  >([{ id: 1 }, { id: 2 }]);
   const [sizes, setSizes] = useState<{ id: number; value: string }[]>([
     { id: 1, value: "" },
     { id: 2, value: "" },
@@ -45,7 +77,7 @@ const AddProduct = () => {
   useEffect(() => {
     if (router.query.id) {
       setIsEditing(true);
-      const stored = JSON.parse(localStorage.getItem('shop_products') || '[]');
+      const stored = JSON.parse(localStorage.getItem("shop_products") || "[]");
       const product = stored.find((p: any) => p.id === Number(router.query.id));
       if (product) {
         setTitle(product.title);
@@ -69,35 +101,47 @@ const AddProduct = () => {
     const activeSizes = sizes.filter(s => s.value.trim() !== "").map(s => s.value.trim());
     if (activeSizes.length === 0) return setErrorMsg("Please select at least one shirt size.");
 
-    const hasImages = images.some(img => img.preview);
-    if (!hasImages) return setErrorMsg("At least one product image is required.");
+    const hasImages = images.some((img) => img.preview);
+    if (!hasImages)
+      return setErrorMsg("At least one product image is required.");
 
-    const stored = JSON.parse(localStorage.getItem('shop_products') || '[]');
+    const stored = JSON.parse(localStorage.getItem("shop_products") || "[]");
     let updatedProducts = [...stored];
-    
+
     const productData = {
-      id: isEditing ? Number(router.query.id) : (stored.length > 0 ? Math.max(...stored.map((p: any) => p.id)) + 1 : 1),
-      image: images.find(img => img.preview)?.preview || "/images/tshirt-black.png",
+      id: isEditing
+        ? Number(router.query.id)
+        : stored.length > 0
+          ? Math.max(...stored.map((p: any) => p.id)) + 1
+          : 1,
+      image:
+        images.find((img) => img.preview)?.preview ||
+        "/images/tshirt-black.png",
       title,
       description,
       price: Number(price),
       sizes: activeSizes,
-      status: true
+      status: true,
     };
 
     if (isEditing) {
-      updatedProducts = updatedProducts.map((p: any) => p.id === productData.id ? productData : p);
+      updatedProducts = updatedProducts.map((p: any) =>
+        p.id === productData.id ? productData : p,
+      );
     } else {
       updatedProducts.push(productData);
     }
 
-    localStorage.setItem('shop_products', JSON.stringify(updatedProducts));
-    router.push('/shop');
+    localStorage.setItem("shop_products", JSON.stringify(updatedProducts));
+    router.push("/shop");
   };
 
   const fileInputRefs = useRef<Record<number, HTMLInputElement | null>>({});
 
-  const handleFileChange = (id: number, e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = (
+    id: number,
+    e: React.ChangeEvent<HTMLInputElement>,
+  ) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
@@ -105,7 +149,9 @@ const AddProduct = () => {
     reader.onloadend = () => {
       const base64String = reader.result as string;
       setImages((prev) =>
-        prev.map((img) => (img.id === id ? { ...img, file, preview: base64String } : img))
+        prev.map((img) =>
+          img.id === id ? { ...img, file, preview: base64String } : img,
+        ),
       );
     };
     reader.readAsDataURL(file);
@@ -130,9 +176,7 @@ const AddProduct = () => {
   };
 
   const updateSize = (id: number, v: string) =>
-    setSizes((prev) =>
-      prev.map((s) => (s.id === id ? { ...s, value: v } : s))
-    );
+    setSizes((prev) => prev.map((s) => (s.id === id ? { ...s, value: v } : s)));
 
   return (
     <Box css={{ bg: "$background" }}>
@@ -186,35 +230,77 @@ const AddProduct = () => {
         </Fieldset>
 
         <Fieldset label="Product Images">
-          <Flex css={{ gap: '$8', width: '100%', flexWrap: 'wrap' }}>
+          <Flex css={{ gap: "$8", width: "100%", flexWrap: "wrap" }}>
             {images.map((img, index) => (
-               <Flex key={img.id} direction="column" css={{ position: 'relative' }}>
-                  {img.preview ? (
-                     <Box css={{ position: 'relative', width: '200px', height: '260px', borderRadius: '$md', overflow: 'hidden', border: '1px solid $border' }}>
-                        <img src={img.preview} alt="preview" style={{ objectFit: 'cover', width: '100%', height: '100%' }} />
-                        <Button
-                           auto
-                           color="error"
-                           css={{ position: 'absolute', top: 8, right: 8, minWidth: '28px', height: '28px', padding: 0, borderRadius: '50%' }}
-                           onPress={() => setImages((prev) => prev.map((i) => (i.id === img.id ? { id: i.id } : i)))}
-                        >
-                           ×
-                        </Button>
-                     </Box>
-                  ) : (
-                     <Button auto light css={{ border: '2px dashed $border', width: '200px', height: '260px', borderRadius: '$md', background: '$accents1' }} onPress={() => fileInputRefs.current[img.id]?.click()}>
-                        + Upload Image {index + 1}
-                     </Button>
-                  )}
+              <Flex
+                key={img.id}
+                direction="column"
+                css={{ position: "relative" }}
+              >
+                {img.preview ? (
+                  <Box
+                    css={{
+                      position: "relative",
+                      width: "200px",
+                      height: "260px",
+                      borderRadius: "$md",
+                      overflow: "hidden",
+                      border: "1px solid $border",
+                    }}
+                  >
+                    <NextUIImage
+                      src={img.preview}
+                      alt="preview"
+                      width="100%"
+                      height="100%"
+                      objectFit="cover"
+                    />
+                    <Button
+                      auto
+                      color="error"
+                      css={{
+                        position: "absolute",
+                        top: 8,
+                        right: 8,
+                        minWidth: "28px",
+                        height: "28px",
+                        padding: 0,
+                        borderRadius: "50%",
+                      }}
+                      onPress={() =>
+                        setImages((prev) =>
+                          prev.map((i) => (i.id === img.id ? { id: i.id } : i)),
+                        )
+                      }
+                    >
+                      ×
+                    </Button>
+                  </Box>
+                ) : (
+                  <Button
+                    auto
+                    light
+                    css={{
+                      border: "2px dashed $border",
+                      width: "200px",
+                      height: "260px",
+                      borderRadius: "$md",
+                      background: "$accents1",
+                    }}
+                    onPress={() => fileInputRefs.current[img.id]?.click()}
+                  >
+                    + Upload Image {index + 1}
+                  </Button>
+                )}
 
-                  <input
-                    type="file"
-                    ref={(el) => (fileInputRefs.current[img.id] = el)}
-                    style={{ display: "none" }}
-                    accept="image/*"
-                    onChange={(e) => handleFileChange(img.id, e)}
-                  />
-               </Flex>
+                <input
+                  type="file"
+                  ref={(el) => (fileInputRefs.current[img.id] = el)}
+                  style={{ display: "none" }}
+                  accept="image/*"
+                  onChange={(e) => handleFileChange(img.id, e)}
+                />
+              </Flex>
             ))}
           </Flex>
 
@@ -235,32 +321,61 @@ const AddProduct = () => {
                 fullWidth
                 size="lg"
               />
-              <Button auto flat color="error" icon={<X size={16} color="#f43f5e" />} css={{ bg: "$dangerLight", minWidth: "32px", height: "32px", padding: 0 }} onPress={() => removeSize(size.id)} />
+              <Button
+                auto
+                flat
+                color="error"
+                icon={<X size={16} color="#f43f5e" />}
+                css={{
+                  bg: "$dangerLight",
+                  minWidth: "32px",
+                  height: "32px",
+                  padding: 0,
+                }}
+                onPress={() => removeSize(size.id)}
+              />
             </Flex>
           ))}
 
           {sizes.length < MAX_ITEMS && (
-            <Button auto flat color="secondary" icon={<Plus size={16} />} onPress={addSize}>
-               Add Size
+            <Button
+              auto
+              flat
+              color="secondary"
+              icon={<Plus size={16} />}
+              onPress={addSize}
+            >
+              Add Size
             </Button>
           )}
         </Fieldset>
 
         <Flex direction="column" css={{ gap: "$4", pt: "$8" }}>
           {errorMsg && (
-            <Text color="error" css={{ fontWeight: 'bold' }}>{errorMsg}</Text>
+            <Text color="error" css={{ fontWeight: "bold" }}>
+              {errorMsg}
+            </Text>
           )}
           <Flex css={{ gap: "$4" }}>
-            <Button auto css={{ bg: '#7047EB', color: '$white', px: '$12' }} onPress={handleSubmit}>
+            <Button
+              auto
+              css={{ bg: "#7047EB", color: "$white", px: "$12" }}
+              onPress={handleSubmit}
+            >
               Submit Product
             </Button>
 
-            <Button auto flat color="secondary" css={{ px: '$12' }} onPress={() => router.back()}>
+            <Button
+              auto
+              flat
+              color="secondary"
+              css={{ px: "$12" }}
+              onPress={() => router.back()}
+            >
               Cancel
             </Button>
           </Flex>
         </Flex>
-
       </Box>
     </Box>
   );

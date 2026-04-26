@@ -103,7 +103,15 @@ export const TableWrapper = ({ addButton }: Props) => {
   useEffect(() => {
     fetchStudents(1, searchTerm, status, startDate, endDate, sortBy, sortOrder);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [fetchStudents, searchTerm, status, startDate, endDate, sortBy, sortOrder]);
+  }, [
+    fetchStudents,
+    searchTerm,
+    status,
+    startDate,
+    endDate,
+    sortBy,
+    sortOrder,
+  ]);
 
   // Debounced search
   const debouncedSearch = useCallback(
@@ -120,13 +128,30 @@ export const TableWrapper = ({ addButton }: Props) => {
       fetchStudents(1, "", status, startDate, endDate, sortBy, sortOrder);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [searchTerm, debouncedSearch, fetchStudents, status, startDate, endDate, sortBy, sortOrder]);
+  }, [
+    searchTerm,
+    debouncedSearch,
+    fetchStudents,
+    status,
+    startDate,
+    endDate,
+    sortBy,
+    sortOrder,
+  ]);
 
   // Effect for filters
   useEffect(() => {
     fetchStudents(1, searchTerm, status, startDate, endDate, sortBy, sortOrder);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [status, startDate, endDate, searchTerm, fetchStudents, sortBy, sortOrder]);
+  }, [
+    status,
+    startDate,
+    endDate,
+    searchTerm,
+    fetchStudents,
+    sortBy,
+    sortOrder,
+  ]);
 
   // Handle page change
   const handlePageChange = (page: number) => {
@@ -206,9 +231,9 @@ export const TableWrapper = ({ addButton }: Props) => {
               )}
             </Table.Header>
             <Table.Body items={students}>
-              {(item) => (
+              {(item: any) => (
                 <Table.Row key={item._id}>
-                  {(columnKey) => (
+                  {(columnKey: any) => (
                     <Table.Cell>
                       {RenderCell({
                         student: item,

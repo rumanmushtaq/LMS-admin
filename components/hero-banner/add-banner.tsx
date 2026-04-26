@@ -5,6 +5,7 @@ import {
   Modal,
   Text,
   Loading,
+  Image,
 } from "@nextui-org/react";
 import React, { useState, useEffect, useRef } from "react";
 import { useForm } from "react-hook-form";
@@ -166,15 +167,13 @@ export const AddBanner = ({ banner, isEdit }: AddBannerProps) => {
                 />
               </Flex>
               {imageUrl && (
-                <img
+                <Image
                   src={imageUrl}
                   alt="Preview"
-                  style={{
-                    width: "100px",
-                    height: "60px",
-                    objectFit: "cover",
-                    borderRadius: "8px",
-                  }}
+                  width={100}
+                  height={60}
+                  objectFit="cover"
+                  css={{ borderRadius: "8px" }}
                 />
               )}
               <Flex css={{ gap: "$10" }}>

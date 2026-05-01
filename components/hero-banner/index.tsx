@@ -39,8 +39,26 @@ export const HeroBanners = () => {
         </Crumb>
       </Breadcrumbs>
 
-      <Text h3>Hero Banner Settings</Text>
-      <TableWrapper addButton={<AddBanner />} />
+      <Text h2 css={{ mb: "$0" }}>
+        Hero Banner Management
+      </Text>
+      <Text span size="$base" css={{ color: "$accents8", mb: "$8" }}>
+        Customize and manage the promotional sliders displayed on your homepage.
+      </Text>
+
+      <Flex
+        direction={"column"}
+        css={{
+          width: "100%",
+          bg: "$background",
+          borderRadius: "16px",
+          p: "$8",
+          boxShadow: "$md",
+          mt: "$4",
+        }}
+      >
+        <TableWrapper addButton={<AddBanner />} />
+      </Flex>
     </Flex>
   );
 };

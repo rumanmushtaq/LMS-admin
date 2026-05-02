@@ -1,8 +1,9 @@
 import { styled } from "@nextui-org/react";
 
 export const SidebarWrapper = styled("div", {
-  backgroundColor: "$sidebarBg",
-  boxShadow: "2px 0 24px rgba(0, 0, 0, 0.04)",
+  backgroundColor: "rgba(255, 255, 255, 0.95)",
+  backdropFilter: "blur(12px)",
+  boxShadow: "0 0 20px 0 rgba(0, 0, 0, 0.05)",
   transition: "transform 0.2s ease",
   height: "100%",
   position: "fixed",
@@ -18,17 +19,19 @@ export const SidebarWrapper = styled("div", {
     background: "transparent",
   },
   "&::-webkit-scrollbar-thumb": {
-    background: "$accents3",
+    background: "rgba(112, 71, 235, 0.1)",
     borderRadius: "10px",
   },
-  borderRight: "1px solid $border",
+  borderRight: "1px solid #f1f5f9",
+  display: "flex",
   flexDirection: "column",
   py: "$10",
   px: "$6",
   "@md": {
     marginLeft: "0",
     display: "flex",
-    position: "static",
+    position: "sticky",
+    top: "0",
     height: "100vh",
     transform: "translateX(0)",
   },

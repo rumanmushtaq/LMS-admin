@@ -7,13 +7,14 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import AdminService from "../../services/admin";
 import { AddBanner } from "./add-banner";
 import { Flex } from "../styles/flex";
+import { Star } from "lucide-react";
 
 interface Props {
   user: any; // Using 'user' since the original render-cell props use this name
   columnKey: string | React.Key;
 }
 
-export const RenderCell = ({ user, columnKey }: Props) => {
+export const RenderCell = ({ user: banner, columnKey }: Props) => {
   const queryClient = useQueryClient();
 
   const deleteMutation = useMutation({
@@ -25,46 +26,60 @@ export const RenderCell = ({ user, columnKey }: Props) => {
 
   const handleDelete = () => {
     if (window.confirm("Are you sure you want to delete this banner?")) {
-      deleteMutation.mutate(user._id);
+      deleteMutation.mutate(banner._id);
     }
   };
 
   switch (columnKey) {
     case "title":
       return (
-        <User src={user.imageUrl} name={user.title} css={{ p: 0 }}>
-          {user._id}
-        </User>
+        <User
+          src={banner.imageUrl}
+          name={banner.title}
+          description={banner._id}
+          css={{ p: 0 }}
+          squared
+        />
       );
     case "subtitle":
       return (
         <Col>
           <Row>
-            <Text b size={14} css={{ tt: "capitalize" }}>
-              {user.subtitle}
+            <Text b size={14} css={{ lineHeight: "$md", maxW: "250px" }}>
+              {banner.subtitle}
             </Text>
           </Row>
         </Col>
       );
     case "studentCount":
-      return <Text size={14}>{user.studentCount}</Text>;
+      return (
+        <Text size={14} css={{ fontWeight: "$semibold", color: "$accents7" }}>
+          {banner.studentCount} Students
+        </Text>
+      );
     case "rating":
-      return <Text size={14}>{user.rating}</Text>;
+      return (
+        <Flex align="center" css={{ gap: "$2" }}>
+          <Star className="w-4 h-4 text-warning" fill="currentColor" />
+          <Text size={14} b>
+            {banner.rating}
+          </Text>
+        </Flex>
+      );
     case "actions":
       return (
-        <Row justify="center" align="center">
-          <Col css={{ d: "flex" }}>
-            <Tooltip content="Edit Banner">
-              <AddBanner banner={user} isEdit />
+        <Row justify="center" align="center" css={{ gap: "$5" }}>
+          <Col css={{ d: "flex", width: "auto" }}>
+            <Tooltip content="Edit Banner" color="primary">
+              <AddBanner banner={banner} isEdit />
             </Tooltip>
           </Col>
-          <Col css={{ d: "flex" }}>
-            <Tooltip
-              content="Delete Banner"
-              color="error"
-              onClick={handleDelete}
-            >
-              <IconButton>
+          <Col css={{ d: "flex", width: "auto" }}>
+            <Tooltip content="Delete Banner" color="error">
+              <IconButton
+                onClick={handleDelete}
+                disabled={deleteMutation.isPending}
+              >
                 <DeleteIcon fill="#FF0080" />
               </IconButton>
             </Tooltip>
@@ -72,6 +87,6 @@ export const RenderCell = ({ user, columnKey }: Props) => {
         </Row>
       );
     default:
-      return <span>{user[columnKey as string]}</span>;
+      return <span>{banner[columnKey as string]}</span>;
   }
 };

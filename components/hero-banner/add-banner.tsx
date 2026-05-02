@@ -91,8 +91,18 @@ export const AddBanner = ({ banner, isEdit }: AddBannerProps) => {
           <EditIcon size={20} fill="#979797" />
         </IconButton>
       ) : (
-        <Button auto onClick={handler}>
-          Add Hero Banner
+        <Button
+          auto
+          onClick={handler}
+          css={{
+            bg: "$primary",
+            borderRadius: "12px",
+            px: "$12",
+            fontWeight: "$bold",
+            boxShadow: "$md",
+          }}
+        >
+          + Add New Banner
         </Button>
       )}
       <Modal
@@ -205,17 +215,32 @@ export const AddBanner = ({ banner, isEdit }: AddBannerProps) => {
             </Flex>
           </Modal.Body>
           <Divider css={{ my: "$5" }} />
-          <Modal.Footer>
-            <Button auto flat color="error" onClick={closeHandler}>
-              Close
+          <Modal.Footer css={{ pb: "$8" }}>
+            <Button
+              auto
+              flat
+              color="error"
+              onClick={closeHandler}
+              css={{ borderRadius: "10px" }}
+            >
+              Cancel
             </Button>
-            <Button auto type="submit" disabled={mutation.isPending}>
+            <Button
+              auto
+              type="submit"
+              disabled={mutation.isPending}
+              css={{
+                bg: "$primary",
+                borderRadius: "10px",
+                px: "$10",
+              }}
+            >
               {mutation.isPending ? (
                 <Loading type="points" color="currentColor" size="sm" />
               ) : isEdit ? (
-                "Update Banner"
+                "Save Changes"
               ) : (
-                "Add Banner"
+                "Create Banner"
               )}
             </Button>
           </Modal.Footer>

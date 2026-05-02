@@ -22,14 +22,23 @@ export const SidebarItem = ({ icon, title, isActive, href = "" }: Props) => {
     <NextLink href={href} legacyBehavior>
       <a
         onClick={handleClick}
-        className={`flex items-center gap-4 w-full min-h-[44px] h-full px-7 rounded-lg cursor-pointer transition-all duration-150 active:scale-95 ${
+        className={`relative flex items-center gap-4 w-full min-h-[44px] h-full px-7 rounded-xl cursor-pointer transition-all duration-200 active:scale-95 group ${
           isActive
-            ? "bg-[#7047EB]/10 text-[#7047EB] [&_svg_path]:fill-[#7047EB] font-semibold shadow-sm"
-            : "text-[#a19db5] hover:bg-[#2d2645] hover:text-white [&_svg_path]:fill-[#a19db5]"
+            ? "bg-[#7047EB]/10 text-[#7047EB] font-bold shadow-sm"
+            : "text-[#4b5563] hover:bg-[#f1f5f9] hover:text-[#7047EB]"
         }`}
       >
-        {icon}
-        <span className="text-base font-normal">{title}</span>
+        {/* Active Indicator Bar */}
+        {isActive && (
+          <div className="absolute left-0 w-1 h-6 bg-[#7047EB] rounded-r-full shadow-[0_0_8px_#7047EB]" />
+        )}
+
+        <div
+          className={`transition-transform duration-200 ${isActive ? "scale-110" : "group-hover:scale-110"} [&_svg_path]:fill-current`}
+        >
+          {icon}
+        </div>
+        <span className="text-base font-medium">{title}</span>
       </a>
     </NextLink>
   );

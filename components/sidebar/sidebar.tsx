@@ -82,13 +82,23 @@ export const SidebarWrapper = () => {
             </SidebarMenu>
           </Sidebar.Body>
           <Sidebar.Footer>
-            <Tooltip content={"Adjustments"} rounded color="primary">
-              <FilterIcon />
+            <Tooltip content={"Settings"} rounded color="primary">
+              <div className="p-2 rounded-lg hover:bg-white/5 transition-colors cursor-pointer group">
+                <FilterIcon className="group-hover:scale-110 transition-transform [&_path]:fill-[#94a3b8]" />
+              </div>
             </Tooltip>
             <Tooltip content={"Profile"} rounded color="primary">
               <Avatar
                 src="https://i.pravatar.cc/150?u=a042581f4e29026704d"
-                size={"sm"}
+                size={"md"}
+                zoomed
+                pointer
+                css={{
+                  border: "2px solid rgba(112, 71, 235, 0.2)",
+                  "&:hover": {
+                    borderColor: "#7047EB",
+                  },
+                }}
               />
             </Tooltip>
           </Sidebar.Footer>

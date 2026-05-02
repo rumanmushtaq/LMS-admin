@@ -6,3 +6,7 @@ const TeacherDetailPage = () => {
 };
 
 export default TeacherDetailPage;
+
+export const getServerSideProps = async () => {
+  return { props: {} };
+};

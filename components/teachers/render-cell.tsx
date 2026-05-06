@@ -1,10 +1,24 @@
-import { Col, Row, Text, Tooltip, User, Dropdown } from "@nextui-org/react";
+import {
+  Col,
+  Row,
+  Text,
+  Tooltip,
+  User,
+  Dropdown,
+  Badge,
+} from "@nextui-org/react";
 import Link from "next/link";
 import React from "react";
-import { DeleteIcon } from "../icons/table/delete-icon";
-import { EditIcon } from "../icons/table/edit-icon";
-import { EyeIcon } from "../icons/table/eye-icon";
-import { IconButton } from "../table/table.styled";
+import {
+  Eye,
+  Edit3,
+  MoreVertical,
+  Trash2,
+  Slash,
+  CheckCircle2,
+  User as UserIcon,
+  BookOpen,
+} from "lucide-react";
 
 interface Props {
   teacher: any;
@@ -22,7 +36,6 @@ export const RenderCell = ({
   // @ts-ignore
   const cellValue = teacher[columnKey];
 
-  // Helper function to get full name
   const getFullName = () => {
     return (
       `${teacher.firstName || ""} ${teacher.lastName || ""}`.trim() ||
@@ -36,176 +49,176 @@ export const RenderCell = ({
         <Link href={`/teachers/${teacher._id || teacher.id}`}>
           <div style={{ cursor: "pointer" }}>
             <User
-              squared
               src={teacher.avatar}
               name={getFullName()}
-              css={{ p: 0 }}
-            >
-              {teacher.email}
-            </User>
+              description={teacher.email}
+              css={{
+                p: 0,
+                "& .nextui-user-name": {
+                  fontWeight: "$bold",
+                  color: "$primary",
+                },
+                "& .nextui-user-desc": { fontSize: "$xs" },
+              }}
+            />
           </div>
         </Link>
       );
     case "subject":
       return (
-        <Text b size={14} css={{ tt: "capitalize" }}>
-          {cellValue || "N/A"}
-        </Text>
+        <Flex align="center" css={{ gap: "$2" }}>
+          <BookOpen size={14} color="var(--nextui-colors-accents7)" />
+          <Text b size={14} color="$accents9">
+            {cellValue || "N/A"}
+          </Text>
+        </Flex>
       );
     case "createdAt":
       return (
-        <Col>
-          <Row>
-            <Text b size={14} css={{ tt: "capitalize" }}>
-              {cellValue ? new Date(cellValue).toLocaleDateString() : "N/A"}
-            </Text>
-          </Row>
-        </Col>
+        <Text b size={14} color="$accents8">
+          {cellValue ? new Date(cellValue).toLocaleDateString() : "N/A"}
+        </Text>
       );
     case "status":
+      const statusColor =
+        cellValue === "active"
+          ? "success"
+          : cellValue === "suspended"
+            ? "error"
+            : "warning";
+
       return (
-        <Text
-          b
-          size={14}
+        <Badge
+          color={statusColor}
+          variant="flat"
           css={{
-            tt: "capitalize",
-            color:
-              cellValue === "active"
-                ? "$success"
-                : cellValue === "suspended"
-                  ? "$danger"
-                  : "$warning",
+            borderRadius: "8px",
+            px: "$4",
+            fontWeight: "$bold",
+            tt: "uppercase",
+            fontSize: "10px",
           }}
         >
           {cellValue}
-        </Text>
+        </Badge>
       );
     case "actions":
       return (
-        <Row
-          justify="center"
-          align="center"
-          css={{ gap: "$8", "@md": { gap: 0 } }}
-        >
-          <Col css={{ d: "flex" }}>
-            <Tooltip content="Review & Verify">
-              <IconButton onClick={() => onVerify && onVerify()}>
-                <EyeIcon
-                  size={20}
-                  fill={teacher.status === "pending" ? "#6366f1" : "#979797"}
-                />
-              </IconButton>
-            </Tooltip>
-          </Col>
-          <Col css={{ d: "flex" }}>
-            <Tooltip content="Edit teacher">
-              <IconButton
-                onClick={() =>
-                  console.log("Edit teacher", teacher._id || teacher.id)
-                }
-              >
-                <EditIcon size={20} fill="#979797" />
-              </IconButton>
-            </Tooltip>
-          </Col>
-          <Col css={{ d: "flex" }}>
-            <Dropdown>
-              <Dropdown.Trigger>
-                <IconButton>
-                  <svg
-                    fill="none"
-                    height="16"
-                    shapeRendering="geometricPrecision"
-                    stroke="currentColor"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="1.5"
-                    viewBox="0 0 24 24"
-                    width="16"
-                  >
-                    <path d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z"></path>
-                  </svg>
-                </IconButton>
-              </Dropdown.Trigger>
-              <Dropdown.Menu
-                aria-label="Teacher Actions"
-                onAction={(action) => {
-                  if (action === "view") {
-                    window.location.href = `/teachers/${
-                      teacher._id || teacher.id
-                    }`;
-                  } else if (action === "delete") {
-                    if (
-                      confirm(
-                        `Are you sure you want to delete ${getFullName()}?`,
-                      )
-                    ) {
-                      import("../../services/admin").then(
-                        async ({ default: adminService }) => {
-                          try {
-                            await adminService.deleteUser(
-                              teacher._id || teacher.id,
-                            );
-                            alert("Teacher deleted successfully");
-                            if (onRefresh) onRefresh();
-                          } catch (error) {
-                            console.error("Error deleting teacher:", error);
-                            alert("Failed to delete teacher");
-                          }
-                        },
-                      );
-                    }
-                  } else if (action === "suspend") {
+        <Row justify="center" align="center" css={{ gap: "$4" }}>
+          <Tooltip content="Review Detail" rounded color="primary">
+            <Link href={`/teachers/${teacher._id || teacher.id}`}>
+              <div className="p-2 rounded-lg hover:bg-primary/10 transition-colors cursor-pointer text-primary">
+                <Eye size={18} />
+              </div>
+            </Link>
+          </Tooltip>
+
+          <Dropdown placement="bottom-right">
+            <Dropdown.Trigger>
+              <div className="p-2 rounded-lg hover:bg-accents1 transition-colors cursor-pointer text-accents7">
+                <MoreVertical size={18} />
+              </div>
+            </Dropdown.Trigger>
+            <Dropdown.Menu
+              aria-label="Teacher Actions"
+              css={{ borderRadius: "16px", minWidth: "180px" }}
+              onAction={(action) => {
+                if (action === "view") {
+                  window.location.href = `/teachers/${teacher._id || teacher.id}`;
+                } else if (action === "delete") {
+                  if (
+                    confirm(`Are you sure you want to delete ${getFullName()}?`)
+                  ) {
                     import("../../services/admin").then(
                       async ({ default: adminService }) => {
                         try {
-                          await adminService.suspendUser(
+                          await adminService.deleteUser(
                             teacher._id || teacher.id,
                           );
-                          alert("Teacher suspended successfully");
+                          alert("Teacher deleted successfully");
                           if (onRefresh) onRefresh();
                         } catch (error) {
-                          console.error("Error suspending teacher:", error);
-                          alert("Failed to suspend teacher");
-                        }
-                      },
-                    );
-                  } else if (action === "activate") {
-                    import("../../services/admin").then(
-                      async ({ default: adminService }) => {
-                        try {
-                          await adminService.activateUser(
-                            teacher._id || teacher.id,
-                          );
-                          alert("Teacher activated successfully");
-                          if (onRefresh) onRefresh();
-                        } catch (error) {
-                          console.error("Error activating teacher:", error);
-                          alert("Failed to activate teacher");
+                          alert("Failed to delete teacher");
                         }
                       },
                     );
                   }
-                }}
-              >
-                <Dropdown.Item key="view" color="primary">
+                } else if (action === "suspend") {
+                  import("../../services/admin").then(
+                    async ({ default: adminService }) => {
+                      try {
+                        await adminService.suspendUser(
+                          teacher._id || teacher.id,
+                        );
+                        alert("Teacher suspended successfully");
+                        if (onRefresh) onRefresh();
+                      } catch (error) {
+                        alert("Failed to suspend teacher");
+                      }
+                    },
+                  );
+                } else if (action === "activate") {
+                  import("../../services/admin").then(
+                    async ({ default: adminService }) => {
+                      try {
+                        await adminService.activateUser(
+                          teacher._id || teacher.id,
+                        );
+                        alert("Teacher activated successfully");
+                        if (onRefresh) onRefresh();
+                      } catch (error) {
+                        alert("Failed to activate teacher");
+                      }
+                    },
+                  );
+                }
+              }}
+            >
+              <Dropdown.Section title="General">
+                <Dropdown.Item key="view" icon={<Eye size={18} />}>
                   View Detail
                 </Dropdown.Item>
-                <Dropdown.Item key="suspend" color="warning">
-                  Suspend Teacher
+                <Dropdown.Item key="edit" icon={<Edit3 size={18} />}>
+                  Edit Profile
                 </Dropdown.Item>
-                <Dropdown.Item key="activate" color="success">
-                  Activate Teacher
+              </Dropdown.Section>
+              <Dropdown.Section title="Management">
+                <Dropdown.Item
+                  key="activate"
+                  color="success"
+                  icon={<CheckCircle2 size={18} />}
+                  css={{
+                    display: teacher.status !== "active" ? "flex" : "none",
+                  }}
+                >
+                  Activate
                 </Dropdown.Item>
-                <Dropdown.Item key="delete" color="error">
-                  Delete Teacher
+                <Dropdown.Item
+                  key="suspend"
+                  color="warning"
+                  icon={<Slash size={18} />}
+                  css={{
+                    display: teacher.status === "active" ? "flex" : "none",
+                  }}
+                >
+                  Suspend
                 </Dropdown.Item>
-              </Dropdown.Menu>
-            </Dropdown>
-          </Col>
+                <Dropdown.Item
+                  key="delete"
+                  color="error"
+                  icon={<Trash2 size={18} />}
+                  withDivider
+                >
+                  Delete Profile
+                </Dropdown.Item>
+              </Dropdown.Section>
+            </Dropdown.Menu>
+          </Dropdown>
         </Row>
       );
     default:
       return cellValue;
   }
 };
+
+import { Flex } from "../styles/flex";

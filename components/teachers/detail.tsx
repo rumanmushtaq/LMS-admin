@@ -21,6 +21,23 @@ import { Breadcrumbs, Crumb, CrumbLink } from "../breadcrumb/breadcrumb.styled";
 import { HouseIcon } from "../icons/breadcrumb/house-icon";
 import { UsersIcon } from "../icons/breadcrumb/users-icon";
 import Link from "next/link";
+import {
+  Award,
+  BookOpen,
+  Briefcase,
+  Calendar,
+  CheckCircle2,
+  CreditCard,
+  FileCheck,
+  Globe,
+  GraduationCap,
+  ShieldCheck,
+  Video,
+  Clock,
+  DollarSign,
+  Mail,
+  UserCircle,
+} from "lucide-react";
 
 export const TeacherDetail = () => {
   const router = useRouter();
@@ -65,6 +82,19 @@ export const TeacherDetail = () => {
     },
   });
 
+  const deleteMutation = useMutation({
+    mutationFn: (userId: string) => adminService.deleteUser(userId),
+    onSuccess: () => {
+      alert("Teacher profile deleted successfully.");
+      router.push("/teachers");
+    },
+    onError: (err: any) => {
+      alert(
+        err?.response?.data?.message || "Failed to delete teacher profile.",
+      );
+    },
+  });
+
   const handleApprove = () => {
     if (confirm("Approve this teacher?")) {
       approveMutation.mutate(id as string);
@@ -85,6 +115,16 @@ export const TeacherDetail = () => {
     }
   };
 
+  const handleDelete = () => {
+    if (
+      confirm(
+        "Are you sure you want to delete this profile? This action cannot be undone and will permanently remove the user and their associated data.",
+      )
+    ) {
+      deleteMutation.mutate(id as string);
+    }
+  };
+
   if (isLoading)
     return (
       <Flex justify="center" align="center" css={{ height: "400px" }}>
@@ -101,8 +141,9 @@ export const TeacherDetail = () => {
         px: "$6",
         "@sm": {
           mt: "$10",
-          px: "$16",
+          px: "$10",
         },
+        pb: "$20",
       }}
       direction={"column"}
     >
@@ -110,219 +151,654 @@ export const TeacherDetail = () => {
         <Crumb>
           <HouseIcon />
           <Link href={"/"}>
-            <CrumbLink href="#">Home</CrumbLink>
+            <CrumbLink>Home</CrumbLink>
           </Link>
           <Text>/</Text>
         </Crumb>
         <Crumb>
           <UsersIcon />
           <Link href={"/teachers"}>
-            <CrumbLink href="#">Teachers</CrumbLink>
+            <CrumbLink>Teachers</CrumbLink>
           </Link>
           <Text>/</Text>
         </Crumb>
         <Crumb>
-          <CrumbLink href="#">
+          <CrumbLink>
             {teacher.firstName} {teacher.lastName}
           </CrumbLink>
         </Crumb>
       </Breadcrumbs>
 
       <Grid.Container gap={2} css={{ mt: "$10" }}>
-        {/* Left Column: Profile Card */}
+        {/* Left Column: Profile & Actions */}
         <Grid xs={12} md={4}>
-          <Card css={{ p: "$6" }}>
-            <Card.Header>
-              <User
-                src={teacher.avatar}
-                name={`${teacher.firstName} ${teacher.lastName}`}
-                description={teacher.email}
-                size="xl"
-                css={{ p: 0 }}
-              />
-            </Card.Header>
-            <Card.Body css={{ paddingTop: "$10", paddingBottom: "$10" }}>
-              <Flex direction="column" css={{ gap: "$4" }}>
-                <Flex justify="between" align="center">
-                  <Text b>Status</Text>
-                  <Badge
-                    color={
-                      teacher.status === "active"
-                        ? "success"
-                        : teacher.status === "suspended"
-                          ? "error"
-                          : "warning"
-                    }
-                    variant="flat"
+          <Flex direction="column" css={{ gap: "$8", width: "100%" }}>
+            <Card
+              css={{
+                p: "$8",
+                borderRadius: "32px",
+                border: "1px solid $border",
+                boxShadow: "$lg",
+              }}
+            >
+              <Card.Header>
+                <Flex direction="column" align="center" css={{ width: "100%" }}>
+                  <User
+                    src={teacher.kycData?.photoUrl || teacher.avatar}
+                    name={`${teacher.firstName} ${teacher.lastName}`}
+                    description={teacher.email}
+                    size="xl"
+                    css={{
+                      p: 0,
+                      "& .nextui-user-name": {
+                        fontSize: "$lg",
+                        fontWeight: "$black",
+                      },
+                    }}
+                  />
+                </Flex>
+              </Card.Header>
+              <Card.Body css={{ paddingTop: "$8", paddingBottom: "$4" }}>
+                <Flex direction="column" css={{ gap: "$5" }}>
+                  <Flex justify="between" align="center">
+                    <Flex align="center" css={{ gap: "$2" }}>
+                      <ShieldCheck
+                        size={18}
+                        color="var(--nextui-colors-primary)"
+                      />
+                      <Text b color="$accents8">
+                        Status
+                      </Text>
+                    </Flex>
+                    <Badge
+                      color={
+                        teacher.status === "active"
+                          ? "success"
+                          : teacher.status === "suspended"
+                            ? "error"
+                            : "warning"
+                      }
+                      variant="flat"
+                      css={{
+                        borderRadius: "10px",
+                        px: "$5",
+                        fontWeight: "$bold",
+                      }}
+                    >
+                      {teacher.status.toUpperCase()}
+                    </Badge>
+                  </Flex>
+                  <Flex justify="between" align="center">
+                    <Flex align="center" css={{ gap: "$2" }}>
+                      <Calendar
+                        size={18}
+                        color="var(--nextui-colors-primary)"
+                      />
+                      <Text b color="$accents8">
+                        Joined
+                      </Text>
+                    </Flex>
+                    <Text size={14} b>
+                      {new Date(teacher.createdAt).toLocaleDateString()}
+                    </Text>
+                  </Flex>
+                  <Flex justify="between" align="center">
+                    <Flex align="center" css={{ gap: "$2" }}>
+                      <Mail size={18} color="var(--nextui-colors-primary)" />
+                      <Text b color="$accents8">
+                        Verified
+                      </Text>
+                    </Flex>
+                    <Badge
+                      color={teacher.emailVerified ? "primary" : "error"}
+                      variant="flat"
+                      css={{ borderRadius: "10px", fontWeight: "$bold" }}
+                    >
+                      {teacher.emailVerified ? "YES" : "NO"}
+                    </Badge>
+                  </Flex>
+
+                  <Divider css={{ my: "$4" }} />
+
+                  <Text
+                    b
+                    size={14}
+                    color="$accents8"
+                    css={{ mb: "$2", tt: "uppercase", letterSpacing: "$wider" }}
                   >
-                    {teacher.status.toUpperCase()}
-                  </Badge>
+                    Quick Management
+                  </Text>
+                  <Flex direction="column" css={{ gap: "$4" }}>
+                    {teacher.status === "pending" && (
+                      <Flex css={{ gap: "$4" }}>
+                        <Button
+                          auto
+                          color="primary"
+                          onPress={handleApprove}
+                          css={{
+                            flex: 1,
+                            borderRadius: "16px",
+                            fontWeight: "$black",
+                            height: "$14",
+                          }}
+                        >
+                          Approve
+                        </Button>
+                        <Button
+                          auto
+                          color="error"
+                          onPress={handleReject}
+                          flat
+                          css={{
+                            flex: 1,
+                            borderRadius: "16px",
+                            fontWeight: "$black",
+                            height: "$14",
+                          }}
+                        >
+                          Reject
+                        </Button>
+                      </Flex>
+                    )}
+                    <Button
+                      auto
+                      color={teacher.status === "active" ? "error" : "primary"}
+                      onPress={handleToggleStatus}
+                      flat={teacher.status === "active"}
+                      css={{
+                        borderRadius: "16px",
+                        fontWeight: "$black",
+                        height: "$14",
+                      }}
+                    >
+                      {teacher.status === "active"
+                        ? "Suspend Account"
+                        : "Activate Account"}
+                    </Button>
+                    <Button
+                      auto
+                      color="error"
+                      bordered
+                      onPress={handleDelete}
+                      css={{
+                        borderRadius: "16px",
+                        fontWeight: "$black",
+                        height: "$14",
+                      }}
+                    >
+                      Delete Profile
+                    </Button>
+                  </Flex>
                 </Flex>
-                <Flex justify="between" align="center">
-                  <Text b>Role</Text>
-                  <Text css={{ tt: "capitalize" }}>{teacher.role}</Text>
-                </Flex>
-                <Flex justify="between" align="center">
-                  <Text b>Email Verified</Text>
-                  <Badge
-                    color={teacher.emailVerified ? "success" : "error"}
-                    variant="flat"
-                  >
-                    {teacher.emailVerified ? "YES" : "NO"}
-                  </Badge>
-                </Flex>
-                <Divider css={{ my: "$4" }} />
-                <Text b size={14}>
-                  Actions
+              </Card.Body>
+            </Card>
+
+            {/* Financial Details Mini Card */}
+            <Card
+              css={{
+                p: "$8",
+                borderRadius: "32px",
+                border: "1px solid $border",
+                boxShadow: "$md",
+              }}
+            >
+              <Flex align="center" css={{ gap: "$3", mb: "$6" }}>
+                <CreditCard size={22} color="var(--nextui-colors-primary)" />
+                <Text b size={20}>
+                  Financial Info
                 </Text>
-                <Flex direction="column" css={{ gap: "$3", mt: "$2" }}>
-                  {teacher.status === "pending" && (
-                    <>
-                      <Button auto color="success" onPress={handleApprove} flat>
-                        Approve Teacher
-                      </Button>
-                      <Button auto color="error" onPress={handleReject} flat>
-                        Reject Teacher
-                      </Button>
-                    </>
-                  )}
-                  <Button
-                    auto
-                    color={teacher.status === "active" ? "warning" : "success"}
-                    onPress={handleToggleStatus}
-                  >
-                    {teacher.status === "active"
-                      ? "Suspend Account"
-                      : "Activate Account"}
-                  </Button>
-                  <Button auto color="error" bordered>
-                    Delete Teacher
-                  </Button>
-                </Flex>
               </Flex>
-            </Card.Body>
-          </Card>
+              {teacher.kycData?.bankAccount ? (
+                <Flex direction="column" css={{ gap: "$5" }}>
+                  <Flex direction="column">
+                    <Text
+                      size={10}
+                      b
+                      color="$accents7"
+                      css={{ tt: "uppercase" }}
+                    >
+                      Bank Name
+                    </Text>
+                    <Text b color="$primary">
+                      {teacher.kycData.bankAccount.bankName || "N/A"}
+                    </Text>
+                  </Flex>
+                  <Flex direction="column">
+                    <Text
+                      size={10}
+                      b
+                      color="$accents7"
+                      css={{ tt: "uppercase" }}
+                    >
+                      Account Number
+                    </Text>
+                    <Text b>
+                      {teacher.kycData.bankAccount.accountNumber || "N/A"}
+                    </Text>
+                  </Flex>
+                  <Flex direction="column">
+                    <Text
+                      size={10}
+                      b
+                      color="$accents7"
+                      css={{ tt: "uppercase" }}
+                    >
+                      Account Holder
+                    </Text>
+                    <Text b>
+                      {teacher.kycData.bankAccount.accountHolderName || "N/A"}
+                    </Text>
+                  </Flex>
+                </Flex>
+              ) : (
+                <Flex direction="column" align="center" css={{ py: "$4" }}>
+                  <Text color="$accents7" css={{ fontStyle: "italic" }}>
+                    No bank details provided
+                  </Text>
+                </Flex>
+              )}
+            </Card>
+          </Flex>
         </Grid>
 
-        {/* Right Column: Other Details */}
+        {/* Right Column: Detailed Information */}
         <Grid xs={12} md={8}>
-          <Card css={{ p: "$6" }}>
-            <Card.Body>
-              <Text h4>Registration Details</Text>
-              <Spacer y={1} />
-              <Grid.Container gap={2}>
-                <Grid xs={12} sm={6}>
-                  <Flex direction="column">
-                    <Text color="$accents7" size={12}>
-                      JOINED AT
-                    </Text>
-                    <Text b>
-                      {new Date(teacher.createdAt).toLocaleString()}
+          <Flex direction="column" css={{ gap: "$8", width: "100%" }}>
+            {/* Professional Overview */}
+            <Card
+              css={{
+                p: "$10",
+                borderRadius: "32px",
+                border: "1px solid $border",
+                boxShadow: "$lg",
+              }}
+            >
+              <Flex justify="between" align="start" css={{ mb: "$6" }}>
+                <Flex direction="column">
+                  <Text h3 css={{ mb: "$1" }}>
+                    Professional Profile
+                  </Text>
+                  <Text color="$accents8">
+                    Comprehensive details submitted by tutor
+                  </Text>
+                </Flex>
+                <Badge
+                  color="primary"
+                  variant="flat"
+                  css={{ borderRadius: "12px", px: "$6", height: "$12" }}
+                >
+                  <Text b color="primary">
+                    {teacher.kycData?.category || "Tutor"}
+                  </Text>
+                </Badge>
+              </Flex>
+
+              <Grid.Container gap={4}>
+                <Grid xs={12} sm={4}>
+                  <Card
+                    variant="flat"
+                    css={{ p: "$6", borderRadius: "24px", bg: "$primaryLight" }}
+                  >
+                    <Flex direction="column" align="center">
+                      <DollarSign
+                        size={24}
+                        color="var(--nextui-colors-primary)"
+                      />
+                      <Spacer y={0.2} />
+                      <Text
+                        size={12}
+                        b
+                        color="$accents7"
+                        css={{ tt: "uppercase" }}
+                      >
+                        Hourly Rate
+                      </Text>
+                      <Text h3 css={{ color: "$primary", mb: 0 }}>
+                        ${teacher.kycData?.pricePerHour || "0"}
+                      </Text>
+                    </Flex>
+                  </Card>
+                </Grid>
+                <Grid xs={12} sm={4}>
+                  <Card
+                    variant="flat"
+                    css={{ p: "$6", borderRadius: "24px", bg: "$accents1" }}
+                  >
+                    <Flex direction="column" align="center">
+                      <Briefcase
+                        size={24}
+                        color="var(--nextui-colors-primary)"
+                      />
+                      <Spacer y={0.2} />
+                      <Text
+                        size={12}
+                        b
+                        color="$accents7"
+                        css={{ tt: "uppercase" }}
+                      >
+                        Experience
+                      </Text>
+                      <Text h4 css={{ mb: 0 }}>
+                        {teacher.kycData?.experience || "N/A"}
+                      </Text>
+                    </Flex>
+                  </Card>
+                </Grid>
+                <Grid xs={12} sm={4}>
+                  <Card
+                    variant="flat"
+                    css={{ p: "$6", borderRadius: "24px", bg: "$accents1" }}
+                  >
+                    <Flex direction="column" align="center">
+                      <Globe size={24} color="var(--nextui-colors-primary)" />
+                      <Spacer y={0.2} />
+                      <Text
+                        size={12}
+                        b
+                        color="$accents7"
+                        css={{ tt: "uppercase" }}
+                      >
+                        Languages
+                      </Text>
+                      <Text h4 css={{ mb: 0 }}>
+                        {teacher.kycData?.nativeLanguage || "English"}
+                      </Text>
+                    </Flex>
+                  </Card>
+                </Grid>
+
+                <Grid xs={12}>
+                  <Flex direction="column" css={{ gap: "$3" }}>
+                    <Flex align="center" css={{ gap: "$2" }}>
+                      <UserCircle
+                        size={20}
+                        color="var(--nextui-colors-primary)"
+                      />
+                      <Text b size={18}>
+                        About Me
+                      </Text>
+                    </Flex>
+                    <Text
+                      css={{
+                        lineHeight: "$lg",
+                        color: "$accents9",
+                        fontSize: "$md",
+                        fontStyle: "italic",
+                      }}
+                    >
+                      &quot;{teacher.kycData?.aboutMe || "No bio provided."}
+                      &quot;
                     </Text>
                   </Flex>
                 </Grid>
-                <Grid xs={12} sm={6}>
-                  <Flex direction="column">
-                    <Text color="$accents7" size={12}>
-                      ONBOARDING STEP
-                    </Text>
-                    <Text b css={{ tt: "capitalize" }}>
-                      {teacher.onboardingStep?.replace("_", " ") || "N/A"}
+
+                {teacher.kycData?.introVideoUrl && (
+                  <Grid xs={12}>
+                    <Flex direction="column" css={{ gap: "$4" }}>
+                      <Flex align="center" css={{ gap: "$2" }}>
+                        <Video size={20} color="var(--nextui-colors-primary)" />
+                        <Text b size={18}>
+                          Introduction Video
+                        </Text>
+                      </Flex>
+                      <Button
+                        auto
+                        flat
+                        as="a"
+                        href={teacher.kycData.introVideoUrl}
+                        target="_blank"
+                        css={{
+                          borderRadius: "16px",
+                          px: "$10",
+                          width: "fit-content",
+                        }}
+                        icon={<Video size={20} />}
+                      >
+                        Watch Onboarding Video
+                      </Button>
+                    </Flex>
+                  </Grid>
+                )}
+              </Grid.Container>
+            </Card>
+
+            {/* Availability */}
+            <Card
+              css={{
+                p: "$10",
+                borderRadius: "32px",
+                border: "1px solid $border",
+                boxShadow: "$md",
+              }}
+            >
+              <Flex align="center" css={{ gap: "$3", mb: "$6" }}>
+                <Clock size={24} color="var(--nextui-colors-primary)" />
+                <Text h3>Teaching Availability</Text>
+              </Flex>
+              {teacher.kycData?.availability &&
+              teacher.kycData.availability.length > 0 ? (
+                <Grid.Container gap={3}>
+                  {teacher.kycData.availability.map((day: any, idx: number) => (
+                    <Grid xs={12} sm={4} lg={3} key={idx}>
+                      <Card
+                        variant="flat"
+                        css={{
+                          p: "$5",
+                          borderRadius: "20px",
+                          bg: "$primaryLight",
+                          border: "1px solid rgba(112, 71, 235, 0.1)",
+                        }}
+                      >
+                        <Flex direction="column" align="center">
+                          <Text b size={15} color="$primary">
+                            {day.day}
+                          </Text>
+                          <Spacer y={0.1} />
+                          <Text size={12} b color="$accents8">
+                            {day.startTime} - {day.endTime}
+                          </Text>
+                        </Flex>
+                      </Card>
+                    </Grid>
+                  ))}
+                </Grid.Container>
+              ) : (
+                <Flex justify="center" css={{ py: "$8" }}>
+                  <Text color="$accents7" css={{ fontStyle: "italic" }}>
+                    No availability schedule set yet.
+                  </Text>
+                </Flex>
+              )}
+            </Card>
+
+            {/* Education & Background */}
+            <Card
+              css={{
+                p: "$10",
+                borderRadius: "32px",
+                border: "1px solid $border",
+                boxShadow: "$md",
+              }}
+            >
+              <Flex align="center" css={{ gap: "$3", mb: "$8" }}>
+                <GraduationCap size={24} color="var(--nextui-colors-primary)" />
+                <Text h3>Education & Expertise</Text>
+              </Flex>
+              <Flex direction="column" css={{ gap: "$8" }}>
+                <Card
+                  variant="flat"
+                  css={{ p: "$6", borderRadius: "24px", bg: "$accents1" }}
+                >
+                  <Text
+                    b
+                    size={14}
+                    color="$accents7"
+                    css={{ tt: "uppercase", mb: "$2", display: "block" }}
+                  >
+                    Academic Background
+                  </Text>
+                  <Text b size={18}>
+                    {teacher.kycData?.education || "Not specified"}
+                  </Text>
+                </Card>
+
+                <Flex direction="column">
+                  <Flex align="center" css={{ gap: "$2", mb: "$4" }}>
+                    <Award size={20} color="var(--nextui-colors-primary)" />
+                    <Text b size={18}>
+                      Official Certifications
                     </Text>
                   </Flex>
+                  {(teacher.kycData?.certifications || []).length > 0 ? (
+                    <Flex wrap="wrap" css={{ gap: "$4" }}>
+                      {teacher.kycData.certifications.map(
+                        (cert: string, idx: number) => (
+                          <Button
+                            key={idx}
+                            auto
+                            bordered
+                            color="primary"
+                            as="a"
+                            href={cert}
+                            target="_blank"
+                            css={{ borderRadius: "14px", fontWeight: "$bold" }}
+                            icon={<FileCheck size={18} />}
+                          >
+                            Certificate {idx + 1}
+                          </Button>
+                        ),
+                      )}
+                    </Flex>
+                  ) : (
+                    <Text color="$accents7" css={{ fontStyle: "italic" }}>
+                      No professional certifications uploaded.
+                    </Text>
+                  )}
+                </Flex>
+              </Flex>
+            </Card>
+
+            {/* Verification Documents */}
+            <Card
+              css={{
+                p: "$10",
+                borderRadius: "32px",
+                border: "1px solid $border",
+                boxShadow: "$md",
+                bg: "rgba(112, 71, 235, 0.02)",
+              }}
+            >
+              <Flex align="center" css={{ gap: "$3", mb: "$8" }}>
+                <FileCheck size={24} color="var(--nextui-colors-primary)" />
+                <Text h3>Identity & Compliance</Text>
+              </Flex>
+              <Grid.Container gap={4}>
+                <Grid xs={12} sm={6}>
+                  <Card
+                    variant="flat"
+                    css={{ p: "$6", borderRadius: "24px", bg: "$accents1" }}
+                  >
+                    <Text
+                      size={10}
+                      b
+                      color="$accents7"
+                      css={{ tt: "uppercase", mb: "$1" }}
+                    >
+                      ID Document Type
+                    </Text>
+                    <Text b size={16}>
+                      {teacher.kycData?.idType || "N/A"}
+                    </Text>
+                  </Card>
                 </Grid>
                 <Grid xs={12} sm={6}>
-                  <Flex direction="column">
-                    <Text color="$accents7" size={12}>
-                      US PERSON
+                  <Card
+                    variant="flat"
+                    css={{ p: "$6", borderRadius: "24px", bg: "$accents1" }}
+                  >
+                    <Text
+                      size={10}
+                      b
+                      color="$accents7"
+                      css={{ tt: "uppercase", mb: "$1" }}
+                    >
+                      ID Number
                     </Text>
-                    <Text b>
-                      {teacher.isUSPerson
-                        ? "Yes"
-                        : teacher.isUSPerson === false
-                          ? "No"
-                          : "N/A"}
+                    <Text b size={16}>
+                      {teacher.kycData?.idNumber || "N/A"}
                     </Text>
-                  </Flex>
+                  </Card>
                 </Grid>
-                <Grid xs={12} sm={6}>
-                  <Flex direction="column">
-                    <Text color="$accents7" size={12}>
-                      TAX FORM
-                    </Text>
-                    <Text b>{teacher.taxFormType || "N/A"}</Text>
+                <Grid xs={12}>
+                  <Text b size={16} css={{ mb: "$4" }}>
+                    Verification Assets
+                  </Text>
+                  <Flex wrap="wrap" css={{ gap: "$4" }}>
+                    {teacher.kycData?.idFrontUrl && (
+                      <Button
+                        as="a"
+                        href={teacher.kycData.idFrontUrl}
+                        target="_blank"
+                        flat
+                        color="primary"
+                        css={{ borderRadius: "12px" }}
+                      >
+                        ID Front
+                      </Button>
+                    )}
+                    {teacher.kycData?.idBackUrl && (
+                      <Button
+                        as="a"
+                        href={teacher.kycData.idBackUrl}
+                        target="_blank"
+                        flat
+                        color="primary"
+                        css={{ borderRadius: "12px" }}
+                      >
+                        ID Back
+                      </Button>
+                    )}
+                    {teacher.kycData?.selfieUrl && (
+                      <Button
+                        as="a"
+                        href={teacher.kycData.selfieUrl}
+                        target="_blank"
+                        flat
+                        color="primary"
+                        css={{ borderRadius: "12px" }}
+                      >
+                        Verif. Selfie
+                      </Button>
+                    )}
+                    {teacher.taxFormUrl && (
+                      <Button
+                        as="a"
+                        href={teacher.taxFormUrl}
+                        target="_blank"
+                        flat
+                        color="warning"
+                        css={{ borderRadius: "12px" }}
+                      >
+                        Tax Form ({teacher.taxFormType})
+                      </Button>
+                    )}
+                    {teacher.contractSignatureUrl && (
+                      <Button
+                        as="a"
+                        href={teacher.contractSignatureUrl}
+                        target="_blank"
+                        flat
+                        color="success"
+                        css={{ borderRadius: "12px" }}
+                      >
+                        Legal Contract
+                      </Button>
+                    )}
                   </Flex>
                 </Grid>
               </Grid.Container>
-
-              <Spacer y={2} />
-              <Divider />
-              <Spacer y={2} />
-
-              <Text h4>Documents & Compliance</Text>
-              <Spacer y={1} />
-              <Flex direction="column" css={{ gap: "$4" }}>
-                <Flex justify="between" align="center">
-                  <Text>Tax Form URL</Text>
-                  {teacher.taxFormUrl ? (
-                    <Button
-                      size="sm"
-                      flat
-                      as="a"
-                      href={teacher.taxFormUrl}
-                      target="_blank"
-                    >
-                      View Document
-                    </Button>
-                  ) : (
-                    <Text color="$accents7">Not uploaded</Text>
-                  )}
-                </Flex>
-                <Flex justify="between" align="center">
-                  <Text>Signed Contract</Text>
-                  {teacher.contractSignatureUrl ? (
-                    <Button
-                      size="sm"
-                      flat
-                      as="a"
-                      href={teacher.contractSignatureUrl}
-                      target="_blank"
-                    >
-                      View Contract
-                    </Button>
-                  ) : (
-                    <Text color="$accents7">Not signed</Text>
-                  )}
-                </Flex>
-                <Flex direction="column" css={{ gap: "$2" }}>
-                  <Text>
-                    KYC Documents ({teacher.kycDocuments?.length || 0})
-                  </Text>
-                  <Flex wrap="wrap" css={{ gap: "$3" }}>
-                    {teacher.kycDocuments?.map((doc: string, idx: number) => (
-                      <Button
-                        key={idx}
-                        size="sm"
-                        bordered
-                        color="secondary"
-                        as="a"
-                        href={doc}
-                        target="_blank"
-                      >
-                        Document {idx + 1}
-                      </Button>
-                    ))}
-                    {(!teacher.kycDocuments ||
-                      teacher.kycDocuments.length === 0) && (
-                      <Text color="$accents7" size={14}>
-                        No documents uploaded
-                      </Text>
-                    )}
-                  </Flex>
-                </Flex>
-              </Flex>
-            </Card.Body>
-          </Card>
+            </Card>
+          </Flex>
         </Grid>
       </Grid.Container>
     </Flex>

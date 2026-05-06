@@ -24,9 +24,10 @@ export const SidebarItem = ({ icon, title, isActive, href = "" }: Props) => {
         onClick={handleClick}
         className={`relative flex items-center gap-4 w-full min-h-[44px] h-full px-7 rounded-xl cursor-pointer transition-all duration-200 active:scale-95 group ${
           isActive
-            ? "bg-[#7047EB]/10 text-[#7047EB] font-bold shadow-sm"
-            : "text-[#4b5563] hover:bg-[#f1f5f9] hover:text-[#7047EB]"
+            ? "bg-[#7047EB]/10 font-bold shadow-sm"
+            : "hover:bg-[#f1f5f9]"
         }`}
+        style={{ color: isActive ? "#7047EB" : "#4b5563" }}
       >
         {/* Active Indicator Bar */}
         {isActive && (

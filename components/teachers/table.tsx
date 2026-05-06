@@ -284,7 +284,24 @@ export const TableWrapper = ({ addButton }: Props) => {
     <Box
       css={{
         "& .nextui-table-container": {
-          boxShadow: "none",
+          boxShadow: "$md",
+          borderRadius: "24px",
+          border: "1px solid $border",
+          bg: "$sidebarBg",
+          padding: "$4",
+        },
+        "& .nextui-table": {
+          minWidth: "100%",
+        },
+        "& .nextui-table-header": {
+          bg: "$accents1",
+          borderRadius: "16px",
+        },
+        "& .nextui-table-checkbox-container .nextui-checkbox-mask": {
+          borderColor: "$primary",
+        },
+        "& .nextui-table-row:hover": {
+          bg: "rgba(112, 71, 235, 0.05) !important",
         },
       }}
     >
@@ -306,7 +323,7 @@ export const TableWrapper = ({ addButton }: Props) => {
 
       {loading ? (
         <Row justify="center" align="center" css={{ height: "400px" }}>
-          <Spinner size="lg" />
+          <Spinner size="lg" color="primary" />
         </Row>
       ) : (
         <>
@@ -315,9 +332,7 @@ export const TableWrapper = ({ addButton }: Props) => {
             css={{
               height: "auto",
               minWidth: "100%",
-              boxShadow: "none",
               width: "100%",
-              px: 0,
             }}
             selectionMode="multiple"
           >
@@ -329,7 +344,14 @@ export const TableWrapper = ({ addButton }: Props) => {
                   align={column.uid === "actions" ? "center" : "start"}
                   allowsSorting={column.uid !== "actions"}
                 >
-                  {column.name}
+                  <Text
+                    b
+                    size={13}
+                    color="$accents8"
+                    css={{ tt: "uppercase", letterSpacing: "$wider" }}
+                  >
+                    {column.name}
+                  </Text>
                 </Table.Column>
               )}
             </Table.Header>
@@ -350,14 +372,21 @@ export const TableWrapper = ({ addButton }: Props) => {
               )}
             </Table.Body>
           </Table>
-          <Flex justify="center" css={{ mt: "$10" }}>
+          <Flex justify="center" css={{ mt: "$12", pb: "$10" }}>
             <Pagination
-              color="secondary"
+              color="primary"
               shadow
               noMargin
               total={meta.totalPages}
               initialPage={meta.page}
+              page={meta.page}
               onChange={handlePageChange}
+              css={{
+                "& .nextui-pagination-highlight": {
+                  bg: "$primary",
+                  boxShadow: "0 4px 14px 0 rgba(112, 71, 235, 0.39)",
+                },
+              }}
             />
           </Flex>
         </>

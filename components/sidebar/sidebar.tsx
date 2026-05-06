@@ -47,25 +47,25 @@ export const SidebarWrapper = () => {
                 isActive={router.pathname === "/accounts"}
                 title="Accounts"
                 icon={<AccountsIcon />}
-                href="accounts"
+                href="/accounts"
               />
               <SidebarItem
                 isActive={router.pathname === "/teachers"}
                 title="Teachers"
                 icon={<AccountsIcon />}
-                href="teachers"
+                href="/teachers"
               />
               <SidebarItem
                 isActive={router.pathname === "/students"}
                 title="Students"
                 icon={<AccountsIcon />}
-                href="students"
+                href="/students"
               />
               <SidebarItem
                 isActive={router.pathname === "/hero-banner"}
                 title="Banners"
                 icon={<FilterIcon />}
-                href="hero-banner"
+                href="/hero-banner"
               />
               <SidebarCollapseItem
                 isActive={

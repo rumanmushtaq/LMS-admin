@@ -1,7 +1,7 @@
 import { Button, Input, Dropdown, Text } from "@nextui-org/react";
 import React from "react";
 import { Flex } from "../styles/flex";
-import { ExportIcon } from "../icons/accounts/export-icon";
+import { Search, Filter, Calendar, ChevronDown, Download } from "lucide-react";
 
 interface Props {
   searchTerm: string;
@@ -38,11 +38,13 @@ export const TableFilters = ({
     <Flex
       css={{
         gap: "$8",
-        py: "$6",
-        px: "$6",
-        bg: "$accents0",
-        borderRadius: "$xl",
-        mb: "$6",
+        py: "$8",
+        px: "$8",
+        bg: "$sidebarBg",
+        borderRadius: "24px",
+        mb: "$8",
+        border: "1px solid $border",
+        boxShadow: "$sm",
       }}
       justify={"between"}
       align={"center"}
@@ -60,21 +62,42 @@ export const TableFilters = ({
         <Input
           clearable
           bordered
-          placeholder="Search..."
+          placeholder="Search teachers..."
           value={searchTerm}
           onChange={(e) => onSearchChange(e.target.value)}
-          css={{ width: "100%", maxW: "400px" }}
+          contentLeft={
+            <Search size={18} color="var(--nextui-colors-accents6)" />
+          }
+          css={{
+            width: "100%",
+            maxW: "300px",
+            "& .nextui-input-wrapper": {
+              borderRadius: "14px",
+              border: "2px solid $border",
+            },
+          }}
         />
 
         {statusOptions && onStatusChange && (
           <Dropdown>
-            <Dropdown.Button flat color="secondary" css={{ tt: "capitalize" }}>
-              {status || "All Status"}
+            <Dropdown.Button
+              flat
+              color="primary"
+              css={{
+                tt: "capitalize",
+                borderRadius: "14px",
+                height: "$14",
+                px: "$8",
+              }}
+              iconRight={<ChevronDown size={16} />}
+            >
+              {status || "Status"}
             </Dropdown.Button>
             <Dropdown.Menu
               aria-label="Status Filter"
               onAction={onStatusChange}
               selectedKeys={status ? [status] : []}
+              css={{ borderRadius: "16px" }}
             >
               {[{ key: "all", label: "All Status" }, ...statusOptions].map(
                 (opt) => (
@@ -87,17 +110,28 @@ export const TableFilters = ({
 
         {onEmailVerifiedChange && (
           <Dropdown>
-            <Dropdown.Button flat color="secondary" css={{ tt: "capitalize" }}>
+            <Dropdown.Button
+              flat
+              color="primary"
+              css={{
+                tt: "capitalize",
+                borderRadius: "14px",
+                height: "$14",
+                px: "$8",
+              }}
+              iconRight={<ChevronDown size={16} />}
+            >
               {emailVerified === "true"
                 ? "Verified"
                 : emailVerified === "false"
                   ? "Not Verified"
-                  : "All Verification"}
+                  : "Verification"}
             </Dropdown.Button>
             <Dropdown.Menu
               aria-label="Email Verification Filter"
               onAction={onEmailVerifiedChange}
               selectedKeys={emailVerified ? [emailVerified] : []}
+              css={{ borderRadius: "16px" }}
             >
               <Dropdown.Item key="all">All Verification</Dropdown.Item>
               <Dropdown.Item key="true">Verified</Dropdown.Item>
@@ -107,27 +141,53 @@ export const TableFilters = ({
         )}
 
         {onStartDateChange && (
-          <Input
-            type="date"
-            bordered
-            label="From"
-            labelPlaceholder="From Date"
-            value={startDate}
-            onChange={(e) => onStartDateChange(e.target.value)}
-            css={{ width: "200px" }}
-          />
+          <Flex
+            align="center"
+            css={{
+              bg: "$accents1",
+              borderRadius: "14px",
+              px: "$4",
+              height: "$14",
+              border: "2px solid $border",
+            }}
+          >
+            <Calendar size={18} color="var(--nextui-colors-primary)" />
+            <Input
+              type="date"
+              value={startDate}
+              onChange={(e) => onStartDateChange(e.target.value)}
+              css={{
+                width: "140px",
+                "& .nextui-input": { bg: "transparent" },
+                "& .nextui-input-wrapper": { border: "none" },
+              }}
+            />
+          </Flex>
         )}
 
         {onEndDateChange && (
-          <Input
-            type="date"
-            bordered
-            label="To"
-            labelPlaceholder="To Date"
-            value={endDate}
-            onChange={(e) => onEndDateChange(e.target.value)}
-            css={{ width: "200px" }}
-          />
+          <Flex
+            align="center"
+            css={{
+              bg: "$accents1",
+              borderRadius: "14px",
+              px: "$4",
+              height: "$14",
+              border: "2px solid $border",
+            }}
+          >
+            <Calendar size={18} color="var(--nextui-colors-primary)" />
+            <Input
+              type="date"
+              value={endDate}
+              onChange={(e) => onEndDateChange(e.target.value)}
+              css={{
+                width: "140px",
+                "& .nextui-input": { bg: "transparent" },
+                "& .nextui-input-wrapper": { border: "none" },
+              }}
+            />
+          </Flex>
         )}
       </Flex>
 
@@ -135,10 +195,15 @@ export const TableFilters = ({
         {addButton}
         <Button
           auto
-          flat
-          iconRight={<ExportIcon />}
+          color="primary"
+          iconRight={<Download size={18} />}
           onClick={onExport}
-          css={{ bg: "#7047EB", color: "$white" }}
+          css={{
+            borderRadius: "14px",
+            height: "$14",
+            px: "$10",
+            fontWeight: "$bold",
+          }}
         >
           Export
         </Button>

@@ -42,10 +42,9 @@ export const SidebarCollapseItem = ({
     <div className="flex flex-col gap-1 w-full">
       <div
         className={`relative flex items-center justify-between w-full min-h-[44px] h-full px-7 rounded-xl cursor-pointer transition-all duration-200 active:scale-95 group ${
-          isActive || open
-            ? "bg-[#7047EB]/10 text-[#7047EB] font-bold"
-            : "text-[#4b5563] hover:bg-[#f1f5f9] hover:text-[#7047EB]"
+          isActive || open ? "bg-[#7047EB]/10 font-bold" : "hover:bg-[#f1f5f9]"
         }`}
+        style={{ color: isActive || open ? "#7047EB" : "#4b5563" }}
         onClick={handleToggle}
       >
         <div className="flex items-center gap-4">
@@ -78,9 +77,10 @@ export const SidebarCollapseItem = ({
                   onClick={handleClick}
                   className={`relative px-4 py-2 rounded-lg transition-all duration-200 text-sm font-medium flex items-center gap-3 ${
                     isSubActive
-                      ? "text-[#7047EB] bg-[#7047EB]/10 font-bold"
-                      : "text-[#4b5563] hover:text-[#7047EB] hover:bg-[#f1f5f9]"
+                      ? "bg-[#7047EB]/10 font-bold"
+                      : "hover:bg-[#f1f5f9]"
                   }`}
+                  style={{ color: isSubActive ? "#7047EB" : "#4b5563" }}
                 >
                   {isSubActive && (
                     <div className="absolute left-0 w-1 h-4 bg-[#7047EB] rounded-r-full" />

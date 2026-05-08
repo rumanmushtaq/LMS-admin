@@ -13,9 +13,10 @@ import {
   Loading,
 } from "@nextui-org/react";
 import { useRouter } from "next/router";
-import React from "react";
+import React, { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import adminService from "../../services/admin";
+import { StatusConfirmModal } from "./status-confirm-modal";
 import { Flex } from "../styles/flex";
 import { Breadcrumbs, Crumb, CrumbLink } from "../breadcrumb/breadcrumb.styled";
 import { HouseIcon } from "../icons/breadcrumb/house-icon";
@@ -44,6 +45,11 @@ export const TeacherDetail = () => {
   const { id } = router.query;
   const queryClient = useQueryClient();
 
+  const [isStatusModalOpen, setIsStatusModalOpen] = useState(false);
+  const [pendingStatus, setPendingStatus] = useState<"active" | "suspended">(
+    "active",
+  );
+
   const {
     data: response,
     isLoading,
@@ -55,6 +61,14 @@ export const TeacherDetail = () => {
   });
 
   const teacher = response?.data;
+  console.log(
+    "TeacherDetail: ID from router:",
+    id,
+    "Teacher from query:",
+    teacher?.email,
+    "Status:",
+    teacher?.status,
+  );
 
   const approveMutation = useMutation({
     mutationFn: (tutorId: string) => adminService.approveTutor(tutorId),
@@ -76,9 +90,20 @@ export const TeacherDetail = () => {
   const statusMutation = useMutation({
     mutationFn: ({ id, status }: { id: string; status: string }) =>
       adminService.updateUserStatus(id, status),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["teacher", id] });
-      alert("Status updated successfully!");
+    onSuccess: (response) => {
+      // response might be { success: true, data: user, timestamp: ... } due to backend interceptor
+      const updatedUser = response?.data || response;
+      console.log("statusMutation onSuccess: Updated user:", updatedUser);
+
+      if (updatedUser) {
+        queryClient.setQueryData(["teacher", id], (oldData: any) => {
+          if (!oldData) return oldData;
+          return {
+            ...oldData,
+            data: updatedUser,
+          };
+        });
+      }
     },
   });
 
@@ -110,9 +135,40 @@ export const TeacherDetail = () => {
 
   const handleToggleStatus = () => {
     const newStatus = teacher.status === "active" ? "suspended" : "active";
-    if (confirm(`Set status to ${newStatus}?`)) {
-      statusMutation.mutate({ id: id as string, status: newStatus });
-    }
+    console.log(
+      "handleToggleStatus: Current status:",
+      teacher.status,
+      "New status:",
+      newStatus,
+    );
+    setPendingStatus(newStatus);
+    setIsStatusModalOpen(true);
+  };
+
+  const handleConfirmStatusChange = () => {
+    console.log(
+      "handleConfirmStatusChange: Calling mutate with status:",
+      pendingStatus,
+    );
+    statusMutation.mutate(
+      { id: id as string, status: pendingStatus },
+      {
+        onSuccess: (data) => {
+          console.log(
+            "handleConfirmStatusChange: Mutation success. Response:",
+            data,
+          );
+          setIsStatusModalOpen(false);
+        },
+        onError: (err: any) => {
+          console.error("handleConfirmStatusChange: Mutation error:", err);
+          alert(
+            "Error updating status: " +
+              (err?.response?.data?.message || err.message),
+          );
+        },
+      },
+    );
   };
 
   const handleDelete = () => {
@@ -801,6 +857,14 @@ export const TeacherDetail = () => {
           </Flex>
         </Grid>
       </Grid.Container>
+
+      <StatusConfirmModal
+        isOpen={isStatusModalOpen}
+        onClose={() => setIsStatusModalOpen(false)}
+        onConfirm={handleConfirmStatusChange}
+        newStatus={pendingStatus}
+        isLoading={statusMutation.isPending}
+      />
     </Flex>
   );
 };

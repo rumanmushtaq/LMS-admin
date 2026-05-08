@@ -1,20 +1,33 @@
 import { Table } from "@nextui-org/react";
 import React from "react";
-import { Box } from "../styles/box";
-import { columns, users } from "./data";
 import { RenderCell } from "./render-cell";
+import { useQuery } from "@tanstack/react-query";
+import AdminService from "../../services/admin";
+import { Flex } from "../styles/flex";
 
-export const TableWrapper = () => {
+const columns = [
+  { name: "TITLE", uid: "title" },
+  { name: "SUBTITLE", uid: "subtitle" },
+  { name: "STUDENTS", uid: "studentCount" },
+  { name: "RATING", uid: "rating" },
+  { name: "ACTIONS", uid: "actions" },
+];
+
+interface TableWrapperProps {
+  addButton?: React.ReactNode;
+}
+
+export const TableWrapper = ({ addButton }: TableWrapperProps) => {
+  const { data: banners, isLoading } = useQuery({
+    queryKey: ["hero-banners"],
+    queryFn: () => AdminService.getHeroBanners(),
+  });
+
   return (
-    <Box
-      css={{
-        "& .nextui-table-container": {
-          boxShadow: "none",
-        },
-      }}
-    >
+    <Flex direction="column" css={{ width: "100%", gap: "$8" }}>
+      <Flex justify="end">{addButton}</Flex>
       <Table
-        aria-label="Example table with custom cells"
+        aria-label="Hero Banners data table"
         css={{
           height: "auto",
           minWidth: "100%",
@@ -22,7 +35,6 @@ export const TableWrapper = () => {
           width: "100%",
           px: 0,
         }}
-        selectionMode="multiple"
       >
         <Table.Header columns={columns}>
           {(column) => (
@@ -35,9 +47,12 @@ export const TableWrapper = () => {
             </Table.Column>
           )}
         </Table.Header>
-        <Table.Body items={users}>
+        <Table.Body
+          items={banners?.data || []}
+          loadingState={isLoading ? "loading" : "idle"}
+        >
           {(item: any) => (
-            <Table.Row key={item.id}>
+            <Table.Row key={item._id}>
               {(columnKey: any) => (
                 <Table.Cell>
                   {RenderCell({ user: item, columnKey: columnKey })}
@@ -50,10 +65,10 @@ export const TableWrapper = () => {
           shadow
           noMargin
           align="center"
-          rowsPerPage={8}
+          rowsPerPage={10}
           onPageChange={(page) => console.log({ page })}
         />
       </Table>
-    </Box>
+    </Flex>
   );
 };

@@ -5,11 +5,13 @@ import {NotificationIcon} from '../icons/navbar/notificationicon';
 export const NotificationsDropdown = () => {
    return (
       <Dropdown placement="bottom-right">
-         <Dropdown.Trigger>
-            <Navbar.Item>
-               <NotificationIcon />
-            </Navbar.Item>
-         </Dropdown.Trigger>
+         <Navbar.Item>
+            <Dropdown.Trigger>
+               <button aria-label="Notifications" className="bg-transparent border-none p-0 cursor-pointer outline-none flex items-center justify-center">
+                  <NotificationIcon />
+               </button>
+            </Dropdown.Trigger>
+         </Navbar.Item>
          <Dropdown.Menu
             aria-label="Avatar Actions"
             css={{

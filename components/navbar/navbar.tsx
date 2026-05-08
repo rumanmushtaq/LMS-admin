@@ -69,6 +69,7 @@ export const NavbarWrapper = ({children}: Props) => {
                }}
             >
                <Input
+                  aria-label="Search"
                   clearable
                   contentLeft={
                      <SearchIcon
@@ -110,6 +111,7 @@ export const NavbarWrapper = ({children}: Props) => {
                </Navbar.Content>
                <Navbar.Content>
                   <Link
+                     aria-label="Github link"
                      href="https://github.com/"
                      target={'_blank'}
                   >

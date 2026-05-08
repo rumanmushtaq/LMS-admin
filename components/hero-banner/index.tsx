@@ -1,15 +1,13 @@
-import { Button, Input, Text } from "@nextui-org/react";
+import { Text } from "@nextui-org/react";
 import Link from "next/link";
 import React from "react";
 import { Breadcrumbs, Crumb, CrumbLink } from "../breadcrumb/breadcrumb.styled";
-import { ExportIcon } from "../icons/accounts/export-icon";
 import { HouseIcon } from "../icons/breadcrumb/house-icon";
-import { UsersIcon } from "../icons/breadcrumb/users-icon";
 import { Flex } from "../styles/flex";
 import { TableWrapper } from "./table";
-import { AddStudent } from "./add-student";
+import { AddBanner } from "./add-banner";
 
-export const Students = () => {
+export const HeroBanners = () => {
   return (
     <Flex
       css={{
@@ -33,8 +31,7 @@ export const Students = () => {
         </Crumb>
 
         <Crumb>
-          <UsersIcon />
-          <CrumbLink href="#">Students</CrumbLink>
+          <CrumbLink href="#">Hero Banner</CrumbLink>
           <Text>/</Text>
         </Crumb>
         <Crumb>
@@ -42,8 +39,26 @@ export const Students = () => {
         </Crumb>
       </Breadcrumbs>
 
-      <Text h3>All Students</Text>
-      <TableWrapper addButton={<AddStudent />} />
+      <Text h2 css={{ mb: "$0" }}>
+        Hero Banner Management
+      </Text>
+      <Text span size="$base" css={{ color: "$accents8", mb: "$8" }}>
+        Customize and manage the promotional sliders displayed on your homepage.
+      </Text>
+
+      <Flex
+        direction={"column"}
+        css={{
+          width: "100%",
+          bg: "$background",
+          borderRadius: "16px",
+          p: "$8",
+          boxShadow: "$md",
+          mt: "$4",
+        }}
+      >
+        <TableWrapper addButton={<AddBanner />} />
+      </Flex>
     </Flex>
   );
 };

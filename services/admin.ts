@@ -155,7 +155,8 @@ class AdminService {
     if (query.limit) params.append("limit", String(query.limit));
     if (query.sortBy) params.append("sortBy", query.sortBy);
     if (query.sortOrder) params.append("sortOrder", query.sortOrder);
-    if (query.emailVerified !== undefined) params.append("emailVerified", String(query.emailVerified));
+    if (query.emailVerified !== undefined)
+      params.append("emailVerified", String(query.emailVerified));
 
     const { data } = await HTTP_CLIENT.get(
       `${apiEndpoints.Students.STUDENTS}?${params.toString()}`,
@@ -167,14 +168,19 @@ class AdminService {
    * GET /api/v1/admin/students/:id
    */
   async getStudentById(id: string): Promise<any> {
-    const { data } = await HTTP_CLIENT.get(apiEndpoints.Students.STUDENT_BY_ID(id));
+    const { data } = await HTTP_CLIENT.get(
+      apiEndpoints.Students.STUDENT_BY_ID(id),
+    );
     return data;
   }
 
   /**
    * PATCH /api/v1/admin/students/:id
    */
-  async updateStudent(id: string, updateData: Record<string, any>): Promise<any> {
+  async updateStudent(
+    id: string,
+    updateData: Record<string, any>,
+  ): Promise<any> {
     const { data } = await HTTP_CLIENT.patch(
       apiEndpoints.Students.UPDATE_STUDENT(id),
       updateData,
@@ -219,6 +225,118 @@ class AdminService {
   async deleteStudent(id: string): Promise<any> {
     const { data } = await HTTP_CLIENT.delete(
       apiEndpoints.Students.DELETE_STUDENT(id),
+    );
+    return data;
+  }
+
+  // =====================
+  // HERO BANNER MGMT
+  // =====================
+
+  /**
+   * GET /api/v1/admin/hero-banner
+   */
+  async getHeroBanners(): Promise<any> {
+    const { data } = await HTTP_CLIENT.get(apiEndpoints.Admin.HERO_BANNER);
+    return data;
+  }
+
+  /**
+   * POST /api/v1/admin/hero-banner
+   */
+  async createHeroBanner(bannerData: any): Promise<any> {
+    const { data } = await HTTP_CLIENT.post(
+      apiEndpoints.Admin.HERO_BANNER,
+      bannerData,
+    );
+    return data;
+  }
+
+  /**
+   * PATCH /api/v1/admin/hero-banner/:id
+   */
+  async updateHeroBanner(id: string, bannerData: any): Promise<any> {
+    const { data } = await HTTP_CLIENT.patch(
+      apiEndpoints.Admin.HERO_BANNER_BY_ID(id),
+      bannerData,
+    );
+    return data;
+  }
+
+  /**
+   * DELETE /api/v1/admin/hero-banner/:id
+   */
+  async deleteHeroBanner(id: string): Promise<any> {
+    const { data } = await HTTP_CLIENT.delete(
+      apiEndpoints.Admin.HERO_BANNER_BY_ID(id),
+    );
+    return data;
+  }
+
+  /**
+   * POST /api/v1/admin/upload/image
+   */
+  async uploadHeroBannerImage(file: File): Promise<any> {
+    const formData = new FormData();
+    formData.append("image", file);
+    const { data } = await HTTP_CLIENT.post(
+      apiEndpoints.Admin.UPLOAD_IMAGE,
+      formData,
+    );
+    return data;
+  }
+
+  // =====================
+  // TUTOR MANAGEMENT
+  // =====================
+
+  /**
+   * GET /api/v1/admin/tutors
+   */
+  async getTutors(query: StudentQuery = {}): Promise<any> {
+    const params = new URLSearchParams();
+    if (query.search) params.append("search", query.search);
+    if (query.status) params.append("status", query.status);
+    if (query.startDate) params.append("startDate", query.startDate);
+    if (query.endDate) params.append("endDate", query.endDate);
+    if (query.page) params.append("page", String(query.page));
+    if (query.limit) params.append("limit", String(query.limit));
+    if (query.sortBy) params.append("sortBy", query.sortBy);
+    if (query.sortOrder) params.append("sortOrder", query.sortOrder);
+    if (query.emailVerified !== undefined)
+      params.append("emailVerified", String(query.emailVerified));
+
+    const { data } = await HTTP_CLIENT.get(
+      `${apiEndpoints.Admin.TUTORS}?${params.toString()}`,
+    );
+    return data;
+  }
+
+  /**
+   * GET /api/v1/admin/tutors/:id
+   */
+  async getTutorById(id: string): Promise<any> {
+    const { data } = await HTTP_CLIENT.get(apiEndpoints.Admin.TUTOR_BY_ID(id));
+    return data;
+  }
+
+  /**
+   * POST /api/v1/admin/tutors/:id/approve
+   */
+  async approveTutor(id: string): Promise<any> {
+    const { data } = await HTTP_CLIENT.post(
+      apiEndpoints.Admin.APPROVE_TUTOR(id),
+    );
+    return data;
+  }
+
+  /**
+   * POST /api/v1/admin/tutors/:id/reject
+   */
+  async rejectTutor(id: string, reason?: string): Promise<any> {
+    const { data } = await HTTP_CLIENT.post(
+      apiEndpoints.Admin.REJECT_TUTOR(id),
+      { reason },
     );
     return data;
   }

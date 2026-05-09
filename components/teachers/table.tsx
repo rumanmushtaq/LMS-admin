@@ -15,6 +15,7 @@ import adminService from "../../services/admin";
 import { TableFilters } from "../table/filters";
 import { Flex } from "../styles/flex";
 import { TeacherVerificationModal } from "./verification-modal";
+import { useRouter } from "next/router";
 
 interface Teacher {
   _id: string;
@@ -51,6 +52,7 @@ interface Props {
 }
 
 export const TableWrapper = ({ addButton }: Props) => {
+  const router = useRouter();
   const [teachers, setTeachers] = useState<Teacher[]>([]);
   const [loading, setLoading] = useState(true);
   const [meta, setMeta] = useState<Meta>({
@@ -365,6 +367,7 @@ export const TableWrapper = ({ addButton }: Props) => {
                         columnKey: columnKey,
                         onRefresh: handleRefresh,
                         onVerify: () => handleVerify(item),
+                        router: router,
                       })}
                     </Table.Cell>
                   )}

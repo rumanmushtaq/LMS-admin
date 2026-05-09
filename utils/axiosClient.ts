@@ -194,6 +194,15 @@ export const setupAxios = () => {
       // HANDLE 401 UNAUTHORIZED
       // -------------------------
       if (status === 401) {
+        // Skip automatic redirect for login attempts so we can show the error message
+        const loginUrl = apiEndpoints.Auth.LOGIN;
+        const isLoginRequest = originalRequest.url?.includes(loginUrl);
+
+        if (isLoginRequest) {
+          console.error("🔴 401 Unauthorized - Login failed");
+          return Promise.reject(error);
+        }
+
         console.error("🔴 401 Unauthorized - Logging out user");
 
         // Use a dynamic import to avoid potential circular dependencies

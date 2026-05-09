@@ -2,7 +2,7 @@ import { Button, Input, Text, Loading, Row, Checkbox } from "@nextui-org/react";
 import { useLogin } from "./useLogin";
 
 export const LoginView = () => {
-  const { form, onSubmit, loading } = useLogin();
+  const { form, onSubmit, loading, error } = useLogin();
   const {
     register,
     handleSubmit,
@@ -145,6 +145,22 @@ export const LoginView = () => {
                 Forgot password
               </Text>
             </Row>
+
+            {error && (
+              <Text
+                color="error"
+                size="$sm"
+                css={{
+                  textAlign: "center",
+                  backgroundColor: "#fee2e2",
+                  padding: "0.75rem",
+                  borderRadius: "8px",
+                  fontWeight: "600",
+                }}
+              >
+                {error}
+              </Text>
+            )}
 
             <Button
               type="submit"

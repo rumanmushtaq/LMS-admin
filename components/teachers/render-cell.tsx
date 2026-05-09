@@ -6,6 +6,7 @@ import {
   User,
   Dropdown,
   Badge,
+  Button,
 } from "@nextui-org/react";
 import Link from "next/link";
 import React from "react";
@@ -25,6 +26,7 @@ interface Props {
   columnKey: string | React.Key;
   onRefresh?: () => void;
   onVerify?: () => void;
+  router?: any;
 }
 
 export const RenderCell = ({
@@ -32,6 +34,7 @@ export const RenderCell = ({
   columnKey,
   onRefresh,
   onVerify,
+  router,
 }: Props) => {
   // @ts-ignore
   const cellValue = teacher[columnKey];
@@ -45,24 +48,34 @@ export const RenderCell = ({
 
   switch (columnKey) {
     case "name":
+      const id = teacher._id || teacher.id;
       return (
-        <Link href={`/teachers/${teacher._id || teacher.id}`}>
-          <div style={{ cursor: "pointer" }}>
-            <User
-              src={teacher.avatar}
-              name={getFullName()}
-              description={teacher.email}
-              css={{
-                p: 0,
-                "& .nextui-user-name": {
-                  fontWeight: "$bold",
-                  color: "$primary",
-                },
-                "& .nextui-user-desc": { fontSize: "$xs" },
-              }}
-            />
-          </div>
-        </Link>
+        <div
+          style={{ cursor: "pointer", position: "relative", zIndex: 10 }}
+          onClickCapture={(e) => {
+            e.stopPropagation();
+            const targetUrl = `/teachers/${id}`;
+            if (router) {
+              router.push(targetUrl);
+            } else {
+              window.location.href = targetUrl;
+            }
+          }}
+        >
+          <User
+            src={teacher.avatar}
+            name={getFullName()}
+            description={teacher.email}
+            css={{
+              p: 0,
+              "& .nextui-user-name": {
+                fontWeight: "$bold",
+                color: "$primary",
+              },
+              "& .nextui-user-desc": { fontSize: "$xs" },
+            }}
+          />
+        </div>
       );
     case "subject":
       return (
@@ -106,11 +119,30 @@ export const RenderCell = ({
       return (
         <Row justify="center" align="center" css={{ gap: "$4" }}>
           <Tooltip content="Review Detail" rounded color="primary">
-            <Link href={`/teachers/${teacher._id || teacher.id}`}>
-              <div className="p-2 rounded-lg hover:bg-primary/10 transition-colors cursor-pointer text-primary">
-                <Eye size={18} />
-              </div>
-            </Link>
+            <Button
+              auto
+              light
+              ripple={false}
+              className="min-w-0 p-2"
+              css={{
+                height: "auto",
+                borderRadius: "8px",
+                "&:hover": { bg: "$primaryLight" },
+                color: "$primary",
+              }}
+              onClickCapture={(e) => {
+                e.stopPropagation();
+                const id = teacher._id || teacher.id;
+                const targetUrl = `/teachers/${id}`;
+                if (router) {
+                  router.push(targetUrl);
+                } else {
+                  window.location.href = targetUrl;
+                }
+              }}
+            >
+              <Eye size={18} />
+            </Button>
           </Tooltip>
 
           <Dropdown placement="bottom-right">
@@ -124,7 +156,12 @@ export const RenderCell = ({
               css={{ borderRadius: "16px", minWidth: "180px" }}
               onAction={(action) => {
                 if (action === "view") {
-                  window.location.href = `/teachers/${teacher._id || teacher.id}`;
+                  const id = teacher._id || teacher.id;
+                  if (router) {
+                    router.push(`/teachers/${id}`);
+                  } else {
+                    window.location.href = `/teachers/${id}`;
+                  }
                 } else if (action === "delete") {
                   if (
                     confirm(`Are you sure you want to delete ${getFullName()}?`)

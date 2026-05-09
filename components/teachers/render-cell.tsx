@@ -6,6 +6,7 @@ import {
   User,
   Dropdown,
   Badge,
+  Button,
 } from "@nextui-org/react";
 import Link from "next/link";
 import React from "react";
@@ -50,13 +51,14 @@ export const RenderCell = ({
       const id = teacher._id || teacher.id;
       return (
         <div
-          style={{ cursor: "pointer" }}
-          onClick={(e) => {
+          style={{ cursor: "pointer", position: "relative", zIndex: 10 }}
+          onClickCapture={(e) => {
             e.stopPropagation();
+            const targetUrl = `/teachers/${id}`;
             if (router) {
-              router.push(`/teachers/${id}`);
+              router.push(targetUrl);
             } else {
-              window.location.href = `/teachers/${id}`;
+              window.location.href = targetUrl;
             }
           }}
         >
@@ -117,20 +119,30 @@ export const RenderCell = ({
       return (
         <Row justify="center" align="center" css={{ gap: "$4" }}>
           <Tooltip content="Review Detail" rounded color="primary">
-            <div
-              className="p-2 rounded-lg hover:bg-primary/10 transition-colors cursor-pointer text-primary"
-              onClick={(e) => {
+            <Button
+              auto
+              light
+              ripple={false}
+              className="min-w-0 p-2"
+              css={{
+                height: "auto",
+                borderRadius: "8px",
+                "&:hover": { bg: "$primaryLight" },
+                color: "$primary",
+              }}
+              onClickCapture={(e) => {
                 e.stopPropagation();
                 const id = teacher._id || teacher.id;
+                const targetUrl = `/teachers/${id}`;
                 if (router) {
-                  router.push(`/teachers/${id}`);
+                  router.push(targetUrl);
                 } else {
-                  window.location.href = `/teachers/${id}`;
+                  window.location.href = targetUrl;
                 }
               }}
             >
               <Eye size={18} />
-            </div>
+            </Button>
           </Tooltip>
 
           <Dropdown placement="bottom-right">

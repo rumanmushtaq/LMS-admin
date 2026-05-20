@@ -34,7 +34,9 @@ export const AddBanner = ({ banner, isEdit }: AddBannerProps) => {
       imageUrl: "",
       trustedText: "",
       studentCount: "",
+      courseCount: "",
       rating: "",
+      highlightedWord: "Online",
     },
   });
 
@@ -193,15 +195,33 @@ export const AddBanner = ({ banner, isEdit }: AddBannerProps) => {
                   bordered
                   fullWidth
                   size="lg"
-                  placeholder="e.g. 1000+"
+                  placeholder="e.g. 15K+"
                 />
                 <Input
-                  {...register("rating")}
-                  label="Rating"
+                  {...register("courseCount")}
+                  label="Course Count"
                   bordered
                   fullWidth
                   size="lg"
-                  placeholder="e.g. 4.8"
+                  placeholder="e.g. 50+"
+                />
+              </Flex>
+              <Flex css={{ gap: "$10" }}>
+                <Input
+                  {...register("rating")}
+                  label="Rating / Reviews"
+                  bordered
+                  fullWidth
+                  size="lg"
+                  placeholder="e.g. 4.9 / 200 Review"
+                />
+                <Input
+                  {...register("highlightedWord")}
+                  label="Highlighted Word"
+                  bordered
+                  fullWidth
+                  size="lg"
+                  placeholder="The word in the title with special styling (e.g. Online)"
                 />
               </Flex>
               <Input

@@ -5,7 +5,7 @@ import {
   Modal,
   Text,
   Loading,
-  Image,
+  Switch,
 } from "@nextui-org/react";
 import React, { useState, useEffect, useRef } from "react";
 import { useForm } from "react-hook-form";
@@ -28,19 +28,13 @@ export const AddBanner = ({ banner, isEdit }: AddBannerProps) => {
 
   const { register, handleSubmit, reset, setValue, watch } = useForm({
     defaultValues: banner || {
-      title: "",
-      subtitle: "",
-      description: "",
-      imageUrl: "",
-      trustedText: "",
-      studentCount: "",
-      courseCount: "",
-      rating: "",
-      highlightedWord: "Online",
+      videoUrl: "",
+      isActive: true,
     },
   });
 
-  const imageUrl = watch("imageUrl");
+  const videoUrl = watch("videoUrl");
+  const isActive = watch("isActive");
 
   useEffect(() => {
     if (isEdit && banner) {
@@ -72,11 +66,11 @@ export const AddBanner = ({ banner, isEdit }: AddBannerProps) => {
 
     setUploading(true);
     try {
-      const response = await AdminService.uploadHeroBannerImage(file);
-      setValue("imageUrl", response.data.url);
+      const response = await AdminService.uploadHeroBannerVideo(file);
+      setValue("videoUrl", response.data.url);
     } catch (error) {
       console.error("Upload failed", error);
-      alert("Image upload failed");
+      alert("Video upload failed");
     } finally {
       setUploading(false);
     }
@@ -123,39 +117,14 @@ export const AddBanner = ({ banner, isEdit }: AddBannerProps) => {
         <form onSubmit={handleSubmit(onSubmit)}>
           <Modal.Body css={{ py: "$10" }}>
             <Flex direction="column" css={{ gap: "$8" }}>
-              <Input
-                {...register("title")}
-                label="Title"
-                bordered
-                fullWidth
-                size="lg"
-                placeholder="Banner Title"
-              />
-              <Input
-                {...register("subtitle")}
-                label="Subtitle"
-                bordered
-                fullWidth
-                size="lg"
-                placeholder="Banner Subtitle"
-              />
-              <Input
-                {...register("description")}
-                label="Description"
-                bordered
-                fullWidth
-                size="lg"
-                placeholder="Banner Description"
-              />
               <Flex css={{ gap: "$10", alignItems: "end" }}>
                 <Input
-                  {...register("imageUrl")}
-                  label="Image URL"
+                  {...register("videoUrl")}
+                  label="Video URL"
                   bordered
                   fullWidth
                   size="lg"
-                  placeholder="Upload an image or enter URL"
-                  readOnly
+                  placeholder="Upload a video or enter URL"
                 />
                 <Button
                   auto
@@ -174,64 +143,26 @@ export const AddBanner = ({ banner, isEdit }: AddBannerProps) => {
                   type="file"
                   hidden
                   onChange={onFileUpload}
-                  accept="image/*"
+                  accept="video/*"
                   ref={fileInputRef}
                 />
               </Flex>
-              {imageUrl && (
-                <Image
-                  src={imageUrl}
-                  alt="Preview"
-                  width={100}
-                  height={60}
-                  objectFit="cover"
-                  css={{ borderRadius: "8px" }}
-                />
+              {videoUrl && (
+                <div style={{ width: "100%", borderRadius: "8px", overflow: "hidden" }}>
+                  <video
+                    src={videoUrl}
+                    controls
+                    style={{ width: "100%", maxHeight: "200px", objectFit: "cover" }}
+                  />
+                </div>
               )}
-              <Flex css={{ gap: "$10" }}>
-                <Input
-                  {...register("studentCount")}
-                  label="Student Count"
-                  bordered
-                  fullWidth
-                  size="lg"
-                  placeholder="e.g. 15K+"
-                />
-                <Input
-                  {...register("courseCount")}
-                  label="Course Count"
-                  bordered
-                  fullWidth
-                  size="lg"
-                  placeholder="e.g. 50+"
+              <Flex align="center" justify="between" css={{ mt: "$2" }}>
+                <Text size={16}>Active Status</Text>
+                <Switch
+                  checked={isActive}
+                  onChange={(e) => setValue("isActive", e.target.checked)}
                 />
               </Flex>
-              <Flex css={{ gap: "$10" }}>
-                <Input
-                  {...register("rating")}
-                  label="Rating / Reviews"
-                  bordered
-                  fullWidth
-                  size="lg"
-                  placeholder="e.g. 4.9 / 200 Review"
-                />
-                <Input
-                  {...register("highlightedWord")}
-                  label="Highlighted Word"
-                  bordered
-                  fullWidth
-                  size="lg"
-                  placeholder="The word in the title with special styling (e.g. Online)"
-                />
-              </Flex>
-              <Input
-                {...register("trustedText")}
-                label="Trusted Text"
-                bordered
-                fullWidth
-                size="lg"
-                placeholder="Trusted by over 15K Users..."
-              />
             </Flex>
           </Modal.Body>
           <Divider css={{ my: "$5" }} />

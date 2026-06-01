@@ -28,6 +28,7 @@ const apiEndpoints = {
     HERO_BANNER: "/api/v1/admin/hero-banner",
     HERO_BANNER_BY_ID: (id: string) => `/api/v1/admin/hero-banner/${id}`,
     UPLOAD_IMAGE: "/api/v1/admin/upload/image",
+    UPLOAD_VIDEO: "/api/v1/admin/upload/video",
     APPROVE_TUTOR: (id: string) => `/api/v1/admin/tutors/${id}/approve`,
     REJECT_TUTOR: (id: string) => `/api/v1/admin/tutors/${id}/reject`,
     TUTORS: "/api/v1/admin/tutors",

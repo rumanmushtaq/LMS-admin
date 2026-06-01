@@ -300,6 +300,19 @@ class AdminService {
     return data;
   }
 
+  /**
+   * POST /api/v1/admin/upload/video
+   */
+  async uploadHeroBannerVideo(file: File): Promise<any> {
+    const formData = new FormData();
+    formData.append("video", file);
+    const { data } = await HTTP_CLIENT.post(
+      apiEndpoints.Admin.UPLOAD_VIDEO,
+      formData,
+    );
+    return data;
+  }
+
   // =====================
   // TUTOR MANAGEMENT
   // =====================

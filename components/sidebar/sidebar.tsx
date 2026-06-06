@@ -10,6 +10,7 @@ import { SidebarItem } from "./sidebar-item";
 import { SidebarMenu } from "./sidebar-menu";
 import { FilterIcon } from "../icons/sidebar/filter-icon";
 import { ProductsIcon } from "../icons/sidebar/products-icon";
+import { CategoryIcon } from "../icons/sidebar/category-icon";
 import { useSidebarContext } from "../layout/layout-context";
 import { useRouter } from "next/router";
 import { SidebarCollapseItem } from "./sidebar-collapse-item";
@@ -66,6 +67,12 @@ export const SidebarWrapper = () => {
                 title="Banners"
                 icon={<FilterIcon />}
                 href="/hero-banner"
+              />
+              <SidebarItem
+                isActive={router.pathname === "/categories"}
+                title="Categories"
+                icon={<CategoryIcon />}
+                href="/categories"
               />
               <SidebarCollapseItem
                 isActive={

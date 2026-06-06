@@ -188,16 +188,75 @@ export const LoginView = () => {
       {/* Right Side - Hero Image */}
       <div
         style={{
-          flex: 1,
+          flex: "0 0 50%",
           display: "flex",
           flexDirection: "column",
           justifyContent: "center",
           alignItems: "center",
-          background: "url(/images/lms_hero_light.png) no-repeat center center",
+          background: "url(/images/lms_premium_hero.png) no-repeat center center",
           backgroundSize: "cover",
           position: "relative",
+          padding: "2rem",
         }}
-      ></div>
+      >
+        {/* Subtle dark overlay for better text contrast */}
+        <div
+          style={{
+            position: "absolute",
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            background: "linear-gradient(135deg, rgba(15, 23, 42, 0.3) 0%, rgba(15, 23, 42, 0.7) 100%)",
+            zIndex: 1,
+          }}
+        />
+
+        {/* Premium Glassmorphic Card */}
+        <div
+          style={{
+            position: "relative",
+            zIndex: 2,
+            maxWidth: "460px",
+            textAlign: "center",
+            padding: "3rem 2.5rem",
+            borderRadius: "24px",
+            background: "rgba(255, 255, 255, 0.03)",
+            backdropFilter: "blur(16px)",
+            WebkitBackdropFilter: "blur(16px)",
+            border: "1px solid rgba(255, 255, 255, 0.08)",
+            boxShadow: "0 20px 40px rgba(0, 0, 0, 0.3)",
+            display: "flex",
+            flexDirection: "column",
+            gap: "1.25rem",
+          }}
+        >
+          <Text
+            h2
+            css={{
+              color: "#ffffff",
+              fontWeight: "800",
+              fontSize: "2rem",
+              margin: 0,
+              letterSpacing: "0.5px",
+              textShadow: "0 2px 4px rgba(0, 0, 0, 0.2)",
+            }}
+          >
+            Varona Academy
+          </Text>
+          <Text
+            css={{
+              color: "rgba(255, 255, 255, 0.75)",
+              fontSize: "1rem",
+              lineHeight: "1.6",
+              margin: 0,
+              fontWeight: "400",
+            }}
+          >
+            Access the centralized administration dashboard to manage courses, instructors, students, and system analytics.
+          </Text>
+        </div>
+      </div>
     </div>
   );
 };

@@ -9,124 +9,133 @@ import {
   ChevronDown,
   Search,
   Plus,
+  Eye,
+  EyeOff,
 } from "lucide-react";
 import Image from "next/image";
 
+import { useEffect, useCallback, useRef } from "react";
+import adminService from "../../services/admin";
+import { Spinner } from "@nextui-org/react";
+import { DeleteConfirmModal } from "./DeleteConfirmModal";
+
 interface Product {
-  id: number;
-  image: string;
+  _id: string;
   title: string;
   description: string;
   price: number;
+  images: string[];
   sizes: string[];
-  status: boolean;
+  isActive: boolean;
 }
-
-const PRODUCTS: Product[] = [
-  {
-    id: 1,
-    image: "/images/tshirt-blue.png",
-    title: "Classic Blue T-Shirt",
-    description: "Comfortable and lightweight blue T-shirt.",
-    price: 22.99,
-    sizes: ["S", "M", "L", "XL"],
-    status: true,
-  },
-  {
-    id: 2,
-    image: "/images/tshirt-red.png",
-    title: "Classic Red T-Shirt",
-    description: "Comfortable and lightweight red T-shirt.",
-    price: 18.99,
-    sizes: ["S", "M", "L", "XL"],
-    status: true,
-  },
-  {
-    id: 3,
-    image: "/images/tshirt-white.png",
-    title: "Classic White T-Shirt",
-    description: "Comfortable and lightweight white T-shirt.",
-    price: 18.99,
-    sizes: ["S", "M", "L", "XL"],
-    status: true,
-  },
-  {
-    id: 4,
-    image: "/images/tshirt-white2.png",
-    title: "Stylish White T-Shirt",
-    description: "Bright stylish white T-shirt.",
-    price: 21.99,
-    sizes: ["S", "M", "L", "XL"],
-    status: true,
-  },
-  {
-    id: 5,
-    image: "/images/tshirt-blue.png",
-    title: "Ocean Blue T-Shirt",
-    description: "Cool ocean blue casual t-shirt.",
-    price: 24.99,
-    sizes: ["S", "M", "L"],
-    status: true,
-  },
-  {
-    id: 6,
-    image: "/images/tshirt-white.png",
-    title: "Premium White Tee",
-    description: "Premium quality white cotton tee.",
-    price: 29.99,
-    sizes: ["M", "L", "XL"],
-    status: false,
-  },
-];
 
 export default function ProductTable() {
   const router = useRouter();
 
+  const [products, setProducts] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
-  const [entriesPerPage, setEntriesPerPage] = useState(5);
+  const [debouncedSearch, setDebouncedSearch] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
-  const [sortField, setSortField] = useState<"title" | "description" | null>(
-    null,
+  const [totalCount, setTotalCount] = useState(0);
+  const [totalPages, setTotalPages] = useState(0);
+
+  // Delete Modal State
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [productToDelete, setProductToDelete] = useState<string | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  // Filters State
+  const [selectedSize, setSelectedSize] = useState("");
+  const [selectedStatus, setSelectedStatus] = useState("all");
+
+  const entriesPerPage = 10;
+
+  // Search debounce effect
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedSearch(search);
+      setCurrentPage(1); // Reset to page 1 on new search/filter
+    }, 500);
+
+    return () => clearTimeout(handler);
+  }, [search]);
+
+  const fetchProducts = useCallback(
+    async (page: number, searchTerm: string, size: string, status: string) => {
+      try {
+        setLoading(true);
+        const isActive =
+          status === "active"
+            ? true
+            : status === "inactive"
+              ? false
+              : undefined;
+
+        const response = await adminService.getProducts({
+          page,
+          limit: entriesPerPage,
+          search: searchTerm,
+          size: size || undefined,
+          isActive,
+        });
+
+        if (response && response.success && response.data) {
+          const productData = response.data;
+          if (Array.isArray(productData.data)) {
+            setProducts(productData.data);
+            setTotalCount(productData.totalCount);
+            setTotalPages(productData.totalPages);
+          }
+        }
+      } catch (error) {
+        console.error("Error fetching products:", error);
+      } finally {
+        setLoading(false);
+      }
+    },
+    [],
   );
-  const [sortDir, setSortDir] = useState<"asc" | "desc">("asc");
 
-  const [statusMap, setStatusMap] = useState(() =>
-    Object.fromEntries(PRODUCTS.map((p) => [p.id, p.status])),
-  );
+  useEffect(() => {
+    fetchProducts(currentPage, debouncedSearch, selectedSize, selectedStatus);
+  }, [
+    currentPage,
+    debouncedSearch,
+    selectedSize,
+    selectedStatus,
+    fetchProducts,
+  ]);
 
-  const filtered = useMemo(() => {
-    let list = PRODUCTS.filter(
-      (p) =>
-        p.title.toLowerCase().includes(search.toLowerCase()) ||
-        p.description.toLowerCase().includes(search.toLowerCase()),
-    );
+  const handleDeleteClick = (id: string) => {
+    setProductToDelete(id);
+    setIsDeleteModalOpen(true);
+  };
 
-    if (sortField) {
-      list = [...list].sort((a, b) => {
-        const va = a[sortField].toLowerCase();
-        const vb = b[sortField].toLowerCase();
-        return sortDir === "asc" ? va.localeCompare(vb) : vb.localeCompare(va);
-      });
+  const confirmDelete = async () => {
+    if (!productToDelete) return;
+
+    try {
+      setIsDeleting(true);
+      await adminService.permanentDeleteProduct(productToDelete);
+      fetchProducts(currentPage, debouncedSearch, selectedSize, selectedStatus);
+      setIsDeleteModalOpen(false);
+      setProductToDelete(null);
+    } catch (error) {
+      console.error("Error deleting product:", error);
+      alert("Failed to delete product");
+    } finally {
+      setIsDeleting(false);
     }
+  };
 
-    return list;
-  }, [search, sortField, sortDir]);
-
-  const totalPages = Math.ceil(filtered.length / entriesPerPage);
-
-  const paginatedData = useMemo(() => {
-    return filtered.slice(
-      (currentPage - 1) * entriesPerPage,
-      currentPage * entriesPerPage,
-    );
-  }, [filtered, currentPage, entriesPerPage]);
-
-  const toggleSort = (field: "title" | "description") => {
-    if (sortField === field) {
-      setSortDir((d) => (d === "asc" ? "desc" : "asc"));
-    } else {
-      setSortField(field);
-      setSortDir("asc");
+  const toggleStatus = async (id: string, currentStatus: boolean) => {
+    try {
+      await adminService.toggleProductStatus(id, !currentStatus);
+      fetchProducts(currentPage, debouncedSearch, selectedSize, selectedStatus);
+    } catch (error) {
+      console.error("Error toggling status:", error);
+      alert("Failed to update status");
     }
   };
 
@@ -143,8 +152,8 @@ export default function ProductTable() {
 
         <h5 className="text-lg font-semibold text-purple-700">Product</h5>
 
-        <button 
-          onClick={() => router.push('/create-product')}
+        <button
+          onClick={() => router.push("/create-product")}
           className="flex items-center gap-2 bg-purple-600 text-white px-4 py-2 rounded-lg shadow hover:bg-purple-700 transition"
         >
           <Plus className="w-4 h-4" />
@@ -153,126 +162,215 @@ export default function ProductTable() {
       </header>
 
       <div className="p-6">
-        {/* Search */}
-        <div className="relative mb-6 max-w-md">
-          <Search className="absolute left-3 top-3 w-4 h-4 text-gray-400" />
-          <input
-            value={search}
-            onChange={(e) => {
-              setSearch(e.target.value);
-              setCurrentPage(1);
-            }}
-            placeholder="Search products..."
-            className="w-full pl-10 pr-4 py-2 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-purple-400 shadow-sm"
-          />
+        {/* Filters and Search */}
+        <div className="flex flex-col md:flex-row gap-4 mb-8">
+          <div className="relative flex-1">
+            <Search className="absolute left-3 top-3 w-4 h-4 text-gray-400" />
+            <input
+              value={search}
+              onChange={(e) => {
+                setSearch(e.target.value);
+                setCurrentPage(1);
+              }}
+              placeholder="Search products by name or description..."
+              className="w-full pl-10 pr-4 py-2 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-purple-400 shadow-sm bg-white"
+            />
+          </div>
+
+          <div className="flex gap-4">
+            <select
+              value={selectedSize}
+              onChange={(e) => {
+                setSelectedSize(e.target.value);
+                setCurrentPage(1);
+              }}
+              className="px-4 py-2 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-purple-400 shadow-sm bg-white text-gray-600 appearance-none min-w-[120px]"
+            >
+              <option value="">All Sizes</option>
+              <option value="XS">XS</option>
+              <option value="SMALL">SMALL</option>
+              <option value="MEDIUM">MEDIUM</option>
+              <option value="LARGE">LARGE</option>
+              <option value="XL">XL</option>
+              <option value="XXL">XXL</option>
+            </select>
+
+            <select
+              value={selectedStatus}
+              onChange={(e) => {
+                setSelectedStatus(e.target.value);
+                setCurrentPage(1);
+              }}
+              className="px-4 py-2 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-purple-400 shadow-sm bg-white text-gray-600 appearance-none min-w-[120px]"
+            >
+              <option value="all">All Status</option>
+              <option value="active">Active</option>
+              <option value="inactive">Inactive</option>
+            </select>
+          </div>
         </div>
 
         {/* Table Card */}
         <div className="bg-white rounded-2xl shadow-lg overflow-hidden">
-          <table className="w-full text-sm">
-            <thead className="bg-gradient-to-r from-purple-600 to-pink-400 text-white">
-              <tr>
-                <th className="p-3 text-left">#</th>
-                <th className="p-3 text-left">Image</th>
-                <th
-                  className="p-3 text-left cursor-pointer"
-                  onClick={() => toggleSort("title")}
-                >
-                  Title
-                </th>
-                <th className="p-3 text-left">Description</th>
-                <th className="p-3 text-left">Price</th>
-                <th className="p-3 text-left">Status</th>
-                <th className="p-3 text-left">Actions</th>
-              </tr>
-            </thead>
+          {loading ? (
+            <div className="p-20 flex justify-center">
+              <Spinner size="lg" color="secondary" />
+            </div>
+          ) : (
+            <>
+              <table className="w-full text-sm">
+                <thead className="bg-gradient-to-r from-purple-600 to-pink-400 text-white">
+                  <tr>
+                    <th className="p-3 text-left">Image</th>
+                    <th className="p-3 text-left">Title</th>
+                    <th className="p-3 text-left">Description</th>
+                    <th className="p-3 text-left">Price</th>
+                    <th className="p-3 text-left">Sizing</th>
+                    <th className="p-3 text-left">Status</th>
+                    <th className="p-3 text-left">Actions</th>
+                  </tr>
+                </thead>
 
-            <tbody>
-              {paginatedData.map((p) => (
-                <tr
-                  key={p.id}
-                  className="border-b hover:bg-purple-50 transition"
-                >
-                  <td className="p-3">{p.id}</td>
-
-                  <td className="p-3">
-                    <Image
-                      src={p.image}
-                      alt={p.title}
-                      width={40}
-                      height={40}
-                      className="rounded-lg object-cover border"
-                    />
-                  </td>
-
-                  <td className="p-3 font-medium text-gray-800">{p.title}</td>
-
-                  <td className="p-3 text-gray-500">{p.description}</td>
-
-                  <td className="p-3 font-semibold text-purple-600">
-                    ${p.price}
-                  </td>
-
-                  <td className="p-3">
-                    <button
-                      onClick={() =>
-                        setStatusMap((prev) => ({
-                          ...prev,
-                          [p.id]: !prev[p.id],
-                        }))
-                      }
-                      className={`px-3 py-1 rounded-full text-xs font-medium transition ${
-                        statusMap[p.id]
-                          ? "bg-green-100 text-green-600"
-                          : "bg-pink-100 text-pink-600"
-                      }`}
+                <tbody>
+                  {products.map((p) => (
+                    <tr
+                      key={p._id}
+                      className="border-b hover:bg-purple-50 transition"
                     >
-                      {statusMap[p.id] ? "Active" : "Inactive"}
-                    </button>
-                  </td>
+                      <td className="p-3">
+                        <Image
+                          src={p.images[0] || "/images/placeholder.png"}
+                          alt={p.title}
+                          width={40}
+                          height={40}
+                          className="rounded-lg object-cover border"
+                        />
+                      </td>
 
-                  <td className="p-3 flex gap-2">
-                    <button 
-                      onClick={() => router.push('/create-product')}
-                      className="p-2 rounded-lg hover:bg-purple-100 text-purple-600"
-                    >
-                      <Pencil size={16} />
-                    </button>
-                    <button className="p-2 rounded-lg hover:bg-pink-100 text-pink-600">
-                      <Trash2 size={16} />
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+                      <td className="p-3 font-medium text-gray-800">
+                        {p.title}
+                      </td>
+
+                      <td className="p-3 text-gray-500">{p.description}</td>
+
+                      <td className="p-3 font-semibold text-purple-600">
+                        ${p.price}
+                      </td>
+                      <td className="p-3">
+                        <div className="flex flex-wrap gap-1">
+                          {p.sizes && p.sizes.length > 0 ? (
+                            p.sizes.map((size, index) => (
+                              <span
+                                key={index}
+                                className="px-2 py-0.5 rounded-md bg-purple-100 text-purple-700 text-[10px] font-bold uppercase tracking-wider border border-purple-200"
+                              >
+                                {size}
+                              </span>
+                            ))
+                          ) : (
+                            <span className="text-gray-400 italic text-xs">
+                              No sizes
+                            </span>
+                          )}
+                        </div>
+                      </td>
+
+                      <td className="p-3">
+                        <button
+                          onClick={() => toggleStatus(p._id, p.isActive)}
+                          className={`px-3 py-1 rounded-full text-xs font-medium transition ${
+                            p.isActive
+                              ? "bg-green-100 text-green-600"
+                              : "bg-pink-100 text-pink-600"
+                          }`}
+                        >
+                          {p.isActive ? "Active" : "Inactive"}
+                        </button>
+                      </td>
+
+                      <td className="p-3 flex gap-2">
+                        <button
+                          onClick={() => toggleStatus(p._id, p.isActive)}
+                          className={`p-2 rounded-lg transition ${
+                            p.isActive
+                              ? "hover:bg-amber-100 text-amber-600"
+                              : "hover:bg-green-100 text-green-600"
+                          }`}
+                          title={p.isActive ? "Deactivate" : "Activate"}
+                        >
+                          {p.isActive ? (
+                            <EyeOff size={16} />
+                          ) : (
+                            <Eye size={16} />
+                          )}
+                        </button>
+                        <button
+                          onClick={() => router.push(`/edit-product/${p._id}`)}
+                          className="p-2 rounded-lg hover:bg-purple-100 text-purple-600"
+                          title="Edit"
+                        >
+                          <Pencil size={16} />
+                        </button>
+                        <button
+                          onClick={() => handleDeleteClick(p._id)}
+                          className="p-2 rounded-lg hover:bg-pink-100 text-pink-600"
+                          title="Permanent Delete"
+                        >
+                          <Trash2 size={16} />
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                  {products.length === 0 && (
+                    <tr>
+                      <td
+                        colSpan={7}
+                        className="p-10 text-center text-gray-500"
+                      >
+                        No products found.
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </>
+          )}
         </div>
 
         {/* Pagination */}
-        <div className="mt-6 flex justify-between items-center">
-          <p className="text-sm text-gray-500">
-            Showing {paginatedData.length} of {filtered.length}
-          </p>
+        {!loading && products.length > 0 && (
+          <div className="mt-6 flex justify-between items-center">
+            <p className="text-sm text-gray-500">
+              Showing {products.length} of {totalCount}
+            </p>
 
-          <div className="flex gap-2">
-            <button
-              disabled={currentPage === 1}
-              onClick={() => setCurrentPage((p) => p - 1)}
-              className="px-4 py-2 rounded-lg bg-purple-100 text-purple-600 hover:bg-purple-200 disabled:opacity-50"
-            >
-              Prev
-            </button>
+            <div className="flex gap-2">
+              <button
+                disabled={currentPage === 1}
+                onClick={() => setCurrentPage((p) => p - 1)}
+                className="px-4 py-2 rounded-lg bg-purple-100 text-purple-600 hover:bg-purple-200 disabled:opacity-50"
+              >
+                Prev
+              </button>
 
-            <button
-              disabled={currentPage === totalPages}
-              onClick={() => setCurrentPage((p) => p + 1)}
-              className="px-4 py-2 rounded-lg bg-purple-600 text-white hover:bg-purple-700 disabled:opacity-50"
-            >
-              Next
-            </button>
+              <button
+                disabled={currentPage === totalPages}
+                onClick={() => setCurrentPage((p) => p + 1)}
+                className="px-4 py-2 rounded-lg bg-purple-600 text-white hover:bg-purple-700 disabled:opacity-50"
+              >
+                Next
+              </button>
+            </div>
           </div>
-        </div>
+        )}
       </div>
+
+      <DeleteConfirmModal
+        isOpen={isDeleteModalOpen}
+        onClose={() => setIsDeleteModalOpen(false)}
+        onConfirm={confirmDelete}
+        isLoading={isDeleting}
+      />
     </div>
   );
 }

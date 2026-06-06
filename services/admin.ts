@@ -276,11 +276,38 @@ class AdminService {
   /**
    * POST /api/v1/admin/upload/image
    */
+  async uploadImage(file: File): Promise<any> {
+    const formData = new FormData();
+    formData.append("image", file);
+    const { data } = await HTTP_CLIENT.post(
+      apiEndpoints.Admin.UPLOAD_IMAGE,
+      formData,
+    );
+    return data;
+  }
+
+  /**
+   * POST /api/v1/admin/upload/image
+   * Specifically for hero banners, using the general upload endpoint
+   */
   async uploadHeroBannerImage(file: File): Promise<any> {
     const formData = new FormData();
     formData.append("image", file);
     const { data } = await HTTP_CLIENT.post(
       apiEndpoints.Admin.UPLOAD_IMAGE,
+      formData,
+    );
+    return data;
+  }
+
+  /**
+   * POST /api/v1/admin/upload/video
+   */
+  async uploadHeroBannerVideo(file: File): Promise<any> {
+    const formData = new FormData();
+    formData.append("video", file);
+    const { data } = await HTTP_CLIENT.post(
+      apiEndpoints.Admin.UPLOAD_VIDEO,
       formData,
     );
     return data;
@@ -338,6 +365,93 @@ class AdminService {
       apiEndpoints.Admin.REJECT_TUTOR(id),
       { reason },
     );
+    return data;
+  }
+
+  /**
+   * GET /api/v1/shop/admin/products
+   */
+  async getProducts(
+    query: {
+      page?: number;
+      limit?: number;
+      search?: string;
+      size?: string;
+      isActive?: boolean;
+    } = {},
+  ): Promise<any> {
+    const params = new URLSearchParams();
+    if (query.page) params.append("page", String(query.page));
+    if (query.limit) params.append("limit", String(query.limit));
+    if (query.search) params.append("search", query.search);
+    if (query.size) params.append("size", query.size);
+    if (query.isActive !== undefined)
+      params.append("isActive", String(query.isActive));
+
+    const { data } = await HTTP_CLIENT.get(
+      `${apiEndpoints.Shop.ADMIN_PRODUCTS}?${params.toString()}`,
+    );
+    return data;
+  }
+
+  /**
+   * DELETE /api/v1/shop/products/:id
+   */
+  async deleteProduct(id: string): Promise<any> {
+    const { data } = await HTTP_CLIENT.delete(
+      apiEndpoints.Shop.DELETE_PRODUCT(id),
+    );
+    return data;
+  }
+
+  /**
+   * DELETE /api/v1/shop/products/:id/hard
+   */
+  async permanentDeleteProduct(id: string): Promise<any> {
+    const { data } = await HTTP_CLIENT.delete(
+      apiEndpoints.Shop.PERMANENT_DELETE_PRODUCT(id),
+    );
+    return data;
+  }
+
+  /**
+   * PATCH /api/v1/shop/products/:id/status
+   */
+  async toggleProductStatus(id: string, isActive: boolean): Promise<any> {
+    const { data } = await HTTP_CLIENT.patch(
+      apiEndpoints.Shop.UPDATE_PRODUCT_STATUS(id),
+      { isActive },
+    );
+    return data;
+  }
+
+  /**
+   * POST /api/v1/shop/products
+   */
+  async createProduct(productData: any): Promise<any> {
+    const { data } = await HTTP_CLIENT.post(
+      apiEndpoints.Shop.CREATE_PRODUCT,
+      productData,
+    );
+    return data;
+  }
+
+  /**
+   * PATCH /api/v1/shop/products/:id
+   */
+  async updateProduct(id: string, productData: any): Promise<any> {
+    const { data } = await HTTP_CLIENT.patch(
+      apiEndpoints.Shop.UPDATE_PRODUCT(id),
+      productData,
+    );
+    return data;
+  }
+
+  /**
+   * GET /api/v1/shop/products/:id
+   */
+  async getProductById(id: string): Promise<any> {
+    const { data } = await HTTP_CLIENT.get(apiEndpoints.Shop.PRODUCT_BY_ID(id));
     return data;
   }
 }

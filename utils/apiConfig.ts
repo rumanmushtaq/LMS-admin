@@ -28,6 +28,7 @@ const apiEndpoints = {
     HERO_BANNER: "/api/v1/admin/hero-banner",
     HERO_BANNER_BY_ID: (id: string) => `/api/v1/admin/hero-banner/${id}`,
     UPLOAD_IMAGE: "/api/v1/admin/upload/image",
+    UPLOAD_VIDEO: "/api/v1/admin/upload/video",
     APPROVE_TUTOR: (id: string) => `/api/v1/admin/tutors/${id}/approve`,
     REJECT_TUTOR: (id: string) => `/api/v1/admin/tutors/${id}/reject`,
     TUTORS: "/api/v1/admin/tutors",
@@ -43,6 +44,25 @@ const apiEndpoints = {
     SUSPEND_STUDENT: (id: string) => `/api/v1/admin/students/${id}/suspend`,
     ACTIVATE_STUDENT: (id: string) => `/api/v1/admin/students/${id}/activate`,
     DELETE_STUDENT: (id: string) => `/api/v1/admin/students/${id}`,
+  },
+  Shop: {
+    PRODUCTS: "/api/v1/shop/products",
+    ADMIN_PRODUCTS: "/api/v1/shop/admin/products",
+    PRODUCT_BY_ID: (id: string) => `/api/v1/shop/products/${id}`,
+    CREATE_PRODUCT: "/api/v1/shop/products",
+    UPDATE_PRODUCT: (id: string) => `/api/v1/shop/products/${id}`,
+    UPDATE_PRODUCT_STATUS: (id: string) => `/api/v1/shop/products/${id}/status`,
+    DELETE_PRODUCT: (id: string) => `/api/v1/shop/products/${id}`,
+    PERMANENT_DELETE_PRODUCT: (id: string) =>
+      `/api/v1/shop/products/${id}/hard`,
+    ORDERS: "/api/v1/shop/admin/orders",
+  },
+  Categories: {
+    GET_ALL: "/api/v1/categories",
+    GET_BY_ID: (id: string) => `/api/v1/categories/${id}`,
+    CREATE: "/api/v1/categories",
+    UPDATE: (id: string) => `/api/v1/categories/${id}`,
+    DELETE: (id: string) => `/api/v1/categories/${id}`,
   },
 };
 

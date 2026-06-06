@@ -6,10 +6,8 @@ import AdminService from "../../services/admin";
 import { Flex } from "../styles/flex";
 
 const columns = [
-  { name: "TITLE", uid: "title" },
-  { name: "SUBTITLE", uid: "subtitle" },
-  { name: "STUDENTS", uid: "studentCount" },
-  { name: "RATING", uid: "rating" },
+  { name: "VIDEO", uid: "videoUrl" },
+  { name: "STATUS", uid: "isActive" },
   { name: "ACTIONS", uid: "actions" },
 ];
 

@@ -1,78 +1,75 @@
-import React, { useState } from 'react';
-import { Layout } from '../components/layout/layout';
-import { useChatSocket } from '../hooks/useChatSocket';
+import React from 'react';
 import { Text } from '@nextui-org/react';
-
-// Assuming you have a way to get the admin's auth token
-// const token = useAuthStore(state => state.token);
+import { useAdminChat } from '../hooks/useAdminChat';
+import { ChatSidebar } from '../components/chat/chat-sidebar';
+import { ChatMainArea } from '../components/chat/chat-main-area';
 
 const AdminChatPage = () => {
-  // Pass the token once auth is fully integrated
-  const { isConnected, messages, sendMessage, typing } = useChatSocket('ADMIN_TOKEN_PLACEHOLDER');
-  const [inputMessage, setInputMessage] = useState('');
-
-  const handleSendMessage = () => {
-    if (inputMessage.trim()) {
-      sendMessage('example-conversation-id', inputMessage);
-      setInputMessage('');
-    }
-  };
+  const {
+    user,
+    isConnected,
+    activeTab,
+    setActiveTab,
+    conversations,
+    flaggedMessages,
+    isLoading,
+    activeChatId,
+    setActiveChatId,
+    activeChatUser,
+    localMessages,
+    inputMessage,
+    setInputMessage,
+    isChatLoading,
+    messagesEndRef,
+    openConversation,
+    handleSendMessage,
+    resolveFlag,
+    blockConversationAction,
+    typing,
+    typingUsers,
+    onlineUsers,
+  } = useAdminChat();
 
   return (
-    <Layout>
-      <div className="p-6">
-        <Text h3>Admin Chat Support</Text>
-        <div className="mt-4 flex items-center gap-2">
-          <div className={`w-3 h-3 rounded-full ${isConnected ? 'bg-green-500' : 'bg-red-500'}`}></div>
-          <Text>{isConnected ? 'Connected to Chat Server' : 'Disconnected'}</Text>
+    <div className="p-6 h-[calc(100vh-80px)] flex flex-col">
+      <div className="flex justify-between items-center mb-6">
+        <Text h3>Admin Support & Moderation</Text>
+          <div className="flex items-center gap-2 text-sm bg-white px-4 py-2 rounded-full shadow-sm">
+            <div className={`w-2.5 h-2.5 rounded-full ${isConnected ? 'bg-green-500' : 'bg-red-500'}`}></div>
+            <span className="font-medium text-gray-700">{isConnected ? 'Server Connected' : 'Disconnected'}</span>
+          </div>
         </div>
 
-        <div className="mt-8 border rounded-lg h-[600px] flex">
-          {/* Conversation List Sidebar */}
-          <div className="w-1/3 border-r p-4 bg-gray-50">
-            <Text h4>Conversations</Text>
-            <div className="mt-4">
-              <p className="text-sm text-gray-500">No active conversations...</p>
-            </div>
-          </div>
-
-          {/* Active Chat Window */}
-          <div className="w-2/3 flex flex-col bg-white">
-            <div className="p-4 border-b">
-              <Text h4>Select a conversation</Text>
-            </div>
-            
-            <div className="flex-1 p-4 overflow-y-auto">
-              {messages.map((msg, idx) => (
-                <div key={idx} className="mb-2 p-2 bg-blue-50 rounded-lg max-w-md">
-                  {msg.content}
-                </div>
-              ))}
-            </div>
-
-            <div className="p-4 border-t flex gap-2">
-              <input
-                type="text"
-                value={inputMessage}
-                onChange={(e) => {
-                  setInputMessage(e.target.value);
-                  typing('example-conversation-id');
-                }}
-                onKeyDown={(e) => e.key === 'Enter' && handleSendMessage()}
-                placeholder="Type a message..."
-                className="flex-1 p-2 border rounded-lg focus:outline-none focus:border-blue-500"
-              />
-              <button
-                onClick={handleSendMessage}
-                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
-              >
-                Send
-              </button>
-            </div>
-          </div>
+        <div className="flex-1 bg-white rounded-2xl shadow-sm border border-gray-100 flex overflow-hidden">
+          <ChatSidebar
+            activeTab={activeTab}
+            setActiveTab={setActiveTab}
+            setActiveChatId={setActiveChatId}
+            activeChatId={activeChatId}
+            isLoading={isLoading}
+            conversations={conversations}
+            flaggedMessages={flaggedMessages}
+            user={user}
+            openConversation={openConversation}
+            resolveFlag={resolveFlag}
+            blockConversationAction={blockConversationAction}
+          />
+          <ChatMainArea
+            activeChatId={activeChatId}
+            activeChatUser={activeChatUser}
+            isChatLoading={isChatLoading}
+            localMessages={localMessages}
+            messagesEndRef={messagesEndRef}
+            user={user}
+            inputMessage={inputMessage}
+            setInputMessage={setInputMessage}
+            typing={typing}
+            handleSendMessage={handleSendMessage}
+            typingUsers={typingUsers}
+            onlineUsers={onlineUsers}
+          />
         </div>
       </div>
-    </Layout>
   );
 };
 

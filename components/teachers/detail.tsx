@@ -16,6 +16,7 @@ import { useRouter } from "next/router";
 import React, { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import adminService from "../../services/admin";
+import chatService from "../../services/chat";
 import { StatusConfirmModal } from "./status-confirm-modal";
 import { Flex } from "../styles/flex";
 import { Breadcrumbs, Crumb, CrumbLink } from "../breadcrumb/breadcrumb.styled";
@@ -38,6 +39,7 @@ import {
   DollarSign,
   Mail,
   UserCircle,
+  MessageCircle,
 } from "lucide-react";
 
 export const TeacherDetail = () => {
@@ -178,6 +180,22 @@ export const TeacherDetail = () => {
       )
     ) {
       deleteMutation.mutate(id as string);
+    }
+  };
+
+  const handleStartChat = async () => {
+    try {
+      const res = await chatService.initConversation(id as string);
+      // The backend returns the conversation object. Extract the ID.
+      const convId = res?.data?._id || res?._id;
+      if (convId) {
+        router.push(`/chat?openConversation=${convId}`);
+      } else {
+        router.push("/chat");
+      }
+    } catch (err) {
+      console.error(err);
+      alert("Failed to initiate chat.");
     }
   };
 
@@ -383,6 +401,21 @@ export const TeacherDetail = () => {
                       }}
                     >
                       Delete Profile
+                    </Button>
+                    <Button
+                      auto
+                      color="secondary"
+                      onPress={handleStartChat}
+                      css={{
+                        borderRadius: "16px",
+                        fontWeight: "$black",
+                        height: "$14",
+                        bg: "$primary",
+                        color: "white"
+                      }}
+                      icon={<MessageCircle size={20} />}
+                    >
+                      Chat with Tutor
                     </Button>
                   </Flex>
                 </Flex>

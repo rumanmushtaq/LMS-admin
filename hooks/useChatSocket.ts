@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, useCallback } from 'react';
 import { io, Socket } from 'socket.io-client';
 
 interface ChatSocketHook {
@@ -80,35 +80,35 @@ export const useChatSocket = (token?: string): ChatSocketHook => {
     };
   }, [token]);
 
-  const sendMessage = (conversationId: string, content: string) => {
+  const sendMessage = useCallback((conversationId: string, content: string) => {
     if (socketRef.current?.connected) {
       socketRef.current.emit('sendMessage', { conversationId, content });
     }
-  };
+  }, []);
 
-  const typing = (conversationId: string) => {
+  const typing = useCallback((conversationId: string) => {
     if (socketRef.current?.connected) {
       socketRef.current.emit('typing', conversationId);
     }
-  };
+  }, []);
 
-  const stopTyping = (conversationId: string) => {
+  const stopTyping = useCallback((conversationId: string) => {
     if (socketRef.current?.connected) {
       socketRef.current.emit('stopTyping', conversationId);
     }
-  };
+  }, []);
 
-  const checkUserStatus = (userId: string) => {
+  const checkUserStatus = useCallback((userId: string) => {
     if (socketRef.current?.connected) {
       socketRef.current.emit('checkStatus', userId);
     }
-  };
+  }, []);
 
-  const joinConversation = (conversationId: string) => {
+  const joinConversation = useCallback((conversationId: string) => {
     if (socketRef.current?.connected) {
       socketRef.current.emit('joinConversation', conversationId);
     }
-  };
+  }, []);
 
   return { socket, socketRef, isConnected, messages, sendMessage, joinConversation, typing, stopTyping, typingUsers, onlineUsers, checkUserStatus };
 };

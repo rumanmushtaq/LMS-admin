@@ -26,6 +26,7 @@ const AdminChatPage = () => {
     resolveFlag,
     blockConversationAction,
     typing,
+    stopTyping,
     typingUsers,
     onlineUsers,
   } = useAdminChat();
@@ -64,6 +65,7 @@ const AdminChatPage = () => {
             inputMessage={inputMessage}
             setInputMessage={setInputMessage}
             typing={typing}
+            stopTyping={stopTyping}
             handleSendMessage={handleSendMessage}
             typingUsers={typingUsers}
             onlineUsers={onlineUsers}

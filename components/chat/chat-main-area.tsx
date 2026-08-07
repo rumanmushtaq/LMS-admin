@@ -12,6 +12,7 @@ interface ChatMainAreaProps {
   inputMessage: string;
   setInputMessage: (msg: string) => void;
   typing: (chatId: string) => void;
+  stopTyping: (chatId: string) => void;
   handleSendMessage: () => void;
   typingUsers: Set<string>;
   onlineUsers: Record<string, boolean>;
@@ -27,6 +28,7 @@ export const ChatMainArea: React.FC<ChatMainAreaProps> = ({
   inputMessage,
   setInputMessage,
   typing,
+  stopTyping,
   handleSendMessage,
   typingUsers,
   onlineUsers,
@@ -44,8 +46,25 @@ export const ChatMainArea: React.FC<ChatMainAreaProps> = ({
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
+  const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  const handleInputChange = (val: string) => {
+    setInputMessage(val);
+    if (!activeChatId) return;
+
+    typing(activeChatId);
+
+    if (typingTimeoutRef.current) {
+      clearTimeout(typingTimeoutRef.current);
+    }
+
+    typingTimeoutRef.current = setTimeout(() => {
+      stopTyping(activeChatId);
+    }, 2000);
+  };
+
   const onEmojiClick = (emojiObject: any) => {
-    setInputMessage(inputMessage + emojiObject.emoji);
+    handleInputChange(inputMessage + emojiObject.emoji);
   };
 
   if (!activeChatId) {
@@ -212,10 +231,7 @@ export const ChatMainArea: React.FC<ChatMainAreaProps> = ({
           <input
             type="text"
             value={inputMessage}
-            onChange={(e) => {
-              setInputMessage(e.target.value);
-              typing(activeChatId);
-            }}
+            onChange={(e) => handleInputChange(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && handleSendMessage()}
             placeholder="Type a message"
             className="w-full bg-transparent focus:outline-none text-[15px] text-[#111b21] placeholder-[#667781]"

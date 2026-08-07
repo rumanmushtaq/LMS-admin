@@ -29,19 +29,7 @@ export const ChatSidebar: React.FC<ChatSidebarProps> = ({
   blockConversationAction,
 }) => {
 
-console.log("--------------------------")
-  console.log("flaggedMessages", flaggedMessages);
-  console.log("user", user);
-  console.log("conversations", conversations);
-  console.log("activeTab", activeTab);
-  console.log("activeChatId", activeChatId);
-  console.log("setActiveTab", setActiveTab);
-  console.log("setActiveChatId", setActiveChatId);
-  console.log("openConversation", openConversation);
-  console.log("resolveFlag", resolveFlag);
-  console.log("blockConversationAction", blockConversationAction);
-  console.log("isLoading", isLoading);
-console.log("--------------------------")
+
 
   return (
     <div className="w-1/3 border-r border-gray-100 flex flex-col bg-gray-50/50">

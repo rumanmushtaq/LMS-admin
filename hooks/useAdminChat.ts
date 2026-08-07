@@ -97,16 +97,21 @@ export const useAdminChat = () => {
   }, [user, joinConversation, checkUserStatus]);
 
   // Auto-open a conversation when navigated from teacher/student detail page
+  const hasProcessedOpenParam = useRef(false);
+
   useEffect(() => {
     const openId = router.query.openConversation as string;
     if (!openId || conversations.length === 0) return;
+    if (hasProcessedOpenParam.current) return;
+    
     const targetConv = conversations.find((c) => c._id === openId);
     if (targetConv) {
+      hasProcessedOpenParam.current = true;
       openConversation(targetConv);
       // Clear the query param so back navigation is clean
       router.replace('/chat', undefined, { shallow: true });
     }
-  }, [router.query.openConversation, conversations, openConversation]);
+  }, [router.query.openConversation, conversations, openConversation, router]);
 
   const handleSendMessage = () => {
     if (!inputMessage.trim() || !activeChatId || !user) return;
@@ -167,6 +172,7 @@ export const useAdminChat = () => {
     resolveFlag,
     blockConversationAction,
     typing,
+    stopTyping,
     typingUsers,
     onlineUsers,
   };

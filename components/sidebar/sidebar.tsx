@@ -11,6 +11,7 @@ import { SidebarMenu } from "./sidebar-menu";
 import { FilterIcon } from "../icons/sidebar/filter-icon";
 import { ProductsIcon } from "../icons/sidebar/products-icon";
 import { CategoryIcon } from "../icons/sidebar/category-icon";
+import { SecurityIcon } from "../icons/sidebar/security-icon";
 import { useSidebarContext } from "../layout/layout-context";
 import { useRouter } from "next/router";
 import { SidebarCollapseItem } from "./sidebar-collapse-item";
@@ -61,6 +62,12 @@ export const SidebarWrapper = () => {
                 title="Students"
                 icon={<AccountsIcon />}
                 href="/students"
+              />
+              <SidebarItem
+                isActive={router.pathname === "/security"}
+                title="Security"
+                icon={<SecurityIcon />}
+                href="/security"
               />
               <SidebarItem
                 isActive={router.pathname === "/classes"}

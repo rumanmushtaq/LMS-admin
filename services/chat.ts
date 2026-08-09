@@ -2,8 +2,14 @@ import { HTTP_CLIENT } from "../utils/axiosClient";
 
 
 class ChatService {
+  /**
+   * Every conversation in the system, for moderation.
+   *
+   * This used to call the participant-scoped endpoint, so the "All Chats" tab
+   * only showed conversations the admin was personally in.
+   */
   async getAllConversations(skip = 0, limit = 50): Promise<any> {
-    const { data } = await HTTP_CLIENT.get('/api/v1/chat/conversations', {
+    const { data } = await HTTP_CLIENT.get('/api/v1/chat/admin/conversations', {
       params: { skip, limit },
     });
     return data;

@@ -12,7 +12,9 @@ interface ChatSidebarProps {
   user: any;
   openConversation: (conv: any) => void;
   resolveFlag: (msgId: string) => void;
-  blockConversationAction: (convId: string) => void;
+  // Flagged messages arrive with `conversationId` populated, so this may be
+  // either an id or the whole conversation document.
+  blockConversationAction: (conversation: string | { _id: string } | null | undefined) => void;
 }
 
 export const ChatSidebar: React.FC<ChatSidebarProps> = ({

@@ -64,6 +64,21 @@ const apiEndpoints = {
     UPDATE: (id: string) => `/api/v1/categories/${id}`,
     DELETE: (id: string) => `/api/v1/categories/${id}`,
   },
+  Security: {
+    WHOAMI: "/api/v1/admin/security/whoami",
+    STATS: "/api/v1/admin/security/stats",
+    TIMESERIES: "/api/v1/admin/security/timeseries",
+    IPS: "/api/v1/admin/security/ips",
+    IP_DETAIL: (ip: string) =>
+      `/api/v1/admin/security/ips/${encodeURIComponent(ip)}`,
+    BLOCKS: "/api/v1/admin/security/blocks",
+    UNBLOCK: (key: string) =>
+      `/api/v1/admin/security/blocks/${encodeURIComponent(key)}`,
+    WHITELIST: "/api/v1/admin/security/whitelist",
+    WHITELIST_REMOVE: (key: string) =>
+      `/api/v1/admin/security/whitelist/${encodeURIComponent(key)}`,
+    AUDIT: "/api/v1/admin/security/audit",
+  },
 };
 
 export default apiEndpoints;

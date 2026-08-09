@@ -44,6 +44,16 @@ export const useChatSocket = (token?: string): ChatSocketHook => {
       setIsConnected(false);
     });
 
+    // Without this an invalid or expired token retries forever in the
+    // background, silently, with no indication that chat is dead.
+    socketIo.on('connect_error', (error: Error) => {
+      console.error('Socket connection error:', error.message);
+      setIsConnected(false);
+      if (error.message.includes('jwt expired') || error.message.includes('Unauthorized')) {
+        socketIo.disconnect();
+      }
+    });
+
     socketIo.on('newMessage', (message: any) => {
       setMessages((prev) => [...prev, message]);
     });

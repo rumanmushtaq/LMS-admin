@@ -3,6 +3,7 @@ import { useRouter } from 'next/router';
 import { useAuthStore } from '../store/authStore';
 import chatService from '../services/chat';
 import { useChatSocket } from './useChatSocket';
+import { mergeMessages } from '../lib/chat/messages';
 
 export const useAdminChat = () => {
   const router = useRouter();
@@ -22,30 +23,40 @@ export const useAdminChat = () => {
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  // Auto-scroll to bottom whenever messages update
+  // Auto-scroll to bottom whenever messages update.
+  // `block: 'nearest'` keeps this inside the message list — the default scrolls
+  // the whole admin page, yanking the layout on every incoming message.
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    const frame = requestAnimationFrame(() => {
+      messagesEndRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    });
+    return () => cancelAnimationFrame(frame);
   }, [localMessages]);
 
+  // Fold in socket messages.
+  //
+  // React batches state updates, so several events can land between two
+  // renders. Reading only socketMessages[length - 1] dropped every message but
+  // the newest — they then reappeared when the thread was reopened, because
+  // that refetches history over HTTP.
+  const lastMergedIdRef = useRef<string | null>(null);
+
   useEffect(() => {
-    if (socketMessages.length > 0) {
-      const latest = socketMessages[socketMessages.length - 1];
-      setLocalMessages((prev) => {
-        // If the exact message _id already exists, skip
-        if (prev.some((m) => m._id === latest._id)) return prev;
-        // Replace a matching temp/optimistic message (same content + conversationId) if exists
-        const tempIndex = prev.findIndex(
-          (m) => m._id?.startsWith('temp_') && m.content === latest.content && m.conversationId === latest.conversationId
-        );
-        if (tempIndex !== -1) {
-          const updated = [...prev];
-          updated[tempIndex] = latest;
-          return updated;
-        }
-        return [...prev, latest];
-      });
-    }
-  }, [socketMessages]);
+    if (socketMessages.length === 0) return;
+
+    const seenIndex = lastMergedIdRef.current
+      ? socketMessages.findIndex((m) => m._id === lastMergedIdRef.current)
+      : -1;
+    const fresh = socketMessages.slice(seenIndex + 1);
+    if (fresh.length === 0) return;
+
+    lastMergedIdRef.current = socketMessages[socketMessages.length - 1]._id;
+
+    const userId = (user as any)?._id || (user as any)?.id || null;
+    setLocalMessages((prev) =>
+      mergeMessages(prev, fresh, { conversationId: activeChatId, currentUserId: userId })
+    );
+  }, [socketMessages, activeChatId, user]);
 
   const loadData = useCallback(async () => {
     setIsLoading(true);
@@ -118,13 +129,16 @@ export const useAdminChat = () => {
     const content = inputMessage.trim();
     const userId = (user as any)?._id || (user as any)?.id || '';
 
-    // Optimistic update — show message immediately without waiting for socket echo
+    // Optimistic update — show message immediately without waiting for socket echo.
+    // `pending` is what lets the echo replace this placeholder instead of
+    // appending a second copy of the same message.
     const optimisticMsg = {
       _id: `temp_${Date.now()}`,
       conversationId: activeChatId,
       senderId: userId,
       content,
       createdAt: new Date().toISOString(),
+      pending: true,
     };
     setLocalMessages((prev) => [...prev, optimisticMsg]);
 
@@ -142,12 +156,26 @@ export const useAdminChat = () => {
     }
   };
 
-  const blockConversationAction = async (convId: string) => {
+  const blockConversationAction = async (
+    conversation: string | { _id: string } | null | undefined,
+  ) => {
+    // The flagged-messages query populates `conversationId`, so this arrives as
+    // the whole conversation document. Passing it straight into the URL built
+    // `/conversations/[object Object]/block`, which never blocked anything.
+    const convId =
+      typeof conversation === 'string' ? conversation : conversation?._id;
+
+    if (!convId) {
+      console.error('blockConversation: could not resolve a conversation id', conversation);
+      return;
+    }
+
     try {
       await chatService.blockConversation(convId);
       alert('Conversation blocked successfully.');
     } catch (err) {
       console.error(err);
+      alert('Failed to block the conversation.');
     }
   };
 

@@ -1,1 +1,10 @@
-npm run build
+# Type-check first, then build.
+#
+# The order matters: `next build` no longer type-checks (see next.config.js),
+# so `typecheck` is what catches type errors — and it fails in ~9s warm instead
+# of dying 9 minutes into a build. Only once types are clean do we pay for the
+# build.
+#
+# This hook used to run `npm run build` alone, which meant every commit paid
+# for a full cold TypeScript check inside the build: about 11 minutes.
+npm run typecheck && npm run build

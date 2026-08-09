@@ -1,9 +1,12 @@
 import { Col, Row, Text, Tooltip, User, Dropdown } from "@nextui-org/react";
 import React from "react";
+import { useRouter } from "next/router";
 import { DeleteIcon } from "../icons/table/delete-icon";
 import { EditIcon } from "../icons/table/edit-icon";
 import { EyeIcon } from "../icons/table/eye-icon";
 import { IconButton } from "../table/table.styled";
+import { MessageCircle } from "lucide-react";
+import chatService from "../../services/chat";
 
 interface Props {
   student: any;
@@ -14,6 +17,7 @@ interface Props {
 export const RenderCell = ({ student, columnKey, onRefresh }: Props) => {
   // @ts-ignore
   const cellValue = student[columnKey];
+  const router = useRouter();
 
   // Helper function to get full name
   const getFullName = () => {
@@ -26,9 +30,22 @@ export const RenderCell = ({ student, columnKey, onRefresh }: Props) => {
   switch (columnKey) {
     case "name":
       return (
-        <User squared src={student.avatar} name={getFullName()} css={{ p: 0 }}>
-          {student.email}
-        </User>
+        <div
+          style={{ cursor: "pointer", position: "relative", zIndex: 10 }}
+          onClickCapture={(e) => {
+            e.stopPropagation();
+            const targetUrl = `/students/${student._id || student.id}`;
+            if (router) {
+              router.push(targetUrl);
+            } else {
+              window.location.href = targetUrl;
+            }
+          }}
+        >
+          <User squared src={student.avatar} name={getFullName()} css={{ p: 0 }}>
+            {student.email}
+          </User>
+        </div>
       );
     case "email":
       return (
@@ -72,11 +89,40 @@ export const RenderCell = ({ student, columnKey, onRefresh }: Props) => {
           css={{ gap: "$8", "@md": { gap: 0 } }}
         >
           <Col css={{ d: "flex" }}>
+            <Tooltip content="Chat with student">
+              <IconButton
+                onClickCapture={async (e) => {
+                  e.stopPropagation();
+                  try {
+                    const res = await chatService.initConversation(student._id || student.id);
+                    const convId = res?.data?._id || res?._id;
+                    if (convId) {
+                      router.push(`/chat?openConversation=${convId}`);
+                    } else {
+                      router.push("/chat");
+                    }
+                  } catch (err) {
+                    console.error(err);
+                    alert("Failed to initiate chat.");
+                  }
+                }}
+              >
+                <MessageCircle size={20} color="#979797" />
+              </IconButton>
+            </Tooltip>
+          </Col>
+          <Col css={{ d: "flex" }}>
             <Tooltip content="Details">
               <IconButton
-                onClick={() =>
-                  console.log("View student", student._id || student.id)
-                }
+                onClickCapture={(e) => {
+                  e.stopPropagation();
+                  const targetUrl = `/students/${student._id || student.id}`;
+                  if (router) {
+                    router.push(targetUrl);
+                  } else {
+                    window.location.href = targetUrl;
+                  }
+                }}
               >
                 <EyeIcon size={20} fill="#979797" />
               </IconButton>
@@ -115,7 +161,14 @@ export const RenderCell = ({ student, columnKey, onRefresh }: Props) => {
               <Dropdown.Menu
                 aria-label="Student Actions"
                 onAction={(action) => {
-                  if (action === "delete") {
+                  if (action === "view") {
+                    const targetUrl = `/students/${student._id || student.id}`;
+                    if (router) {
+                      router.push(targetUrl);
+                    } else {
+                      window.location.href = targetUrl;
+                    }
+                  } else if (action === "delete") {
                     if (
                       confirm(
                         `Are you sure you want to delete ${getFullName()}?`,
@@ -169,6 +222,9 @@ export const RenderCell = ({ student, columnKey, onRefresh }: Props) => {
                   }
                 }}
               >
+                <Dropdown.Item key="view" color="primary">
+                  View Student
+                </Dropdown.Item>
                 <Dropdown.Item key="suspend" color="warning">
                   Suspend Student
                 </Dropdown.Item>

@@ -17,9 +17,12 @@ import {
   Trash2,
   Slash,
   CheckCircle2,
+  ShieldCheck,
   User as UserIcon,
   BookOpen,
+  MessageCircle,
 } from "lucide-react";
+import chatService from "../../services/chat";
 
 interface Props {
   teacher: any;
@@ -118,6 +121,62 @@ export const RenderCell = ({
     case "actions":
       return (
         <Row justify="center" align="center" css={{ gap: "$4" }}>
+          {/* Verify Account button — opens verification review modal */}
+          <Tooltip content="Verify Account" rounded color="secondary">
+            <Button
+              auto
+              light
+              ripple={false}
+              className="min-w-0 p-2"
+              css={{
+                height: "auto",
+                borderRadius: "8px",
+                "&:hover": { bg: "rgba(124, 58, 237, 0.1)" },
+                color: "$secondary",
+              }}
+              onClickCapture={(e) => {
+                e.stopPropagation();
+                if (onVerify) onVerify();
+              }}
+            >
+              <ShieldCheck size={18} />
+            </Button>
+          </Tooltip>
+
+          <Tooltip content="Chat with Tutor" rounded color="secondary">
+            <Button
+              auto
+              light
+              ripple={false}
+              className="min-w-0 p-2"
+              css={{
+                height: "auto",
+                borderRadius: "8px",
+                "&:hover": { bg: "rgba(112, 71, 235, 0.1)" },
+                color: "$secondary",
+              }}
+              onClickCapture={async (e) => {
+                e.stopPropagation();
+                try {
+                  const id = teacher._id || teacher.id;
+                  const res = await chatService.initConversation(id);
+                  const convId = res?.data?._id || res?._id;
+                  const targetUrl = convId ? `/chat?openConversation=${convId}` : "/chat";
+                  if (router) {
+                    router.push(targetUrl);
+                  } else {
+                    window.location.href = targetUrl;
+                  }
+                } catch (err) {
+                  console.error(err);
+                  alert("Failed to initiate chat.");
+                }
+              }}
+            >
+              <MessageCircle size={18} />
+            </Button>
+          </Tooltip>
+
           <Tooltip content="Review Detail" rounded color="primary">
             <Button
               auto
@@ -155,7 +214,9 @@ export const RenderCell = ({
               aria-label="Teacher Actions"
               css={{ borderRadius: "16px", minWidth: "180px" }}
               onAction={(action) => {
-                if (action === "view") {
+                if (action === "verify") {
+                  if (onVerify) onVerify();
+                } else if (action === "view") {
                   const id = teacher._id || teacher.id;
                   if (router) {
                     router.push(`/teachers/${id}`);
@@ -217,6 +278,16 @@ export const RenderCell = ({
                 </Dropdown.Item>
                 <Dropdown.Item key="edit" icon={<Edit3 size={18} />}>
                   Edit Profile
+                </Dropdown.Item>
+              </Dropdown.Section>
+              <Dropdown.Section title="Verification">
+                <Dropdown.Item
+                  key="verify"
+                  color="secondary"
+                  icon={<ShieldCheck size={18} />}
+                  withDivider
+                >
+                  Verify Account
                 </Dropdown.Item>
               </Dropdown.Section>
               <Dropdown.Section title="Management">

@@ -4,6 +4,7 @@ import Cookies from "js-cookie";
 
 export type AdminUser = {
   id: string;
+  _id?: string;
   email: string;
   fullName: string;
   role: string;

@@ -193,7 +193,7 @@ export const LoginView = () => {
           flexDirection: "column",
           justifyContent: "center",
           alignItems: "center",
-          background: "url(/images/lms_premium_hero.png) no-repeat center center",
+          background: "url('https://static.vecteezy.com/system/resources/thumbnails/005/526/658/small_2x/close-up-of-businessman-hand-holding-to-lms-learning-management-system-web-icon-for-lesson-and-online-education-course-application-study-e-learning-knowledge-everywhere-and-every-time-photo.jpg') no-repeat center center",
           backgroundSize: "cover",
           position: "relative",
           padding: "2rem",

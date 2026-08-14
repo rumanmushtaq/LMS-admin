@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import {Text, Link} from '@nextui-org/react';
 import {Box} from '../styles/box';
 import dynamic from 'next/dynamic';
@@ -10,6 +10,8 @@ import {CardBalance2} from './card-balance2';
 import {CardBalance3} from './card-balance3';
 import {CardAgents} from './card-agents';
 import {CardTransactions} from './card-transactions';
+import adminService from '../../services/admin';
+import { Spinner } from '@nextui-org/react';
 
 const Chart = dynamic(
    () => import('../charts/steam').then((mod) => mod.Steam),
@@ -18,7 +20,29 @@ const Chart = dynamic(
    }
 );
 
-export const Content = () => (
+export const Content = () => {
+   const [stats, setStats] = useState<any>(null);
+   const [loading, setLoading] = useState(true);
+
+   useEffect(() => {
+      const fetchStats = async () => {
+         try {
+            const data = await adminService.getDashboardStats();
+            if (data && data.success && data.data) {
+               setStats(data.data);
+            } else if (data) { // If it returns the object directly
+               setStats(data);
+            }
+         } catch (error) {
+            console.error('Failed to fetch dashboard stats', error);
+         } finally {
+            setLoading(false);
+         }
+      };
+      fetchStats();
+   }, []);
+
+   return (
    <Box css={{overflow: 'hidden', height: '100%'}}>
       <Flex
          css={{
@@ -68,9 +92,9 @@ export const Content = () => (
                   }}
                   direction={'row'}
                >
-                  <CardBalance1 />
-                  <CardBalance2 />
-                  <CardBalance3 />
+                  <CardBalance1 totalTutors={stats?.totalTutors || 0} activeUsers={stats?.activeUsers || 0} />
+                  <CardBalance2 totalStudents={stats?.totalStudents || 0} pendingUsers={stats?.pendingUsers || 0} />
+                  <CardBalance3 totalTransactions={stats?.recentSignups || 0} />
                </Flex>
             </Box>
 
@@ -188,4 +212,5 @@ export const Content = () => (
          <TableWrapper />
       </Flex>
    </Box>
-);
+   );
+};

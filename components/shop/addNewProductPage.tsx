@@ -85,7 +85,7 @@ const AddProduct = () => {
             bg: "rgba(248, 250, 252, 0.8)",
             borderBottom: "1px solid #e2e8f0",
             p: "$4",
-            px: "$12",
+            px: "$6",
             gap: "$6",
             mb: "$8",
             backdropFilter: "blur(12px)",
@@ -143,9 +143,7 @@ const AddProduct = () => {
           </Flex>
         </Flex>
 
-        <Box
-          css={{ maxWidth: "1400px", margin: "0 auto", px: "$12", pb: "$12" }}
-        >
+        <Box css={{ px: "$6", pb: "$12" }}>
           <Flex
             css={{
               gap: "$10",

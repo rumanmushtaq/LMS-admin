@@ -4,7 +4,7 @@ import {Community} from '../icons/community';
 import {Box} from '../styles/box';
 import {Flex} from '../styles/flex';
 
-export const CardBalance1 = () => {
+export const CardBalance1 = ({ totalTutors, activeUsers }: { totalTutors?: number, activeUsers?: number }) => {
    return (
       <Card
          css={{
@@ -19,10 +19,10 @@ export const CardBalance1 = () => {
                <Community />
                <Flex direction={'column'}>
                   <Text span css={{color: 'white'}}>
-                     Auto Insurance
+                     Total Teachers
                   </Text>
                   <Text span css={{color: 'white'}} size={'$xs'}>
-                     1311 Cars
+                     {totalTutors || 0} Registered
                   </Text>
                </Flex>
             </Flex>
@@ -33,10 +33,10 @@ export const CardBalance1 = () => {
                   css={{color: 'white'}}
                   weight={'semibold'}
                >
-                  $45,910
+                  {totalTutors || 0}
                </Text>
                <Text span css={{color: '$green600'}} size={'$xs'}>
-                  + 4.5%
+                  Teachers
                </Text>
             </Flex>
             <Flex css={{gap: '$12'}} align={'center'}>
@@ -47,36 +47,10 @@ export const CardBalance1 = () => {
                      css={{color: '$green600'}}
                      weight={'semibold'}
                   >
-                     {'↓'}
-                  </Text>
-                  <Text span size={'$xs'} css={{color: '$white'}}>
-                     100,930 USD
-                  </Text>
-               </Box>
-               <Box>
-                  <Text
-                     span
-                     size={'$xs'}
-                     css={{color: '$red600'}}
-                     weight={'semibold'}
-                  >
                      {'↑'}
                   </Text>
                   <Text span size={'$xs'} css={{color: '$white'}}>
-                     54,120 USD
-                  </Text>
-               </Box>
-               <Box>
-                  <Text
-                     span
-                     size={'$xs'}
-                     css={{color: '$green600'}}
-                     weight={'semibold'}
-                  >
-                     {'⭐'}
-                  </Text>
-                  <Text span size={'$xs'} css={{color: '$white'}}>
-                     125 VIP
+                     {activeUsers || 0} Active Platform Users
                   </Text>
                </Box>
             </Flex>

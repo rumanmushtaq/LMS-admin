@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { MessageCircle, Loader2, Send, Smile } from 'lucide-react';
 import EmojiPicker from 'emoji-picker-react';
+import { insertAtCaret, shouldSendOnKeyDown } from '../../lib/chat/composer';
 
 interface ChatMainAreaProps {
   activeChatId: string | null;
@@ -35,6 +36,7 @@ export const ChatMainArea: React.FC<ChatMainAreaProps> = ({
 }) => {
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const emojiPickerRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -63,8 +65,28 @@ export const ChatMainArea: React.FC<ChatMainAreaProps> = ({
     }, 2000);
   };
 
+  /**
+   * Insert at the caret, close the picker, and return focus to the input.
+   *
+   * Without the focus return, Enter pressed straight after picking an emoji
+   * lands on the picker rather than the message box and nothing is sent.
+   */
   const onEmojiClick = (emojiObject: any) => {
-    handleInputChange(inputMessage + emojiObject.emoji);
+    const input = inputRef.current;
+    const { value, caret } = insertAtCaret(
+      inputMessage,
+      emojiObject.emoji,
+      input?.selectionStart ?? null,
+      input?.selectionEnd ?? null,
+    );
+
+    handleInputChange(value);
+    setShowEmojiPicker(false);
+
+    requestAnimationFrame(() => {
+      input?.focus();
+      input?.setSelectionRange(caret, caret);
+    });
   };
 
   if (!activeChatId) {
@@ -229,10 +251,15 @@ export const ChatMainArea: React.FC<ChatMainAreaProps> = ({
 
         <div className="flex-1 bg-white rounded-lg flex items-center min-h-[42px] px-4 shadow-sm py-1">
           <input
+            ref={inputRef}
             type="text"
             value={inputMessage}
             onChange={(e) => handleInputChange(e.target.value)}
-            onKeyDown={(e) => e.key === 'Enter' && handleSendMessage()}
+            onKeyDown={(e) => {
+              if (!shouldSendOnKeyDown(e)) return;
+              e.preventDefault();
+              handleSendMessage();
+            }}
             placeholder="Type a message"
             className="w-full bg-transparent focus:outline-none text-[15px] text-[#111b21] placeholder-[#667781]"
           />

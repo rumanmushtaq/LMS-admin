@@ -143,23 +143,27 @@ export const TableFilters = ({
         {onStartDateChange && (
           <Flex
             align="center"
+            onClick={() => (document.getElementById("startDatePicker") as HTMLInputElement | null)?.showPicker()}
             css={{
               bg: "$accents1",
               borderRadius: "14px",
               px: "$4",
               height: "$14",
               border: "2px solid $border",
+              cursor: "pointer",
             }}
           >
             <Calendar size={18} color="var(--nextui-colors-primary)" />
             <Input
+              id="startDatePicker"
               type="date"
               value={startDate}
               onChange={(e) => onStartDateChange(e.target.value)}
               css={{
                 width: "140px",
-                "& .nextui-input": { bg: "transparent" },
+                "& .nextui-input": { bg: "transparent", cursor: "pointer" },
                 "& .nextui-input-wrapper": { border: "none" },
+                "&::-webkit-calendar-picker-indicator": { cursor: "pointer" }
               }}
             />
           </Flex>
@@ -168,23 +172,27 @@ export const TableFilters = ({
         {onEndDateChange && (
           <Flex
             align="center"
+            onClick={() => (document.getElementById("endDatePicker") as HTMLInputElement | null)?.showPicker()}
             css={{
               bg: "$accents1",
               borderRadius: "14px",
               px: "$4",
               height: "$14",
               border: "2px solid $border",
+              cursor: "pointer",
             }}
           >
             <Calendar size={18} color="var(--nextui-colors-primary)" />
             <Input
+              id="endDatePicker"
               type="date"
               value={endDate}
               onChange={(e) => onEndDateChange(e.target.value)}
               css={{
                 width: "140px",
-                "& .nextui-input": { bg: "transparent" },
+                "& .nextui-input": { bg: "transparent", cursor: "pointer" },
                 "& .nextui-input-wrapper": { border: "none" },
+                "&::-webkit-calendar-picker-indicator": { cursor: "pointer" }
               }}
             />
           </Flex>

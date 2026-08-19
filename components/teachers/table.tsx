@@ -25,7 +25,10 @@ interface Teacher {
   status: string;
   createdAt: string;
   emailVerified: boolean;
-  subject?: string;
+  /** Joined subject list from the API, for display. */
+  subject?: string | null;
+  /** The same subjects as a list. */
+  subjects?: string[];
 }
 
 interface Meta {

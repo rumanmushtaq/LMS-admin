@@ -33,7 +33,8 @@ export const RenderCell = ({ classItem, columnKey, onRefresh }: Props) => {
 
   const isCancellable =
     classItem.status !== ClassStatus.CANCELLED &&
-    classItem.status !== ClassStatus.COMPLETED;
+    classItem.status !== ClassStatus.COMPLETED &&
+    classItem.status !== ClassStatus.MISSED;
 
   const tutorName = classItem.tutorId
     ? `${classItem.tutorId.firstName || ""} ${classItem.tutorId.lastName || ""}`.trim() || "Unknown Tutor"
@@ -87,6 +88,14 @@ export const RenderCell = ({ classItem, columnKey, onRefresh }: Props) => {
           <Tooltip
             content={`Cancelled by ${by}${classItem.cancelReason ? `: ${classItem.cancelReason}` : ""}`}
           >
+            {badge}
+          </Tooltip>
+        );
+      }
+      // Missed = the tutor never started it before its end time (a no-show).
+      if (classItem.status === ClassStatus.MISSED) {
+        return (
+          <Tooltip content="The tutor did not start this class before its end time. Counts toward the 3-miss auto-suspension.">
             {badge}
           </Tooltip>
         );

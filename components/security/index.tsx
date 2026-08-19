@@ -30,7 +30,7 @@ import { expiresIn, localTime, Mono, Pill, RiskBadge, timeAgo } from "./shared";
 
 type Tab = "ips" | "blocked" | "whitelist" | "audit";
 
-const PAGE_SIZE = 25;
+const PAGE_SIZE = 10;
 const REFRESH_MS = 30_000;
 
 const ACTION_LABEL: Record<
@@ -296,7 +296,15 @@ const SecurityView = () => {
               aria-label="Search IP"
             />
             <Text size={13} css={{ color: "$accents7", m: 0 }}>
-              {ipsTotal.toLocaleString()} IPs · last 24h
+              {ipsTotal === 0
+                ? "0 IPs · last 24h"
+                : `Showing ${(
+                    (ipsPage - 1) * PAGE_SIZE +
+                    1
+                  ).toLocaleString()}–${Math.min(
+                    ipsPage * PAGE_SIZE,
+                    ipsTotal,
+                  ).toLocaleString()} of ${ipsTotal.toLocaleString()} IPs · last 24h`}
             </Text>
           </Flex>
 

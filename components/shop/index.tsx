@@ -26,6 +26,7 @@ interface Product {
   price: number;
   images: string[];
   sizes: string[];
+  tags?: string[];
   isActive: boolean;
 }
 
@@ -49,7 +50,7 @@ export default function ProductTable() {
   const [selectedSize, setSelectedSize] = useState("");
   const [selectedStatus, setSelectedStatus] = useState("all");
 
-  const entriesPerPage = 10;
+  const [entriesPerPage, setEntriesPerPage] = useState(10);
 
   // Search debounce effect
   useEffect(() => {
@@ -62,7 +63,7 @@ export default function ProductTable() {
   }, [search]);
 
   const fetchProducts = useCallback(
-    async (page: number, searchTerm: string, size: string, status: string) => {
+    async (page: number, limit: number, searchTerm: string, size: string, status: string) => {
       try {
         setLoading(true);
         const isActive =
@@ -74,7 +75,7 @@ export default function ProductTable() {
 
         const response = await adminService.getProducts({
           page,
-          limit: entriesPerPage,
+          limit,
           search: searchTerm,
           size: size || undefined,
           isActive,
@@ -98,9 +99,10 @@ export default function ProductTable() {
   );
 
   useEffect(() => {
-    fetchProducts(currentPage, debouncedSearch, selectedSize, selectedStatus);
+    fetchProducts(currentPage, entriesPerPage, debouncedSearch, selectedSize, selectedStatus);
   }, [
     currentPage,
+    entriesPerPage,
     debouncedSearch,
     selectedSize,
     selectedStatus,
@@ -118,7 +120,7 @@ export default function ProductTable() {
     try {
       setIsDeleting(true);
       await adminService.permanentDeleteProduct(productToDelete);
-      fetchProducts(currentPage, debouncedSearch, selectedSize, selectedStatus);
+      fetchProducts(currentPage, entriesPerPage, debouncedSearch, selectedSize, selectedStatus);
       setIsDeleteModalOpen(false);
       setProductToDelete(null);
     } catch (error) {
@@ -132,7 +134,7 @@ export default function ProductTable() {
   const toggleStatus = async (id: string, currentStatus: boolean) => {
     try {
       await adminService.toggleProductStatus(id, !currentStatus);
-      fetchProducts(currentPage, debouncedSearch, selectedSize, selectedStatus);
+      fetchProducts(currentPage, entriesPerPage, debouncedSearch, selectedSize, selectedStatus);
     } catch (error) {
       console.error("Error toggling status:", error);
       alert("Failed to update status");
@@ -211,7 +213,7 @@ export default function ProductTable() {
         </div>
 
         {/* Table Card */}
-        <div className="bg-white rounded-2xl shadow-lg overflow-hidden">
+        <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden shadow-sm">
           {loading ? (
             <div className="p-20 flex justify-center">
               <Spinner size="lg" color="secondary" />
@@ -219,13 +221,14 @@ export default function ProductTable() {
           ) : (
             <>
               <table className="w-full text-sm">
-                <thead className="bg-gradient-to-r from-purple-600 to-pink-400 text-white">
+                <thead className="bg-[#f4f4f5] text-gray-500 text-xs uppercase font-semibold border-b border-gray-200">
                   <tr>
                     <th className="p-3 text-left">Image</th>
                     <th className="p-3 text-left">Title</th>
                     <th className="p-3 text-left">Description</th>
                     <th className="p-3 text-left">Price</th>
                     <th className="p-3 text-left">Sizing</th>
+                    <th className="p-3 text-left">Tags</th>
                     <th className="p-3 text-left">Status</th>
                     <th className="p-3 text-left">Actions</th>
                   </tr>
@@ -235,7 +238,7 @@ export default function ProductTable() {
                   {products.map((p) => (
                     <tr
                       key={p._id}
-                      className="border-b hover:bg-purple-50 transition"
+                      className="border-b border-gray-100 hover:bg-gray-50 transition"
                     >
                       <td className="p-3">
                         <Image
@@ -251,7 +254,12 @@ export default function ProductTable() {
                         {p.title}
                       </td>
 
-                      <td className="p-3 text-gray-500">{p.description}</td>
+                      <td className="p-3 text-gray-500 max-w-[200px]">
+                        <div
+                          className="truncate text-ellipsis overflow-hidden whitespace-nowrap"
+                          dangerouslySetInnerHTML={{ __html: p.description }}
+                        />
+                      </td>
 
                       <td className="p-3 font-semibold text-purple-600">
                         ${p.price}
@@ -270,6 +278,24 @@ export default function ProductTable() {
                           ) : (
                             <span className="text-gray-400 italic text-xs">
                               No sizes
+                            </span>
+                          )}
+                        </div>
+                      </td>
+                      <td className="p-3">
+                        <div className="flex flex-wrap gap-1">
+                          {p.tags && p.tags.length > 0 ? (
+                            p.tags.map((tag, index) => (
+                              <span
+                                key={index}
+                                className="px-2 py-0.5 rounded-md bg-blue-100 text-blue-700 text-[10px] font-bold uppercase tracking-wider border border-blue-200"
+                              >
+                                {tag}
+                              </span>
+                            ))
+                          ) : (
+                            <span className="text-gray-400 italic text-xs">
+                              No tags
                             </span>
                           )}
                         </div>
@@ -324,7 +350,7 @@ export default function ProductTable() {
                   {products.length === 0 && (
                     <tr>
                       <td
-                        colSpan={7}
+                        colSpan={8}
                         className="p-10 text-center text-gray-500"
                       >
                         No products found.
@@ -339,10 +365,28 @@ export default function ProductTable() {
 
         {/* Pagination */}
         {!loading && products.length > 0 && (
-          <div className="mt-6 flex justify-between items-center">
-            <p className="text-sm text-gray-500">
-              Showing {products.length} of {totalCount}
-            </p>
+          <div className="mt-6 flex flex-wrap justify-between items-center gap-4">
+            <div className="flex items-center gap-4">
+              <p className="text-sm text-gray-500">
+                Showing {products.length} of {totalCount}
+              </p>
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-gray-500">Rows per page:</span>
+                <select
+                  value={entriesPerPage}
+                  onChange={(e) => {
+                    setEntriesPerPage(Number(e.target.value));
+                    setCurrentPage(1);
+                  }}
+                  className="px-2 py-1 rounded-md border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-purple-400 bg-white text-gray-600"
+                >
+                  <option value={5}>5</option>
+                  <option value={10}>10</option>
+                  <option value={20}>20</option>
+                  <option value={50}>50</option>
+                </select>
+              </div>
+            </div>
 
             <div className="flex gap-2">
               <button

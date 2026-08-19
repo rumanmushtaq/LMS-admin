@@ -4,7 +4,7 @@ import {Community} from '../icons/community';
 import {Box} from '../styles/box';
 import {Flex} from '../styles/flex';
 
-export const CardBalance3 = () => {
+export const CardBalance3 = ({ totalTransactions }: { totalTransactions?: number }) => {
    return (
       <Card
          css={{
@@ -19,10 +19,10 @@ export const CardBalance3 = () => {
                <Community />
                <Flex direction={'column'}>
                   <Text span css={{color: 'white'}}>
-                     Balance Insurance
+                     Total Transactions
                   </Text>
                   <Text span css={{color: 'white'}} size={'$xs'}>
-                     1311 Cars
+                     {totalTransactions || 0} This Week
                   </Text>
                </Flex>
             </Flex>
@@ -33,10 +33,10 @@ export const CardBalance3 = () => {
                   css={{color: 'white'}}
                   weight={'semibold'}
                >
-                  $3,910
+                  {totalTransactions || 0}
                </Text>
                <Text span css={{color: '$red600'}} size={'$xs'}>
-                  + 4.5%
+                  Transactions
                </Text>
             </Flex>
             <Flex css={{gap: '$12'}} align={'center'}>
@@ -47,36 +47,10 @@ export const CardBalance3 = () => {
                      css={{color: '$red600'}}
                      weight={'semibold'}
                   >
-                     {'↓'}
-                  </Text>
-                  <Text span size={'$xs'} css={{color: '$white'}}>
-                     100,930 USD
-                  </Text>
-               </Box>
-               <Box>
-                  <Text
-                     span
-                     size={'$xs'}
-                     css={{color: '$red600'}}
-                     weight={'semibold'}
-                  >
                      {'↑'}
                   </Text>
                   <Text span size={'$xs'} css={{color: '$white'}}>
-                     54,120 USD
-                  </Text>
-               </Box>
-               <Box>
-                  <Text
-                     span
-                     size={'$xs'}
-                     css={{color: '$green600'}}
-                     weight={'semibold'}
-                  >
-                     {'⭐'}
-                  </Text>
-                  <Text span size={'$xs'} css={{color: '$white'}}>
-                     125 VIP
+                     Pending Payouts
                   </Text>
                </Box>
             </Flex>

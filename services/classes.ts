@@ -1,10 +1,12 @@
 import { HTTP_CLIENT as api } from '../utils/axiosClient';
 
 export enum ClassStatus {
+  PENDING_APPROVAL = 'PENDING_APPROVAL',
   SCHEDULED = 'SCHEDULED',
   ONGOING = 'ONGOING',
   COMPLETED = 'COMPLETED',
   CANCELLED = 'CANCELLED',
+  MISSED = 'MISSED',
 }
 
 export interface ClassSession {

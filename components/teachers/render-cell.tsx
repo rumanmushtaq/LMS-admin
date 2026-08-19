@@ -80,15 +80,45 @@ export const RenderCell = ({
           />
         </div>
       );
-    case "subject":
+    case "subject": {
+      // The API sends `subject` (joined, for a quick read) and `subjects` (the
+      // list). Showing the first plus a "+N" keeps the column narrow — a tutor
+      // with five specialities would otherwise push the table sideways.
+      const subjects: string[] = Array.isArray(teacher?.subjects)
+        ? teacher.subjects
+        : cellValue
+          ? String(cellValue).split(",").map((s: string) => s.trim()).filter(Boolean)
+          : [];
+
+      if (subjects.length === 0) {
+        return (
+          <Flex align="center" css={{ gap: "$2" }}>
+            <BookOpen size={14} color="var(--nextui-colors-accents7)" />
+            <Text size={14} color="$accents7">
+              N/A
+            </Text>
+          </Flex>
+        );
+      }
+
+      const [first, ...rest] = subjects;
+
       return (
-        <Flex align="center" css={{ gap: "$2" }}>
-          <BookOpen size={14} color="var(--nextui-colors-accents7)" />
-          <Text b size={14} color="$accents9">
-            {cellValue || "N/A"}
-          </Text>
-        </Flex>
+        <Tooltip content={subjects.join(", ")} color="invert">
+          <Flex align="center" css={{ gap: "$2" }}>
+            <BookOpen size={14} color="var(--nextui-colors-accents7)" />
+            <Text b size={14} color="$accents9">
+              {first}
+            </Text>
+            {rest.length > 0 && (
+              <Text size={12} color="$accents7">
+                +{rest.length}
+              </Text>
+            )}
+          </Flex>
+        </Tooltip>
       );
+    }
     case "createdAt":
       return (
         <Text b size={14} color="$accents8">
@@ -122,7 +152,19 @@ export const RenderCell = ({
       return (
         <Row justify="center" align="center" css={{ gap: "$4" }}>
           {/* Verify Account button — opens verification review modal */}
-          <Tooltip content="Verify Account" rounded color="secondary">
+          <Tooltip
+            content="Verify Account"
+            rounded
+            color="secondary"
+            // NextUI opens the tooltip on `focus` and only closes it on
+            // `blur`, and React's onFocus is a bubbling focusin — so
+            // clicking the icon focuses it and the tooltip stays stuck
+            // open over the table. These rest props are spread AFTER
+            // NextUI's own handlers, so they replace them. Hover still
+            // works; the accessible name now comes from aria-label,
+            // which is what assistive tech should have been reading.
+            onFocus={undefined}
+          >
             <Button
               auto
               light
@@ -138,12 +180,25 @@ export const RenderCell = ({
                 e.stopPropagation();
                 if (onVerify) onVerify();
               }}
+              aria-label="Verify account"
             >
               <ShieldCheck size={18} />
             </Button>
           </Tooltip>
 
-          <Tooltip content="Chat with Tutor" rounded color="secondary">
+          <Tooltip
+            content="Chat with Tutor"
+            rounded
+            color="secondary"
+            // NextUI opens the tooltip on `focus` and only closes it on
+            // `blur`, and React's onFocus is a bubbling focusin — so
+            // clicking the icon focuses it and the tooltip stays stuck
+            // open over the table. These rest props are spread AFTER
+            // NextUI's own handlers, so they replace them. Hover still
+            // works; the accessible name now comes from aria-label,
+            // which is what assistive tech should have been reading.
+            onFocus={undefined}
+          >
             <Button
               auto
               light
@@ -172,12 +227,19 @@ export const RenderCell = ({
                   alert("Failed to initiate chat.");
                 }
               }}
+              aria-label="Chat with tutor"
             >
               <MessageCircle size={18} />
             </Button>
           </Tooltip>
 
-          <Tooltip content="Review Detail" rounded color="primary">
+          <Tooltip
+            content="Review Detail"
+            rounded
+            color="primary"
+            // See the note on the Verify tooltip above.
+            onFocus={undefined}
+          >
             <Button
               auto
               light
@@ -199,6 +261,7 @@ export const RenderCell = ({
                   window.location.href = targetUrl;
                 }
               }}
+              aria-label="Review detail"
             >
               <Eye size={18} />
             </Button>
@@ -206,7 +269,12 @@ export const RenderCell = ({
 
           <Dropdown placement="bottom-right">
             <Dropdown.Trigger>
-              <div className="p-2 rounded-lg hover:bg-accents1 transition-colors cursor-pointer text-accents7">
+              <div
+                role="button"
+                tabIndex={0}
+                aria-label="More actions"
+                className="p-2 rounded-lg hover:bg-accents1 transition-colors cursor-pointer text-accents7"
+              >
                 <MoreVertical size={18} />
               </div>
             </Dropdown.Trigger>
@@ -291,26 +359,33 @@ export const RenderCell = ({
                 </Dropdown.Item>
               </Dropdown.Section>
               <Dropdown.Section title="Management">
-                <Dropdown.Item
-                  key="activate"
-                  color="success"
-                  icon={<CheckCircle2 size={18} />}
-                  css={{
-                    display: teacher.status !== "active" ? "flex" : "none",
-                  }}
-                >
-                  Activate
-                </Dropdown.Item>
-                <Dropdown.Item
-                  key="suspend"
-                  color="warning"
-                  icon={<Slash size={18} />}
-                  css={{
-                    display: teacher.status === "active" ? "flex" : "none",
-                  }}
-                >
-                  Suspend
-                </Dropdown.Item>
+                {/*
+                  Exactly one of these is rendered — never both with one hidden
+                  by CSS. NextUI's Dropdown is a react-stately collection built
+                  from its rendered children, so a `display: none` item is still
+                  a real, focusable member of the list. Moving the pointer down
+                  the menu focuses items by collection index, and focusing a
+                  `display: none` node silently fails, which drops focus out of
+                  the menu's FocusScope and dismisses the whole dropdown before
+                  you can reach the items below it.
+                */}
+                {teacher.status === "active" ? (
+                  <Dropdown.Item
+                    key="suspend"
+                    color="warning"
+                    icon={<Slash size={18} />}
+                  >
+                    Suspend
+                  </Dropdown.Item>
+                ) : (
+                  <Dropdown.Item
+                    key="activate"
+                    color="success"
+                    icon={<CheckCircle2 size={18} />}
+                  >
+                    Activate
+                  </Dropdown.Item>
+                )}
                 <Dropdown.Item
                   key="delete"
                   color="error"

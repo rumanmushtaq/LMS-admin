@@ -27,26 +27,27 @@ export const Accounts = () => {
          justify={'center'}
          direction={'column'}
       >
-         <Breadcrumbs>
-            <Crumb>
-               <HouseIcon />
-               <Link href={'/'} legacyBehavior>
-                  <CrumbLink href="#">Home</CrumbLink>
-               </Link>
-               <Text>/</Text>
-            </Crumb>
+         <Flex justify="between" align="center" wrap="wrap" css={{ width: "100%", mb: "$5" }}>
+            <Text h3 css={{ margin: 0 }}>All Accounts</Text>
+            <Breadcrumbs>
+               <Crumb>
+                  <HouseIcon />
+                  <Link href={'/'} legacyBehavior>
+                     <CrumbLink href="#">Home</CrumbLink>
+                  </Link>
+                  <Text>/</Text>
+               </Crumb>
 
-            <Crumb>
-               <UsersIcon />
-               <CrumbLink href="#">Users</CrumbLink>
-               <Text>/</Text>
-            </Crumb>
-            <Crumb>
-               <CrumbLink href="#">List</CrumbLink>
-            </Crumb>
-         </Breadcrumbs>
-
-         <Text h3>All Accounts</Text>
+               <Crumb>
+                  <UsersIcon />
+                  <CrumbLink href="#">Users</CrumbLink>
+                  <Text>/</Text>
+               </Crumb>
+               <Crumb>
+                  <CrumbLink href="#">List</CrumbLink>
+               </Crumb>
+            </Breadcrumbs>
+         </Flex>
          <Flex
             css={{gap: '$8'}}
             align={'center'}

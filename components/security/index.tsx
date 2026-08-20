@@ -52,6 +52,7 @@ const SecurityView = () => {
 
   // All IPs tab
   const [ips, setIps] = useState<IpRow[]>([]);
+  const [ipsError, setIpsError] = useState<string | null>(null);
   const [ipsTotal, setIpsTotal] = useState(0);
   const [ipsPage, setIpsPage] = useState(1);
   const [search, setSearch] = useState("");
@@ -100,6 +101,7 @@ const SecurityView = () => {
   const loadIps = useCallback(async () => {
     try {
       setIpsLoading(true);
+      setIpsError(null);
       const result = await securityService.listIps({
         page: ipsPage,
         limit: PAGE_SIZE,
@@ -109,8 +111,17 @@ const SecurityView = () => {
       });
       setIps(result.items);
       setIpsTotal(result.total);
-    } catch {
-      /* keep last data */
+    } catch (err: any) {
+      // A failed load must not masquerade as "no traffic" — surface it so the
+      // real cause (backend down, not an admin, endpoint missing) is visible.
+      const status = err?.response?.status;
+      setIpsError(
+        status === 401 || status === 403
+          ? "Not authorized to view security data. Sign in as an admin."
+          : status
+            ? `Failed to load IP activity (HTTP ${status}). Is the API running?`
+            : "Couldn't reach the API. Check that the backend is running.",
+      );
     } finally {
       setIpsLoading(false);
     }
@@ -311,6 +322,19 @@ const SecurityView = () => {
           {ipsLoading && ips.length === 0 ? (
             <Flex justify="center" css={{ py: "$12" }}>
               <Loading />
+            </Flex>
+          ) : ipsError ? (
+            <Flex
+              direction="column"
+              align="center"
+              css={{ py: "$10", gap: "$4" }}
+            >
+              <Text css={{ color: "$error", textAlign: "center", m: 0 }}>
+                {ipsError}
+              </Text>
+              <Button auto flat size="sm" onPress={() => loadIps()}>
+                Retry
+              </Button>
             </Flex>
           ) : ips.length === 0 ? (
             <Text css={{ color: "$accents7", py: "$10", textAlign: "center" }}>

@@ -8,8 +8,6 @@ import NextLink from 'next/link';
 import {CardBalance1} from './card-balance1';
 import {CardBalance2} from './card-balance2';
 import {CardBalance3} from './card-balance3';
-import {CardAgents} from './card-agents';
-import {CardTransactions} from './card-transactions';
 import adminService from '../../services/admin';
 import { Spinner } from '@nextui-org/react';
 
@@ -125,49 +123,6 @@ export const Content = () => {
                </Box>
             </Box>
          </Flex>
-
-         {/* Left Section */}
-         <Box
-            css={{
-               'px': '$12',
-               'mt': '$8',
-               'height': 'fit-content',
-               '@xsMax': {px: '$10'},
-               'gap': '$6',
-               'overflow': 'hidden',
-            }}
-         >
-            <Text
-               h3
-               css={{
-                  'textAlign': 'center',
-                  '@lg': {
-                     textAlign: 'inherit',
-                  },
-               }}
-            >
-               Section
-            </Text>
-            <Flex
-               direction={'column'}
-               justify={'center'}
-               css={{
-                  'gap': '$8',
-                  'flexDirection': 'row',
-                  'flexWrap': 'wrap',
-                  '@sm': {
-                     flexWrap: 'nowrap',
-                  },
-                  '@lg': {
-                     flexWrap: 'nowrap',
-                     flexDirection: 'column',
-                  },
-               }}
-            >
-               <CardAgents />
-               <CardTransactions />
-            </Flex>
-         </Box>
       </Flex>
 
       {/* Table Latest Users */}

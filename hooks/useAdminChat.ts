@@ -8,7 +8,7 @@ import { mergeMessages } from '../lib/chat/messages';
 export const useAdminChat = () => {
   const router = useRouter();
   const { accessToken, user } = useAuthStore();
-  const { isConnected, messages: socketMessages, sendMessage, joinConversation, typing, stopTyping, typingUsers, onlineUsers, checkUserStatus } = useChatSocket(accessToken || '');
+  const { isConnected, messages: socketMessages, moderationMessages, sendMessage, joinConversation, typing, stopTyping, typingUsers, onlineUsers, checkUserStatus } = useChatSocket(accessToken || '');
 
   const [activeTab, setActiveTab] = useState<'chats' | 'flagged'>('chats');
   const [conversations, setConversations] = useState<any[]>([]);
@@ -79,6 +79,59 @@ export const useAdminChat = () => {
     if (!accessToken) return;
     loadData();
   }, [accessToken, activeTab, loadData]);
+
+  // Moderation broadcast: bump the conversation list (last message, unread
+  // badge, recency order) for every message in the system — including threads
+  // the admin has not opened and is not a participant in. This is what makes a
+  // new message actually show up in the admin's conversation list.
+  const lastModIdRef = useRef<string | null>(null);
+  useEffect(() => {
+    if (moderationMessages.length === 0) return;
+
+    const seenIndex = lastModIdRef.current
+      ? moderationMessages.findIndex((m) => m.message?._id === lastModIdRef.current)
+      : -1;
+    const fresh = moderationMessages.slice(seenIndex + 1);
+    if (fresh.length === 0) return;
+    lastModIdRef.current =
+      moderationMessages[moderationMessages.length - 1].message?._id ?? lastModIdRef.current;
+
+    const userId = (user as any)?._id || (user as any)?.id || null;
+
+    setConversations((prev) => {
+      let changed = false;
+      const next = prev.map((c) => {
+        const forConv = fresh.filter((m) => m.conversationId === c._id);
+        if (forConv.length === 0) return c;
+        changed = true;
+        const latest = forConv[forConv.length - 1].message;
+        const isOpen = c._id === activeChatId;
+        const incoming = forConv.filter((m) => m.senderId !== userId).length;
+        return {
+          ...c,
+          lastMessage: { content: latest?.content, createdAt: latest?.createdAt },
+          updatedAt: latest?.createdAt ?? c.updatedAt,
+          unreadCount: isOpen ? 0 : (c.unreadCount ?? 0) + incoming,
+        };
+      });
+      if (!changed) return prev;
+      // Most-recently-active first, so the bumped thread rises to the top.
+      next.sort((a, b) => {
+        const ad = new Date(a.lastMessage?.createdAt ?? a.updatedAt ?? 0).getTime();
+        const bd = new Date(b.lastMessage?.createdAt ?? b.updatedAt ?? 0).getTime();
+        return bd - ad;
+      });
+      return next;
+    });
+
+    // A message for a conversation not yet in the list means a brand-new
+    // thread — reload so it appears (and this admin can moderate it).
+    const knownIds = new Set(conversations.map((c) => c._id));
+    if (fresh.some((m) => m.conversationId && !knownIds.has(m.conversationId))) {
+      loadData();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [moderationMessages, activeChatId, user]);
 
   // Defined with useCallback so it can be safely used in useEffect below
   const openConversation = useCallback(async (conv: any) => {

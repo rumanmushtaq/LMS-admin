@@ -6,6 +6,8 @@ interface ChatSocketHook {
   socketRef: React.MutableRefObject<Socket | null>;
   isConnected: boolean;
   messages: any[];
+  /** Broadcast of every message in the system, for admin moderation. */
+  moderationMessages: any[];
   sendMessage: (conversationId: string, content: string) => void;
   joinConversation: (conversationId: string) => void;
   typing: (conversationId: string) => void;
@@ -19,6 +21,7 @@ export const useChatSocket = (token?: string): ChatSocketHook => {
   const [socket, setSocket] = useState<Socket | null>(null);
   const [isConnected, setIsConnected] = useState(false);
   const [messages, setMessages] = useState<any[]>([]);
+  const [moderationMessages, setModerationMessages] = useState<any[]>([]);
   const [typingUsers, setTypingUsers] = useState<Set<string>>(new Set());
   const [onlineUsers, setOnlineUsers] = useState<Record<string, boolean>>({});
   const socketRef = useRef<Socket | null>(null);
@@ -56,6 +59,13 @@ export const useChatSocket = (token?: string): ChatSocketHook => {
 
     socketIo.on('newMessage', (message: any) => {
       setMessages((prev) => [...prev, message]);
+    });
+
+    // Admin-only moderation broadcast: every message in the system, so the
+    // conversation list and notifications update for threads the admin has not
+    // opened (and is not a participant in).
+    socketIo.on('moderationMessage', (data: any) => {
+      setModerationMessages((prev) => [...prev.slice(-199), data]);
     });
 
     socketIo.on('userTyping', (data: any) => {
@@ -120,5 +130,5 @@ export const useChatSocket = (token?: string): ChatSocketHook => {
     }
   }, []);
 
-  return { socket, socketRef, isConnected, messages, sendMessage, joinConversation, typing, stopTyping, typingUsers, onlineUsers, checkUserStatus };
+  return { socket, socketRef, isConnected, messages, moderationMessages, sendMessage, joinConversation, typing, stopTyping, typingUsers, onlineUsers, checkUserStatus };
 };

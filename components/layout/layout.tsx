@@ -4,12 +4,16 @@ import {NavbarWrapper} from '../navbar/navbar';
 import {SidebarWrapper} from '../sidebar/sidebar';
 import {SidebarContext} from './layout-context';
 import {WrapperLayout} from './layout.styles';
+import {useAdminNotificationsSocket} from '../../hooks/useAdminNotificationsSocket';
 
 interface Props {
    children: React.ReactNode;
 }
 
 export const Layout = ({children}: Props) => {
+   // App-wide notification feed (chat messages, etc.) for the navbar bell.
+   useAdminNotificationsSocket();
+
    const [sidebarOpen, setSidebarOpen] = React.useState(false);
    const [_, setLocked] = useLockedBody(false);
    const handleToggleSidebar = () => {

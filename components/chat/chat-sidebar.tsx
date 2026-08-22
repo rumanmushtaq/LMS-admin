@@ -31,7 +31,11 @@ export const ChatSidebar: React.FC<ChatSidebarProps> = ({
   blockConversationAction,
 }) => {
 
-
+  // Total unread across all conversations, for the "All Chats" tab badge.
+  const totalUnread = conversations.reduce(
+    (sum, c) => sum + (c.unreadCount || 0),
+    0,
+  );
 
   return (
     <div className="w-1/3 border-r border-gray-100 flex flex-col bg-gray-50/50">
@@ -41,6 +45,11 @@ export const ChatSidebar: React.FC<ChatSidebarProps> = ({
           className={`flex-1 py-4 font-medium text-sm flex items-center justify-center gap-2 ${activeTab === 'chats' ? 'text-blue-600 border-b-2 border-blue-600 bg-blue-50/50' : 'text-gray-500 hover:bg-gray-50'}`}
         >
           <MessageCircle size={16} /> All Chats
+          {totalUnread > 0 && (
+            <span className="min-w-[18px] h-[18px] px-1 flex items-center justify-center rounded-full bg-red-500 text-white text-[10px] font-bold">
+              {totalUnread > 99 ? '99+' : totalUnread}
+            </span>
+          )}
         </button>
         <button
           onClick={() => { setActiveTab('flagged'); setActiveChatId(null); }}
@@ -78,23 +87,39 @@ export const ChatSidebar: React.FC<ChatSidebarProps> = ({
               const displayRole = secondUser ? 'Multiple Users' : (displayUser?.role || 'User');
               const initial = displayName.charAt(0).toUpperCase() || 'U';
 
+              const unread = conv.unreadCount || 0;
+              const hasUnread = unread > 0 && activeChatId !== conv._id;
+              const preview = conv.lastMessage?.content;
+
               return (
                 <div
                   key={conv._id}
                   onClick={() => openConversation(conv)}
-                  className={`p-4 border-b border-gray-100 cursor-pointer hover:bg-blue-50/30 transition-colors ${activeChatId === conv._id ? 'bg-blue-50/50 border-l-4 border-l-blue-600' : 'border-l-4 border-l-transparent'}`}
+                  className={`p-4 border-b border-gray-100 cursor-pointer hover:bg-blue-50/30 transition-colors ${activeChatId === conv._id ? 'bg-blue-50/50 border-l-4 border-l-blue-600' : hasUnread ? 'bg-blue-50/40 border-l-4 border-l-blue-500' : 'border-l-4 border-l-transparent'}`}
                 >
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center font-bold shrink-0">
-                      {initial}
+                    <div className="relative shrink-0">
+                      <div className="w-10 h-10 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center font-bold">
+                        {initial}
+                      </div>
+                      {hasUnread && (
+                        <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 flex items-center justify-center rounded-full bg-red-500 text-white text-[10px] font-bold ring-2 ring-white">
+                          {unread > 99 ? '99+' : unread}
+                        </span>
+                      )}
                     </div>
                     <div className="min-w-0 flex-1 flex flex-col gap-1">
-                      <p className="font-medium text-sm text-gray-900 truncate">{displayName}</p>
-                      <div>
-                        <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider ${displayRole.toLowerCase() === 'admin' ? 'bg-purple-100 text-purple-700' : displayRole.toLowerCase() === 'tutor' ? 'bg-green-100 text-green-700' : displayRole.toLowerCase() === 'multiple users' ? 'bg-gray-100 text-gray-700' : 'bg-blue-100 text-blue-700'}`}>
+                      <div className="flex items-center justify-between gap-2">
+                        <p className={`text-sm text-gray-900 truncate ${hasUnread ? 'font-bold' : 'font-medium'}`}>{displayName}</p>
+                        {hasUnread && <span className="w-2 h-2 rounded-full bg-red-500 shrink-0" aria-label="new messages" />}
+                      </div>
+                      {preview ? (
+                        <p className={`text-xs truncate ${hasUnread ? 'text-gray-900 font-medium' : 'text-gray-500'}`}>{preview}</p>
+                      ) : (
+                        <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider w-fit ${displayRole.toLowerCase() === 'admin' ? 'bg-purple-100 text-purple-700' : displayRole.toLowerCase() === 'tutor' ? 'bg-green-100 text-green-700' : displayRole.toLowerCase() === 'multiple users' ? 'bg-gray-100 text-gray-700' : 'bg-blue-100 text-blue-700'}`}>
                           {displayRole}
                         </span>
-                      </div>
+                      )}
                     </div>
                   </div>
                 </div>

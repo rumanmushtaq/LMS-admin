@@ -1,170 +1,133 @@
 import React from "react";
-import { Box } from "../styles/box";
 import Chart, { Props } from "react-apexcharts";
+import { useTheme } from "@nextui-org/react";
+import { SERIES, inkFor, baseOptions, formatNumber } from "./theme";
+import { ChartCard } from "./ChartCard";
+import { ChartLegend } from "./ChartLegend";
 
 export interface SteamProps {
   categories?: string[];
   teachers?: number[];
   students?: number[];
+  teacherDelta?: number;
+  studentDelta?: number;
 }
 
-// Brand palette: Teachers echo the blue teacher card, Students the emerald
-// transactions card — so the legend reads without a second glance.
-const TEACHER_COLOR = "#0072F5";
-const STUDENT_COLOR = "#17C964";
-
 const FALLBACK_CATEGORIES = [
-  "Jan",
-  "Feb",
-  "Mar",
-  "Apr",
-  "May",
-  "Jun",
-  "Jul",
-  "Aug",
-  "Sep",
-  "Oct",
-  "Nov",
-  "Dec",
+  "Jan", "Feb", "Mar", "Apr", "May", "Jun",
+  "Jul", "Aug", "Sep", "Oct", "Nov", "Dec",
 ];
 
-const buildOptions = (categories: string[]): Props["options"] => ({
-  chart: {
-    type: "area",
-    animations: { enabled: true, speed: 500, easing: "easeinout" },
-    sparkline: { enabled: false },
-    brush: { enabled: false },
-    id: "growth-chart",
-    fontFamily: "Inter, sans-serif",
-    foreColor: "var(--nextui-colors-accents8)",
-    stacked: false,
-    toolbar: { show: false },
-    zoom: { enabled: false },
-    dropShadow: {
-      enabled: true,
-      top: 6,
-      left: 0,
-      blur: 8,
-      opacity: 0.12,
-      color: TEACHER_COLOR,
-    },
-  },
-  colors: [TEACHER_COLOR, STUDENT_COLOR],
-  dataLabels: { enabled: false },
-  stroke: {
-    curve: "smooth",
-    width: 3,
-    lineCap: "round",
-  },
-  fill: {
-    type: "gradient",
-    gradient: {
-      shadeIntensity: 1,
-      opacityFrom: 0.45,
-      opacityTo: 0.02,
-      stops: [0, 95, 100],
-    },
-  },
-  markers: {
-    size: 0,
-    strokeWidth: 2,
-    strokeColors: "#fff",
-    hover: { size: 6 },
-  },
-  xaxis: {
-    categories,
-    axisBorder: { show: false },
-    axisTicks: { show: false },
-    labels: {
-      rotate: 0,
-      hideOverlappingLabels: true,
-      style: {
-        colors: "var(--nextui-colors-accents7)",
-        fontFamily: "Inter, sans-serif",
-        fontSize: "12px",
-      },
-    },
-    tooltip: { enabled: false },
-  },
-  yaxis: {
-    min: 0,
-    forceNiceScale: true,
-    labels: {
-      formatter: (v: number) => `${Math.round(v)}`,
-      style: {
-        colors: "var(--nextui-colors-accents7)",
-        fontFamily: "Inter, sans-serif",
-        fontSize: "12px",
-      },
-    },
-  },
-  grid: {
-    show: true,
-    borderColor: "var(--nextui-colors-border)",
-    strokeDashArray: 4,
-    position: "back",
-    xaxis: { lines: { show: false } },
-    yaxis: { lines: { show: true } },
-    padding: { top: 0, right: 8, bottom: 0, left: 8 },
-  },
-  legend: {
-    show: true,
-    position: "top",
-    horizontalAlign: "left",
-    fontFamily: "Inter, sans-serif",
-    fontSize: "13px",
-    fontWeight: 600,
-    markers: {
-      // @ts-ignore — width/height/radius are valid ApexCharts legend markers
-      width: 10,
-      height: 10,
-      radius: 12,
-    },
-    itemMargin: { horizontal: 12, vertical: 4 },
-    labels: { colors: "var(--nextui-colors-accents9)" },
-  },
-  tooltip: {
-    enabled: true,
-    shared: true,
-    intersect: false,
-    theme: "light",
-    style: { fontFamily: "Inter, sans-serif" },
-    y: { formatter: (v: number) => `${Math.round(v)} total` },
-  },
-  responsive: [
-    {
-      breakpoint: 640,
-      options: {
-        chart: { height: 300 },
-        legend: { fontSize: "12px" },
-      },
-    },
-  ],
-});
+const COLORS = [SERIES.purple, SERIES.teal];
 
-export const Steam = ({ categories, teachers, students }: SteamProps) => {
+const deltaHint = (delta?: number): string | undefined => {
+  if (!delta) return undefined;
+  return `${delta > 0 ? "+" : "−"}${formatNumber(Math.abs(delta))} this month`;
+};
+
+/**
+ * Teachers vs students, cumulative over the last 12 months.
+ *
+ * Two thin lines on one axis; each is named by its endpoint value, and the
+ * legend repeats that value so the headline is readable without hovering.
+ */
+export const Steam = ({
+  categories,
+  teachers,
+  students,
+  teacherDelta,
+  studentDelta,
+}: SteamProps) => {
+  const { isDark } = useTheme();
+  const ink = inkFor(!!isDark);
+
   const cats = categories?.length ? categories : FALLBACK_CATEGORIES;
+  const teacherData = teachers?.length ? teachers : new Array(cats.length).fill(0);
+  const studentData = students?.length ? students : new Array(cats.length).fill(0);
+
+  const last = cats.length - 1;
+  const ends = [teacherData[last] ?? 0, studentData[last] ?? 0];
+  const maxY = Math.max(1, ...teacherData, ...studentData);
+
+  // Endpoint labels: above the point by default. A point at the top of the
+  // plot has no room above it, so its label drops below; and when the two
+  // lines finish close together the higher one keeps the near slot and the
+  // lower one moves one step further so they never stack on each other.
+  const converge = Math.abs(ends[0] - ends[1]) / maxY < 0.12;
+  const higher = ends[0] >= ends[1] ? 0 : 1;
+  const labelOffset = (i: number): number => {
+    const nearTop = ends[i] >= maxY * 0.88;
+    if (!converge) return nearTop ? 24 : -4;
+    if (i === higher) return nearTop ? 24 : -6;
+    return nearTop ? 44 : 26;
+  };
+
+  const base = baseOptions("growth-chart", ink, COLORS);
+  const options: Props["options"] = {
+    ...base,
+    xaxis: { ...base?.xaxis, categories: cats },
+    grid: {
+      ...base?.grid,
+      // Room on the right for the endpoint labels.
+      padding: { top: 8, right: 28, bottom: 0, left: 8 },
+    },
+    annotations: {
+      points: ends.map((y, i) => ({
+        x: cats[last],
+        y,
+        marker: {
+          size: 4,
+          fillColor: COLORS[i],
+          strokeColor: ink.surface,
+          strokeWidth: 2,
+        },
+        label: {
+          text: formatNumber(y),
+          borderWidth: 0,
+          offsetY: labelOffset(i),
+          style: {
+            background: "transparent",
+            color: ink.primary,
+            fontSize: "12px",
+            fontWeight: 600,
+            fontFamily: "Inter, system-ui, sans-serif",
+            padding: { left: 2, right: 2, top: 0, bottom: 0 },
+          },
+        },
+      })),
+    },
+  };
+
   const series: Props["series"] = [
-    {
-      name: "Teachers",
-      data: teachers?.length ? teachers : new Array(cats.length).fill(0),
-    },
-    {
-      name: "Students",
-      data: students?.length ? students : new Array(cats.length).fill(0),
-    },
+    { name: "Teachers", data: teacherData },
+    { name: "Students", data: studentData },
   ];
 
   return (
-    <Box css={{ width: "100%", zIndex: 5 }}>
-      <div id="chart">
-        <Chart
-          options={buildOptions(cats)}
-          series={series}
-          type="area"
-          height={425}
+    <ChartCard
+      title="Teachers vs students"
+      subtitle="Cumulative registrations, last 12 months"
+      aside={
+        <ChartLegend
+          ink={ink}
+          items={[
+            {
+              name: "Teachers",
+              color: COLORS[0],
+              value: formatNumber(ends[0]),
+              hint: deltaHint(teacherDelta),
+            },
+            {
+              name: "Students",
+              color: COLORS[1],
+              value: formatNumber(ends[1]),
+              hint: deltaHint(studentDelta),
+            },
+          ]}
         />
-      </div>
-    </Box>
+      }
+    >
+      <Chart options={options} series={series} type="area" height={320} />
+    </ChartCard>
   );
 };

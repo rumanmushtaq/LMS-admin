@@ -45,6 +45,15 @@ export const StyledBadge = styled('span', {
             bg: '$warningLight',
             color: '$warningLightContrast',
          },
+         // Real account statuses returned by the API.
+         pending: {
+            bg: '$warningLight',
+            color: '$warningLightContrast',
+         },
+         suspended: {
+            bg: '$errorLight',
+            color: '$errorLightContrast',
+         },
       },
    },
    defaultVariants: {

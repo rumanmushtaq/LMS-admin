@@ -1,83 +1,137 @@
-import {Col, Row, User, Text, Tooltip} from '@nextui-org/react';
+import { Col, Row, Text, Tooltip } from '@nextui-org/react';
 import React from 'react';
-import {DeleteIcon} from '../icons/table/delete-icon';
-import {EditIcon} from '../icons/table/edit-icon';
-import {EyeIcon} from '../icons/table/eye-icon';
-import {users} from './data';
-import {IconButton, StyledBadge} from './table.styled';
+import { DeleteIcon } from '../icons/table/delete-icon';
+import { EditIcon } from '../icons/table/edit-icon';
+import { EyeIcon } from '../icons/table/eye-icon';
+import { RowUser } from './data';
+import { IconButton, StyledBadge } from './table.styled';
 
 interface Props {
-   user: typeof users[number];
+   user: RowUser;
    columnKey: string | React.Key;
+   onView?: (user: RowUser) => void;
+   onEdit?: (user: RowUser) => void;
+   onDelete?: (user: RowUser) => void;
 }
 
-export const RenderCell = ({user, columnKey}: Props) => {
-   // @ts-ignore
-   const cellValue = user[columnKey];
+const ROLE_LABELS: Record<string, string> = {
+   tutor: 'Teacher',
+   student: 'Student',
+   admin: 'Admin',
+};
+
+// A palette of soft avatar backgrounds, picked deterministically per name so a
+// given user keeps the same colour across renders.
+const AVATAR_COLORS = [
+   { bg: '#EDE9FE', fg: '#6D28D9' },
+   { bg: '#DBEAFE', fg: '#1D4ED8' },
+   { bg: '#DCFCE7', fg: '#15803D' },
+   { bg: '#FEF3C7', fg: '#B45309' },
+   { bg: '#FCE7F3', fg: '#BE185D' },
+   { bg: '#CFFAFE', fg: '#0E7490' },
+];
+
+const initials = (name: string) =>
+   name
+      .split(' ')
+      .filter(Boolean)
+      .slice(0, 2)
+      .map((n) => n[0]?.toUpperCase())
+      .join('') || 'U';
+
+const colorFor = (name: string) => {
+   let h = 0;
+   for (let i = 0; i < name.length; i++) h = (h * 31 + name.charCodeAt(i)) >>> 0;
+   return AVATAR_COLORS[h % AVATAR_COLORS.length];
+};
+
+const formatJoined = (iso?: string) => {
+   if (!iso) return '—';
+   const d = new Date(iso);
+   if (isNaN(d.getTime())) return '—';
+   return `Joined ${d.toLocaleDateString(undefined, {
+      day: 'numeric',
+      month: 'short',
+      year: 'numeric',
+   })}`;
+};
+
+export const RenderCell = ({ user, columnKey, onView, onEdit, onDelete }: Props) => {
    switch (columnKey) {
-      case 'name':
+      case 'name': {
+         const c = colorFor(user.name || user.email || '');
          return (
-            <User squared src={user.avatar} name={cellValue} css={{p: 0}}>
-               {user.email}
-            </User>
+            <Row align="center" css={{ gap: '$5' }}>
+               <div
+                  style={{
+                     width: 40,
+                     height: 40,
+                     flexShrink: 0,
+                     borderRadius: 12,
+                     background: c.bg,
+                     color: c.fg,
+                     display: 'flex',
+                     alignItems: 'center',
+                     justifyContent: 'center',
+                     fontWeight: 700,
+                     fontSize: 14,
+                  }}
+               >
+                  {initials(user.name || user.email || 'U')}
+               </div>
+               <Col css={{ minWidth: 0 }}>
+                  <Text b size={14} css={{ m: 0, lineHeight: 1.2 }}>
+                     {user.name || '—'}
+                  </Text>
+                  <Text size={13} css={{ m: 0, color: '$accents7' }}>
+                     {user.email}
+                  </Text>
+               </Col>
+            </Row>
          );
+      }
       case 'role':
          return (
             <Col>
                <Row>
-                  <Text b size={14} css={{tt: 'capitalize'}}>
-                     {cellValue}
+                  <Text b size={14} css={{ m: 0 }}>
+                     {ROLE_LABELS[user.role] || user.role || '—'}
                   </Text>
                </Row>
                <Row>
-                  <Text
-                     b
-                     size={13}
-                     css={{tt: 'capitalize', color: '$accents7'}}
-                  >
-                     {user.team}
+                  <Text size={13} css={{ m: 0, color: '$accents7' }}>
+                     {formatJoined(user.createdAt)}
                   </Text>
                </Row>
             </Col>
          );
       case 'status':
          return (
-            // @ts-ignore
-            <StyledBadge type={String(user.status)}>{cellValue}</StyledBadge>
+            // @ts-ignore — status is validated against the badge variants
+            <StyledBadge type={String(user.status || 'active')}>
+               {user.status || 'active'}
+            </StyledBadge>
          );
-
       case 'actions':
          return (
-            <Row
-               justify="center"
-               align="center"
-               css={{'gap': '$8', '@md': {gap: 0}}}
-            >
-               <Col css={{d: 'flex'}}>
+            <Row justify="center" align="center" css={{ gap: '$8', '@md': { gap: 0 } }}>
+               <Col css={{ d: 'flex' }}>
                   <Tooltip content="Details">
-                     <IconButton
-                        onClick={() => console.log('View user', user.id)}
-                     >
+                     <IconButton onClick={() => onView?.(user)}>
                         <EyeIcon size={20} fill="#979797" />
                      </IconButton>
                   </Tooltip>
                </Col>
-               <Col css={{d: 'flex'}}>
+               <Col css={{ d: 'flex' }}>
                   <Tooltip content="Edit user">
-                     <IconButton
-                        onClick={() => console.log('Edit user', user.id)}
-                     >
+                     <IconButton onClick={() => onEdit?.(user)}>
                         <EditIcon size={20} fill="#979797" />
                      </IconButton>
                   </Tooltip>
                </Col>
-               <Col css={{d: 'flex'}}>
-                  <Tooltip
-                     content="Delete user"
-                     color="error"
-                     onClick={() => console.log('Delete user', user.id)}
-                  >
-                     <IconButton>
+               <Col css={{ d: 'flex' }}>
+                  <Tooltip content="Delete user" color="error">
+                     <IconButton onClick={() => onDelete?.(user)}>
                         <DeleteIcon size={20} fill="#FF0080" />
                      </IconButton>
                   </Tooltip>
@@ -85,6 +139,6 @@ export const RenderCell = ({user, columnKey}: Props) => {
             </Row>
          );
       default:
-         return cellValue;
+         return null;
    }
 };

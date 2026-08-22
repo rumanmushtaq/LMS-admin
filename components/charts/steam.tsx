@@ -2,94 +2,169 @@ import React from "react";
 import { Box } from "../styles/box";
 import Chart, { Props } from "react-apexcharts";
 
-const state: Props["series"] = [
-  {
-    name: "Series1",
-    data: [31, 40, 28, 51, 42, 109, 100],
-  },
-  {
-    name: "Series2",
-    data: [11, 32, 45, 32, 34, 52, 41],
-  },
+export interface SteamProps {
+  categories?: string[];
+  teachers?: number[];
+  students?: number[];
+}
+
+// Brand palette: Teachers echo the blue teacher card, Students the emerald
+// transactions card — so the legend reads without a second glance.
+const TEACHER_COLOR = "#0072F5";
+const STUDENT_COLOR = "#17C964";
+
+const FALLBACK_CATEGORIES = [
+  "Jan",
+  "Feb",
+  "Mar",
+  "Apr",
+  "May",
+  "Jun",
+  "Jul",
+  "Aug",
+  "Sep",
+  "Oct",
+  "Nov",
+  "Dec",
 ];
 
-const options: Props["options"] = {
+const buildOptions = (categories: string[]): Props["options"] => ({
   chart: {
     type: "area",
-    animations: {
-      speed: 300,
-    },
-    sparkline: {
-      enabled: false,
-    },
-    brush: {
-      enabled: false,
-    },
-    id: "basic-bar",
+    animations: { enabled: true, speed: 500, easing: "easeinout" },
+    sparkline: { enabled: false },
+    brush: { enabled: false },
+    id: "growth-chart",
     fontFamily: "Inter, sans-serif",
-    foreColor: "var(--nextui-colors-accents9)",
-    stacked: true,
-    toolbar: {
-      show: false,
+    foreColor: "var(--nextui-colors-accents8)",
+    stacked: false,
+    toolbar: { show: false },
+    zoom: { enabled: false },
+    dropShadow: {
+      enabled: true,
+      top: 6,
+      left: 0,
+      blur: 8,
+      opacity: 0.12,
+      color: TEACHER_COLOR,
     },
   },
-
+  colors: [TEACHER_COLOR, STUDENT_COLOR],
+  dataLabels: { enabled: false },
+  stroke: {
+    curve: "smooth",
+    width: 3,
+    lineCap: "round",
+  },
+  fill: {
+    type: "gradient",
+    gradient: {
+      shadeIntensity: 1,
+      opacityFrom: 0.45,
+      opacityTo: 0.02,
+      stops: [0, 95, 100],
+    },
+  },
+  markers: {
+    size: 0,
+    strokeWidth: 2,
+    strokeColors: "#fff",
+    hover: { size: 6 },
+  },
   xaxis: {
-    categories: [1991, 1992, 1993, 1994, 1995, 1996, 1997, 1998, 1999],
+    categories,
+    axisBorder: { show: false },
+    axisTicks: { show: false },
     labels: {
-      // show: false,
+      rotate: 0,
+      hideOverlappingLabels: true,
       style: {
-        colors: "var(--nextui-colors-accents8)",
+        colors: "var(--nextui-colors-accents7)",
         fontFamily: "Inter, sans-serif",
+        fontSize: "12px",
       },
     },
-    axisBorder: {
-      color: "var(--nextui-colors-border)",
-    },
-    axisTicks: {
-      color: "var(--nextui-colors-border)",
-    },
+    tooltip: { enabled: false },
   },
   yaxis: {
+    min: 0,
+    forceNiceScale: true,
     labels: {
+      formatter: (v: number) => `${Math.round(v)}`,
       style: {
-        colors: "var(--nextui-colors-accents8)",
+        colors: "var(--nextui-colors-accents7)",
         fontFamily: "Inter, sans-serif",
+        fontSize: "12px",
       },
     },
-  },
-  tooltip: {
-    enabled: false,
   },
   grid: {
     show: true,
     borderColor: "var(--nextui-colors-border)",
-    strokeDashArray: 0,
+    strokeDashArray: 4,
     position: "back",
+    xaxis: { lines: { show: false } },
+    yaxis: { lines: { show: true } },
+    padding: { top: 0, right: 8, bottom: 0, left: 8 },
   },
-  stroke: {
-    curve: "smooth",
-    fill: {
-      colors: ["red"],
+  legend: {
+    show: true,
+    position: "top",
+    horizontalAlign: "left",
+    fontFamily: "Inter, sans-serif",
+    fontSize: "13px",
+    fontWeight: 600,
+    markers: {
+      // @ts-ignore — width/height/radius are valid ApexCharts legend markers
+      width: 10,
+      height: 10,
+      radius: 12,
     },
+    itemMargin: { horizontal: 12, vertical: 4 },
+    labels: { colors: "var(--nextui-colors-accents9)" },
   },
-  // @ts-ignore
-  markers: false,
-};
+  tooltip: {
+    enabled: true,
+    shared: true,
+    intersect: false,
+    theme: "light",
+    style: { fontFamily: "Inter, sans-serif" },
+    y: { formatter: (v: number) => `${Math.round(v)} total` },
+  },
+  responsive: [
+    {
+      breakpoint: 640,
+      options: {
+        chart: { height: 300 },
+        legend: { fontSize: "12px" },
+      },
+    },
+  ],
+});
 
-export const Steam = () => {
+export const Steam = ({ categories, teachers, students }: SteamProps) => {
+  const cats = categories?.length ? categories : FALLBACK_CATEGORIES;
+  const series: Props["series"] = [
+    {
+      name: "Teachers",
+      data: teachers?.length ? teachers : new Array(cats.length).fill(0),
+    },
+    {
+      name: "Students",
+      data: students?.length ? students : new Array(cats.length).fill(0),
+    },
+  ];
+
   return (
-    <>
-      <Box
-        css={{
-          width: "100%",
-          zIndex: 5,
-        }}
-      >
-        <div id="chart">
-          <Chart options={options} series={state} type="area" height={425} />
-        </div>
-      </Box>
-    </>
+    <Box css={{ width: "100%", zIndex: 5 }}>
+      <div id="chart">
+        <Chart
+          options={buildOptions(cats)}
+          series={series}
+          type="area"
+          height={425}
+        />
+      </div>
+    </Box>
   );
 };

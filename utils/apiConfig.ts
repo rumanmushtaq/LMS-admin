@@ -16,6 +16,7 @@ const apiEndpoints = {
   },
   Admin: {
     DASHBOARD_STATS: "/api/v1/admin/dashboard/stats",
+    DASHBOARD_GROWTH: "/api/v1/admin/dashboard/growth",
     USERS: "/api/v1/admin/users",
     USER_BY_ID: (id: string) => `/api/v1/admin/users/${id}`,
     UPDATE_USER: (id: string) => `/api/v1/admin/users/${id}`,

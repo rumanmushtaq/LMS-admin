@@ -33,6 +33,17 @@ class AdminService {
   }
 
   /**
+   * GET /api/v1/admin/dashboard/growth
+   * Cumulative teacher vs student totals over the last `months` months.
+   */
+  async getGrowthAnalytics(months = 12): Promise<any> {
+    const { data } = await HTTP_CLIENT.get(
+      `${apiEndpoints.Admin.DASHBOARD_GROWTH}?months=${months}`,
+    );
+    return data;
+  }
+
+  /**
    * GET /api/v1/admin/users
    * Supports pagination and filters via query params
    */

@@ -18,51 +18,59 @@ const Chart = dynamic(
    }
 );
 
+const unwrap = (data: any) =>
+   data && data.success && data.data ? data.data : data;
+
 export const Content = () => {
    const [stats, setStats] = useState<any>(null);
+   const [growth, setGrowth] = useState<any>(null);
    const [loading, setLoading] = useState(true);
+   const [chartLoading, setChartLoading] = useState(true);
 
    useEffect(() => {
       const fetchStats = async () => {
          try {
             const data = await adminService.getDashboardStats();
-            if (data && data.success && data.data) {
-               setStats(data.data);
-            } else if (data) { // If it returns the object directly
-               setStats(data);
-            }
+            if (data) setStats(unwrap(data));
          } catch (error) {
             console.error('Failed to fetch dashboard stats', error);
          } finally {
             setLoading(false);
          }
       };
+      const fetchGrowth = async () => {
+         try {
+            const data = await adminService.getGrowthAnalytics(12);
+            if (data) setGrowth(unwrap(data));
+         } catch (error) {
+            console.error('Failed to fetch growth analytics', error);
+         } finally {
+            setChartLoading(false);
+         }
+      };
       fetchStats();
+      fetchGrowth();
    }, []);
 
    return (
    <Box css={{overflow: 'hidden', height: '100%'}}>
       <Flex
          css={{
-            'gap': '$8',
+            'width': '100%',
             'pt': '$5',
             'height': 'fit-content',
-            'flexWrap': 'wrap',
-            '@lg': {
-               flexWrap: 'nowrap',
-            },
             '@sm': {
                pt: '$10',
             },
          }}
-         justify={'center'}
       >
          <Flex
             css={{
-               'px': '$12',
+               'width': '100%',
+               'px': '$10',
                'mt': '$8',
-               '@xsMax': {px: '$10'},
                'gap': '$12',
+               '@sm': {px: '$20'},
             }}
             direction={'column'}
          >
@@ -79,47 +87,77 @@ export const Content = () => {
                >
                   Available Balance
                </Text>
-               <Flex
+               <Box
                   css={{
+                     'display': 'grid',
                      'gap': '$10',
-                     'flexWrap': 'wrap',
-                     'justifyContent': 'center',
+                     'gridTemplateColumns': '1fr',
                      '@sm': {
-                        flexWrap: 'nowrap',
+                        gridTemplateColumns: 'repeat(3, 1fr)',
                      },
                   }}
-                  direction={'row'}
                >
-                  <CardBalance1 totalTutors={stats?.totalTutors || 0} activeUsers={stats?.activeUsers || 0} />
-                  <CardBalance2 totalStudents={stats?.totalStudents || 0} pendingUsers={stats?.pendingUsers || 0} />
+                  <CardBalance1
+                     totalTutors={stats?.totalTutors || 0}
+                     activeUsers={stats?.activeUsers || 0}
+                     teacherDelta={growth?.teacherDelta || 0}
+                  />
+                  <CardBalance2
+                     totalStudents={stats?.totalStudents || 0}
+                     pendingUsers={stats?.pendingUsers || 0}
+                     studentDelta={growth?.studentDelta || 0}
+                  />
                   <CardBalance3 totalTransactions={stats?.recentSignups || 0} />
-               </Flex>
+               </Box>
             </Box>
 
             {/* Chart */}
             <Box>
-               <Text
-                  h3
+               <Flex
+                  direction={'column'}
                   css={{
-                     'textAlign': 'center',
-                     '@lg': {
-                        textAlign: 'inherit',
-                     },
+                     'alignItems': 'center',
+                     'mb': '$4',
+                     '@lg': { alignItems: 'flex-start' },
                   }}
                >
-                  Statistics
-               </Text>
+                  <Text h3 css={{ mb: '$0' }}>
+                     Teachers vs Students Growth
+                  </Text>
+                  <Text
+                     span
+                     size={'$sm'}
+                     css={{ color: '$accents7' }}
+                  >
+                     Cumulative registrations over the last 12 months
+                  </Text>
+               </Flex>
                <Box
                   css={{
                      width: '100%',
-                     backgroundColor: '$accents0',
-                     boxShadow: '$lg',
+                     background: '$backgroundContrast',
+                     boxShadow: '0 10px 40px -18px rgba(0,0,0,0.25)',
+                     border: '1px solid $border',
                      borderRadius: '$2xl',
-                     px: '$10',
-                     py: '$10',
+                     px: '$8',
+                     py: '$8',
                   }}
                >
-                  <Chart />
+                  {chartLoading ? (
+                     <Flex
+                        align={'center'}
+                        justify={'center'}
+                        css={{ height: '425px' }}
+                     >
+                        <Spinner size={'lg'} />
+                     </Flex>
+                  ) : (
+                     <Chart
+                        categories={growth?.categories}
+                        teachers={growth?.teachers}
+                        students={growth?.students}
+                     />
+                  )}
                </Box>
             </Box>
          </Flex>

@@ -6,6 +6,7 @@ import { Box } from "../styles/box";
 import { Flex } from "../styles/flex";
 import { columns, RowUser } from "./data";
 import { RenderCell } from "./render-cell";
+import { extractUsers, routeForRole, toRow } from "./user-row";
 
 interface TableWrapperProps {
   /** How many users to load (most recent first). */
@@ -13,32 +14,6 @@ interface TableWrapperProps {
   /** Rows shown per page in the client-side pager. */
   rowsPerPage?: number;
 }
-
-const toRow = (u: any): RowUser => {
-  const name =
-    (u.fullName && String(u.fullName).trim()) ||
-    `${u.firstName || ""} ${u.lastName || ""}`.trim() ||
-    (u.email ? String(u.email).split("@")[0] : "User");
-  return {
-    id: String(u._id || u.id || ""),
-    name,
-    email: u.email || "",
-    role: u.role || "",
-    status: u.status || "active",
-    createdAt: u.createdAt,
-  };
-};
-
-// The API response may be the paginated object directly or wrapped in
-// { success, data }. Pull the users array out of whichever shape arrives.
-const extractUsers = (res: any): any[] => {
-  const body = res?.data?.users ? res.data : res;
-  if (Array.isArray(body?.users)) return body.users;
-  if (Array.isArray(body?.data?.users)) return body.data.users;
-  if (Array.isArray(body?.data)) return body.data;
-  if (Array.isArray(body)) return body;
-  return [];
-};
 
 export const TableWrapper = ({
   limit = 50,
@@ -69,9 +44,6 @@ export const TableWrapper = ({
   useEffect(() => {
     load();
   }, [load]);
-
-  const routeForRole = (role: string) =>
-    role === "tutor" ? "/teachers" : role === "student" ? "/students" : "/accounts";
 
   const onView = (user: RowUser) => router.push(routeForRole(user.role));
   const onEdit = (user: RowUser) => router.push(routeForRole(user.role));

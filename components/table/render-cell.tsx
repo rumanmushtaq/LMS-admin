@@ -5,6 +5,7 @@ import { EditIcon } from '../icons/table/edit-icon';
 import { EyeIcon } from '../icons/table/eye-icon';
 import { RowUser } from './data';
 import { IconButton, StyledBadge } from './table.styled';
+import { colorFor, formatJoined, initials, roleLabel } from './user-row';
 
 interface Props {
    user: RowUser;
@@ -13,48 +14,6 @@ interface Props {
    onEdit?: (user: RowUser) => void;
    onDelete?: (user: RowUser) => void;
 }
-
-const ROLE_LABELS: Record<string, string> = {
-   tutor: 'Teacher',
-   student: 'Student',
-   admin: 'Admin',
-};
-
-// A palette of soft avatar backgrounds, picked deterministically per name so a
-// given user keeps the same colour across renders.
-const AVATAR_COLORS = [
-   { bg: '#EDE9FE', fg: '#6D28D9' },
-   { bg: '#DBEAFE', fg: '#1D4ED8' },
-   { bg: '#DCFCE7', fg: '#15803D' },
-   { bg: '#FEF3C7', fg: '#B45309' },
-   { bg: '#FCE7F3', fg: '#BE185D' },
-   { bg: '#CFFAFE', fg: '#0E7490' },
-];
-
-const initials = (name: string) =>
-   name
-      .split(' ')
-      .filter(Boolean)
-      .slice(0, 2)
-      .map((n) => n[0]?.toUpperCase())
-      .join('') || 'U';
-
-const colorFor = (name: string) => {
-   let h = 0;
-   for (let i = 0; i < name.length; i++) h = (h * 31 + name.charCodeAt(i)) >>> 0;
-   return AVATAR_COLORS[h % AVATAR_COLORS.length];
-};
-
-const formatJoined = (iso?: string) => {
-   if (!iso) return '—';
-   const d = new Date(iso);
-   if (isNaN(d.getTime())) return '—';
-   return `Joined ${d.toLocaleDateString(undefined, {
-      day: 'numeric',
-      month: 'short',
-      year: 'numeric',
-   })}`;
-};
 
 export const RenderCell = ({ user, columnKey, onView, onEdit, onDelete }: Props) => {
    switch (columnKey) {
@@ -95,7 +54,7 @@ export const RenderCell = ({ user, columnKey, onView, onEdit, onDelete }: Props)
             <Col>
                <Row>
                   <Text b size={14} css={{ m: 0 }}>
-                     {ROLE_LABELS[user.role] || user.role || '—'}
+                     {roleLabel(user.role)}
                   </Text>
                </Row>
                <Row>

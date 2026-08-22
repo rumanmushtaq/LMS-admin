@@ -4,11 +4,14 @@ import { useAuthStore } from '../store/authStore';
 import chatService from '../services/chat';
 import { useChatSocket } from './useChatSocket';
 import { mergeMessages } from '../lib/chat/messages';
+import { useAdminNotifications } from '../store/adminNotifications';
 
 export const useAdminChat = () => {
   const router = useRouter();
   const { accessToken, user } = useAuthStore();
   const { isConnected, messages: socketMessages, moderationMessages, sendMessage, joinConversation, typing, stopTyping, typingUsers, onlineUsers, checkUserStatus } = useChatSocket(accessToken || '');
+  // Clears the app-wide unread badge (sidebar tab) for a thread once opened.
+  const markConversationRead = useAdminNotifications((s) => s.markConversationRead);
 
   const [activeTab, setActiveTab] = useState<'chats' | 'flagged'>('chats');
   const [conversations, setConversations] = useState<any[]>([]);
@@ -136,6 +139,12 @@ export const useAdminChat = () => {
   // Defined with useCallback so it can be safely used in useEffect below
   const openConversation = useCallback(async (conv: any) => {
     setActiveChatId(conv._id);
+    // Opening a thread clears its app-wide unread badge (bell/sidebar counters).
+    markConversationRead(conv._id);
+    // Also zero the local list count so the "All Chats" tab total stays accurate.
+    setConversations((prev) =>
+      prev.map((c) => (c._id === conv._id ? { ...c, unreadCount: 0 } : c)),
+    );
     const userId = user?._id || user?.id;
     const otherParticipants = conv.participants?.filter((p: any) => p._id !== userId) || [];
     const otherUser = otherParticipants.length > 0 ? otherParticipants[0] : conv.participants?.[0];
@@ -158,7 +167,7 @@ export const useAdminChat = () => {
     } finally {
       setIsChatLoading(false);
     }
-  }, [user, joinConversation, checkUserStatus]);
+  }, [user, joinConversation, checkUserStatus, markConversationRead]);
 
   // Auto-open a conversation when navigated from teacher/student detail page
   const hasProcessedOpenParam = useRef(false);

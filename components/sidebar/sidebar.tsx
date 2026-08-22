@@ -15,10 +15,15 @@ import { SecurityIcon } from "../icons/sidebar/security-icon";
 import { useSidebarContext } from "../layout/layout-context";
 import { useRouter } from "next/router";
 import { SidebarCollapseItem } from "./sidebar-collapse-item";
+import { useAdminNotifications } from "../../store/adminNotifications";
 
 export const SidebarWrapper = () => {
   const router = useRouter();
   const { collapsed, setCollapsed } = useSidebarContext();
+  // Number of conversations with unread messages, for the Chat & Support badge.
+  const chatUnread = useAdminNotifications(
+    (s) => Object.keys(s.unreadByConversation).length,
+  );
 
   return (
     <Box

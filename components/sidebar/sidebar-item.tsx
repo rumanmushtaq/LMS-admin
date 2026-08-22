@@ -7,9 +7,11 @@ interface Props {
   icon: React.ReactNode;
   isActive?: boolean;
   href?: string;
+  /** Optional unread count shown as a red badge (e.g. new chats). */
+  badge?: number;
 }
 
-export const SidebarItem = ({ icon, title, isActive, href = "" }: Props) => {
+export const SidebarItem = ({ icon, title, isActive, href = "", badge = 0 }: Props) => {
   const { setCollapsed } = useSidebarContext();
 
   const handleClick = () => {
@@ -40,6 +42,11 @@ export const SidebarItem = ({ icon, title, isActive, href = "" }: Props) => {
           {icon}
         </div>
         <span className="text-base font-medium">{title}</span>
+        {badge > 0 && (
+          <span className="ml-auto min-w-[20px] h-5 px-1.5 flex items-center justify-center rounded-full bg-red-500 text-white text-[11px] font-bold">
+            {badge > 99 ? "99+" : badge}
+          </span>
+        )}
       </a>
     </NextLink>
   );

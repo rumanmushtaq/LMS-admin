@@ -1,5 +1,22 @@
-import React from 'react';
-import { MessageCircle, AlertTriangle, Loader2, CheckCircle, Ban } from 'lucide-react';
+import React, { useMemo, useState } from 'react';
+import {
+  MessageCircle,
+  AlertTriangle,
+  Loader2,
+  CheckCircle,
+  Ban,
+  Search,
+  Inbox,
+  ShieldCheck,
+} from 'lucide-react';
+import { PeopleAvatar, RoleChips, UserAvatar } from './avatar';
+import {
+  conversationPeople,
+  conversationTitle,
+  filterConversations,
+  formatListDate,
+  nameOf,
+} from '../../lib/chat/presentation';
 
 interface ChatSidebarProps {
   activeTab: 'chats' | 'flagged';
@@ -17,6 +34,63 @@ interface ChatSidebarProps {
   blockConversationAction: (conversation: string | { _id: string } | null | undefined) => void;
 }
 
+const TabButton = ({
+  active,
+  onClick,
+  icon,
+  label,
+  count,
+  tone,
+}: {
+  active: boolean;
+  onClick: () => void;
+  icon: React.ReactNode;
+  label: string;
+  count: number;
+  tone: 'purple' | 'red';
+}) => (
+  <button
+    type="button"
+    onClick={onClick}
+    aria-pressed={active}
+    className={`flex-1 h-9 rounded-lg text-[13px] font-semibold flex items-center justify-center gap-1.5 transition-all ${
+      active
+        ? 'bg-[var(--nextui-colors-backgroundContrast)] text-[var(--nextui-colors-text)] shadow-[0_1px_2px_rgba(17,24,28,0.10)]'
+        : 'text-[var(--nextui-colors-accents7)] hover:text-[var(--nextui-colors-text)]'
+    }`}
+  >
+    {icon}
+    {label}
+    {count > 0 && (
+      <span
+        className={`min-w-[18px] h-[18px] px-1.5 rounded-full text-[10px] font-bold flex items-center justify-center text-white ${
+          tone === 'red' ? 'bg-[#D03B3B]' : 'bg-[var(--nextui-colors-primary)]'
+        }`}
+      >
+        {count > 99 ? '99+' : count}
+      </span>
+    )}
+  </button>
+);
+
+const EmptyList = ({
+  icon,
+  title,
+  hint,
+}: {
+  icon: React.ReactNode;
+  title: string;
+  hint: string;
+}) => (
+  <div className="flex flex-col items-center justify-center text-center px-6 py-14">
+    <div className="w-12 h-12 rounded-full bg-[var(--nextui-colors-accents0)] text-[var(--nextui-colors-accents6)] flex items-center justify-center mb-3">
+      {icon}
+    </div>
+    <p className="text-[14px] font-semibold text-[var(--nextui-colors-text)] m-0">{title}</p>
+    <p className="text-[12.5px] text-[var(--nextui-colors-accents7)] m-0 mt-1">{hint}</p>
+  </div>
+);
+
 export const ChatSidebar: React.FC<ChatSidebarProps> = ({
   activeTab,
   setActiveTab,
@@ -30,128 +104,215 @@ export const ChatSidebar: React.FC<ChatSidebarProps> = ({
   resolveFlag,
   blockConversationAction,
 }) => {
+  const [query, setQuery] = useState('');
+  const userId = user?._id || user?.id;
 
-  // Total unread across all conversations, for the "All Chats" tab badge.
+  // Total unread across all conversations, for the "Chats" tab badge.
   const totalUnread = conversations.reduce(
     (sum, c) => sum + (c.unreadCount || 0),
     0,
   );
 
+  const visibleConversations = useMemo(
+    () => filterConversations(conversations, query, userId),
+    [conversations, query, userId],
+  );
+
   return (
-    <div className="w-1/3 border-r border-gray-100 flex flex-col bg-gray-50/50">
-      <div className="flex border-b border-gray-100">
-        <button
-          onClick={() => { setActiveTab('chats'); setActiveChatId(null); }}
-          className={`flex-1 py-4 font-medium text-sm flex items-center justify-center gap-2 ${activeTab === 'chats' ? 'text-blue-600 border-b-2 border-blue-600 bg-blue-50/50' : 'text-gray-500 hover:bg-gray-50'}`}
-        >
-          <MessageCircle size={16} /> All Chats
-          {totalUnread > 0 && (
-            <span className="min-w-[18px] h-[18px] px-1 flex items-center justify-center rounded-full bg-red-500 text-white text-[10px] font-bold">
-              {totalUnread > 99 ? '99+' : totalUnread}
-            </span>
-          )}
-        </button>
-        <button
-          onClick={() => { setActiveTab('flagged'); setActiveChatId(null); }}
-          className={`flex-1 py-4 font-medium text-sm flex items-center justify-center gap-2 ${activeTab === 'flagged' ? 'text-red-600 border-b-2 border-red-600 bg-red-50/50' : 'text-gray-500 hover:bg-gray-50'}`}
-        >
-          <AlertTriangle size={16} /> Flagged
-        </button>
+    <aside className="w-[340px] shrink-0 flex flex-col border-r border-[var(--nextui-colors-border)] bg-[var(--nextui-colors-backgroundContrast)]">
+      {/* Segmented control */}
+      <div className="px-3 pt-3">
+        <div className="flex gap-1 p-1 rounded-xl bg-[var(--nextui-colors-accents0)]">
+          <TabButton
+            active={activeTab === 'chats'}
+            onClick={() => { setActiveTab('chats'); setActiveChatId(null); }}
+            icon={<MessageCircle size={15} />}
+            label="Chats"
+            count={totalUnread}
+            tone="purple"
+          />
+          <TabButton
+            active={activeTab === 'flagged'}
+            onClick={() => { setActiveTab('flagged'); setActiveChatId(null); }}
+            icon={<AlertTriangle size={15} />}
+            label="Flagged"
+            count={flaggedMessages.length}
+            tone="red"
+          />
+        </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto">
+      {/* Search (chats only) */}
+      {activeTab === 'chats' && (
+        <div className="px-3 pt-3 pb-1">
+          <label className="flex items-center gap-2 h-9 px-3 rounded-lg bg-[var(--nextui-colors-accents0)] border border-transparent focus-within:border-[var(--nextui-colors-primary)] focus-within:bg-[var(--nextui-colors-backgroundContrast)] transition-colors">
+            <Search size={15} className="text-[var(--nextui-colors-accents6)] shrink-0" />
+            <input
+              type="search"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="Search conversations"
+              aria-label="Search conversations"
+              className="w-full bg-transparent outline-none text-[13px] text-[var(--nextui-colors-text)] placeholder:text-[var(--nextui-colors-accents6)]"
+            />
+          </label>
+        </div>
+      )}
+
+      <div className="flex-1 overflow-y-auto chat-scroll py-2">
         {isLoading ? (
-          <div className="flex justify-center p-8"><Loader2 className="animate-spin text-gray-400" /></div>
+          <div className="flex justify-center p-8">
+            <Loader2 className="animate-spin text-[var(--nextui-colors-accents5)]" />
+          </div>
         ) : activeTab === 'chats' ? (
-          conversations.length === 0 ? (
-            <p className="text-center text-gray-500 p-8 text-sm">No conversations found.</p>
+          visibleConversations.length === 0 ? (
+            <EmptyList
+              icon={<Inbox size={20} />}
+              title={query ? 'No matches' : 'No conversations yet'}
+              hint={
+                query
+                  ? 'Try a different name or phrase.'
+                  : 'Threads between tutors and students will appear here.'
+              }
+            />
           ) : (
-            conversations.map(conv => {
-              const userId = user?._id || user?.id;
-              const otherParticipants = conv.participants?.filter((p: any) => p._id !== userId) || [];
-              const displayUser = otherParticipants.length > 0 ? otherParticipants[0] : conv.participants?.[0];
-              const secondUser = otherParticipants.length > 1 ? otherParticipants[1] : null;
-              
-              const getName = (u: any) => {
-                if (!u) return 'User';
-                if (u.firstName || u.lastName) return `${u.firstName || ''} ${u.lastName || ''}`.trim();
-                if (u.fullName) return u.fullName;
-                if (u.email) return u.email.split('@')[0];
-                return 'User';
-              };
-
-              const displayName = secondUser 
-                ? `${getName(displayUser)} & ${getName(secondUser)}`
-                : getName(displayUser);
-                
-              const displayRole = secondUser ? 'Multiple Users' : (displayUser?.role || 'User');
-              const initial = displayName.charAt(0).toUpperCase() || 'U';
-
+            visibleConversations.map((conv) => {
+              const people = conversationPeople(conv, userId);
+              const title = conversationTitle(people);
               const unread = conv.unreadCount || 0;
-              const hasUnread = unread > 0 && activeChatId !== conv._id;
+              const isActive = activeChatId === conv._id;
+              const hasUnread = unread > 0 && !isActive;
               const preview = conv.lastMessage?.content;
+              const when = formatListDate(conv.lastMessage?.createdAt ?? conv.updatedAt);
 
               return (
-                <div
+                <button
                   key={conv._id}
+                  type="button"
                   onClick={() => openConversation(conv)}
-                  className={`p-4 border-b border-gray-100 cursor-pointer hover:bg-blue-50/30 transition-colors ${activeChatId === conv._id ? 'bg-blue-50/50 border-l-4 border-l-blue-600' : hasUnread ? 'bg-blue-50/40 border-l-4 border-l-blue-500' : 'border-l-4 border-l-transparent'}`}
+                  aria-current={isActive ? 'true' : undefined}
+                  className={`relative w-full text-left px-3 py-2.5 flex items-center gap-3 transition-colors ${
+                    isActive
+                      ? 'bg-[rgba(112,71,235,0.14)]'
+                      : 'hover:bg-[var(--nextui-colors-accents0)]'
+                  }`}
                 >
-                  <div className="flex items-center gap-3">
-                    <div className="relative shrink-0">
-                      <div className="w-10 h-10 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center font-bold">
-                        {initial}
-                      </div>
+                  {isActive && (
+                    <span
+                      className="absolute left-0 top-2 bottom-2 w-[3px] rounded-r-full bg-[var(--nextui-colors-primary)]"
+                      aria-hidden="true"
+                    />
+                  )}
+                  <PeopleAvatar people={people} size={42} />
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-baseline justify-between gap-2">
+                      <p
+                        className={`text-[14px] truncate m-0 text-[var(--nextui-colors-text)] ${
+                          hasUnread ? 'font-bold' : 'font-semibold'
+                        }`}
+                      >
+                        {title}
+                      </p>
+                      {when && (
+                        <span
+                          className={`text-[11px] shrink-0 ${
+                            hasUnread
+                              ? 'text-[var(--nextui-colors-primary)] font-semibold'
+                              : 'text-[var(--nextui-colors-accents6)]'
+                          }`}
+                        >
+                          {when}
+                        </span>
+                      )}
+                    </div>
+                    <div className="flex items-center justify-between gap-2 mt-0.5 min-h-[18px]">
+                      {preview ? (
+                        <p
+                          className={`text-[13px] truncate m-0 ${
+                            hasUnread
+                              ? 'text-[var(--nextui-colors-text)] font-medium'
+                              : 'text-[var(--nextui-colors-accents7)]'
+                          }`}
+                        >
+                          {preview}
+                        </p>
+                      ) : (
+                        <RoleChips people={people} />
+                      )}
                       {hasUnread && (
-                        <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 flex items-center justify-center rounded-full bg-red-500 text-white text-[10px] font-bold ring-2 ring-white">
+                        <span className="shrink-0 min-w-[20px] h-5 px-1.5 rounded-full bg-[var(--nextui-colors-primary)] text-white text-[11px] font-bold flex items-center justify-center">
                           {unread > 99 ? '99+' : unread}
                         </span>
                       )}
                     </div>
-                    <div className="min-w-0 flex-1 flex flex-col gap-1">
-                      <div className="flex items-center justify-between gap-2">
-                        <p className={`text-sm text-gray-900 truncate ${hasUnread ? 'font-bold' : 'font-medium'}`}>{displayName}</p>
-                        {hasUnread && <span className="w-2 h-2 rounded-full bg-red-500 shrink-0" aria-label="new messages" />}
-                      </div>
-                      {preview ? (
-                        <p className={`text-xs truncate ${hasUnread ? 'text-gray-900 font-medium' : 'text-gray-500'}`}>{preview}</p>
-                      ) : (
-                        <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider w-fit ${displayRole.toLowerCase() === 'admin' ? 'bg-purple-100 text-purple-700' : displayRole.toLowerCase() === 'tutor' ? 'bg-green-100 text-green-700' : displayRole.toLowerCase() === 'multiple users' ? 'bg-gray-100 text-gray-700' : 'bg-blue-100 text-blue-700'}`}>
-                          {displayRole}
-                        </span>
-                      )}
-                    </div>
                   </div>
-                </div>
+                </button>
               );
             })
           )
+        ) : flaggedMessages.length === 0 ? (
+          <EmptyList
+            icon={<ShieldCheck size={20} />}
+            title="Nothing flagged"
+            hint="Reported messages will show up here for review."
+          />
         ) : (
-          flaggedMessages.length === 0 ? (
-            <p className="text-center text-gray-500 p-8 text-sm">No flagged messages.</p>
-          ) : (
-            flaggedMessages.map(msg => (
-              <div key={msg._id} className="p-4 border-b border-gray-100">
-                <div className="flex justify-between items-start mb-2">
-                  <span className="text-xs font-bold text-red-600 uppercase tracking-wide flex items-center gap-1">
-                    <AlertTriangle size={12} /> Reported
-                  </span>
-                  <button onClick={() => resolveFlag(msg._id)} className="text-xs text-green-600 font-medium flex items-center gap-1 hover:text-green-700 bg-green-50 px-2 py-1 rounded">
-                    <CheckCircle size={12} /> Resolve
-                  </button>
+          <div className="flex flex-col gap-3 px-3 pt-1 pb-3">
+            {flaggedMessages.map((msg) => (
+              <article
+                key={msg._id}
+                className="rounded-xl border border-[var(--nextui-colors-border)] bg-[var(--nextui-colors-backgroundContrast)] overflow-hidden"
+              >
+                <div className="h-[3px] bg-[#D03B3B]" aria-hidden="true" />
+                <div className="p-3.5">
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="inline-flex items-center gap-1 text-[11px] font-bold uppercase tracking-wide text-[#D03B3B]">
+                      <AlertTriangle size={12} /> Reported
+                    </span>
+                    {msg.createdAt && (
+                      <span className="text-[11px] text-[var(--nextui-colors-accents6)]">
+                        {formatListDate(msg.createdAt)}
+                      </span>
+                    )}
+                  </div>
+
+                  <p
+                    className="mt-2 mb-0 text-[13.5px] leading-5 text-[var(--nextui-colors-text)] rounded-lg bg-[var(--nextui-colors-accents0)] px-3 py-2 whitespace-pre-wrap"
+                    style={{ overflowWrap: 'anywhere' }}
+                  >
+                    &ldquo;{msg.content}&rdquo;
+                  </p>
+
+                  <div className="mt-3 flex items-center justify-between gap-2">
+                    <div className="flex items-center gap-2 min-w-0">
+                      <UserAvatar user={msg.senderId} size={24} />
+                      <span className="text-[12px] text-[var(--nextui-colors-accents7)] truncate">
+                        {nameOf(msg.senderId)}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-1 shrink-0">
+                      <button
+                        type="button"
+                        onClick={() => resolveFlag(msg._id)}
+                        className="h-7 px-2.5 rounded-lg text-[12px] font-semibold flex items-center gap-1 bg-[rgba(12,163,12,0.12)] text-[#0A7A0A] hover:bg-[rgba(12,163,12,0.2)] transition-colors"
+                      >
+                        <CheckCircle size={13} /> Resolve
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => blockConversationAction(msg.conversationId)}
+                        className="h-7 px-2.5 rounded-lg text-[12px] font-semibold flex items-center gap-1 text-[#D03B3B] hover:bg-[rgba(208,59,59,0.1)] transition-colors"
+                      >
+                        <Ban size={13} /> Block
+                      </button>
+                    </div>
+                  </div>
                 </div>
-                <p className="text-sm text-gray-800 bg-gray-100 p-3 rounded-lg mb-2">&quot;{msg.content}&quot;</p>
-                <div className="flex justify-between items-center mt-3 pt-3 border-t border-gray-100">
-                  <span className="text-xs text-gray-500">By: {msg.senderId?.firstName || msg.senderId?.fullName || msg.senderId?.email || 'User'}</span>
-                  <button onClick={() => blockConversationAction(msg.conversationId)} className="text-xs text-red-500 font-medium hover:text-red-700 flex items-center gap-1">
-                    <Ban size={12} /> Block Chat
-                  </button>
-                </div>
-              </div>
-            ))
-          )
+              </article>
+            ))}
+          </div>
         )}
       </div>
-    </div>
+    </aside>
   );
 };

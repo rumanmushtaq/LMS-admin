@@ -9,9 +9,11 @@ import { StatTile } from './stat-tile';
 export const CardBalance3 = ({
    totalTransactions,
    loading,
+   href,
 }: {
    totalTransactions?: number;
    loading?: boolean;
+   href?: string;
 }) => (
    <StatTile
       label="New signups"
@@ -20,5 +22,6 @@ export const CardBalance3 = ({
       accent="amber"
       icon={<Community color="#C98500" />}
       loading={loading}
+      href={href}
    />
 );

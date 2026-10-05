@@ -1,4 +1,5 @@
 import React from "react";
+import NextLink from "next/link";
 import { Box } from "../styles/box";
 import { Flex } from "../styles/flex";
 
@@ -29,6 +30,8 @@ export interface StatTileProps {
   icon: React.ReactNode;
   /** While true, the value/delta/hint are replaced by shimmer placeholders. */
   loading?: boolean;
+  /** When set, the whole tile becomes a link to this route. */
+  href?: string;
 }
 
 /** A pulsing grey block used as a loading placeholder. */
@@ -64,11 +67,13 @@ export const StatTile = ({
   accent,
   icon,
   loading = false,
+  href,
 }: StatTileProps) => {
   const tint = ACCENT[accent];
 
   return (
     <Box
+      {...(href ? { as: NextLink as any, href } : {})}
       css={{
         flex: "1 1 240px",
         minWidth: 0,
@@ -77,6 +82,10 @@ export const StatTile = ({
         borderRadius: "16px",
         p: "$9",
         boxShadow: "0 1px 2px rgba(17, 24, 28, 0.04)",
+        display: "block",
+        textDecoration: "none",
+        color: "inherit",
+        cursor: href ? "pointer" : "default",
         transition: "transform .2s ease, box-shadow .2s ease",
         "&:hover": {
           transform: "translateY(-2px)",

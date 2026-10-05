@@ -2,7 +2,11 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/router";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import {
+  useQuery,
+  useQueryClient,
+  keepPreviousData,
+} from "@tanstack/react-query";
 import {
   ArrowLeft,
   Search,
@@ -98,13 +102,17 @@ export default function TransactionsView() {
     [status, area, provider, debouncedSearch, from, to, page, limit],
   );
 
-  const listQuery = useQuery({
+  const listQuery = useQuery<{
+    data: Txn[];
+    total: number;
+    totalPages: number;
+  }>({
     queryKey: ["transactions", query],
     queryFn: () => paymentsService.listTransactions(query),
-    keepPreviousData: true,
+    placeholderData: keepPreviousData,
   });
 
-  const summaryQuery = useQuery({
+  const summaryQuery = useQuery<{ byStatus: Record<string, any> }>({
     queryKey: ["transactions-summary", { area, provider, from, to }],
     queryFn: () =>
       paymentsService.getSummary({

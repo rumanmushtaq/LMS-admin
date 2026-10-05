@@ -12,6 +12,7 @@ import { FilterIcon } from "../icons/sidebar/filter-icon";
 import { ProductsIcon } from "../icons/sidebar/products-icon";
 import { CategoryIcon } from "../icons/sidebar/category-icon";
 import { SecurityIcon } from "../icons/sidebar/security-icon";
+import { PaymentsIcon } from "../icons/sidebar/payments-icon";
 import { useSidebarContext } from "../layout/layout-context";
 import { useRouter } from "next/router";
 import { SidebarCollapseItem } from "./sidebar-collapse-item";
@@ -91,6 +92,12 @@ export const SidebarWrapper = () => {
                 title="Categories"
                 icon={<CategoryIcon />}
                 href="/categories"
+              />
+              <SidebarItem
+                isActive={router.pathname === "/transactions"}
+                title="Transactions"
+                icon={<PaymentsIcon />}
+                href="/transactions"
               />
               <SidebarCollapseItem
                 isActive={

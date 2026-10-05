@@ -58,6 +58,13 @@ const apiEndpoints = {
       `/api/v1/shop/products/${id}/hard`,
     ORDERS: "/api/v1/shop/admin/orders",
   },
+  Payments: {
+    TRANSACTIONS: "/api/v1/payments/transactions",
+    TRANSACTIONS_SUMMARY: "/api/v1/payments/transactions/summary",
+    TRANSACTION_BY_ID: (id: string) => `/api/v1/payments/transactions/${id}`,
+    REFUND: (id: string) => `/api/v1/payments/transactions/${id}/refund`,
+    RECONCILE: (id: string) => `/api/v1/payments/transactions/${id}/reconcile`,
+  },
   Categories: {
     GET_ALL: "/api/v1/categories",
     GET_BY_ID: (id: string) => `/api/v1/categories/${id}`,

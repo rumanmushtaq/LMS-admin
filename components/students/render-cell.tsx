@@ -7,6 +7,7 @@ import { EyeIcon } from "../icons/table/eye-icon";
 import { IconButton } from "../table/table.styled";
 import { MessageCircle } from "lucide-react";
 import chatService from "../../services/chat";
+import { formatDate } from "../../utils/formatDate";
 
 interface Props {
   student: any;
@@ -58,7 +59,7 @@ export const RenderCell = ({ student, columnKey, onRefresh }: Props) => {
         <Col>
           <Row>
             <Text b size={14} css={{ tt: "capitalize" }}>
-              {cellValue ? new Date(cellValue).toLocaleDateString() : "N/A"}
+              {cellValue ? formatDate(cellValue) : "N/A"}
             </Text>
           </Row>
         </Col>

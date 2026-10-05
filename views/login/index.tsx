@@ -1,6 +1,15 @@
-import { Button, Input, Text, Loading, Row, Checkbox } from "@nextui-org/react";
+"use client";
+
+import { useState } from "react";
+import Image from "next/image";
+import { Mail, Lock, Eye, EyeOff, Loader2, ArrowRight } from "lucide-react";
 import { useLogin } from "./useLogin";
 
+/**
+ * Admin sign-in, styled to match the Varona Academy website:
+ * deep-purple primary (#7520C8), clean cool-white surfaces, rounded inputs,
+ * a pill primary action, and a gradient brand panel with a subtle grid.
+ */
 export const LoginView = () => {
   const { form, onSubmit, loading, error } = useLogin();
   const {
@@ -9,252 +18,181 @@ export const LoginView = () => {
     formState: { errors },
   } = form;
 
+  const [showPassword, setShowPassword] = useState(false);
+
   return (
-    <div
-      style={{
-        display: "flex",
-        height: "100vh",
-        width: "100vw",
-        backgroundColor: "#ffffff",
-        color: "#000",
-        overflow: "hidden",
-      }}
-    >
-      {/* Left Side - Login Form */}
-      <div
-        style={{
-          flex: "0 0 50%",
-          display: "flex",
-          flexDirection: "column",
-          justifyContent: "center",
-          padding: "0 10%",
-          backgroundColor: "#ffffff",
-          zIndex: 10,
-        }}
-      >
-        <div style={{ width: "100%", maxWidth: "420px", margin: "0 auto" }}>
-          <Text
-            h1
-            css={{
-              fontWeight: "800",
-              mb: "$2",
-              color: "#1a1a1a",
-              letterSpacing: "1px",
-              fontSize: "2.5rem",
-            }}
-          >
-            WELCOME BACK
-          </Text>
-          <Text size="$lg" css={{ color: "#666", mb: "$14" }}>
-            Welcome back! Please enter your details.
-          </Text>
+    <div className="flex h-screen w-screen overflow-hidden bg-[#fafaff] text-[#1e1b2e]">
+      {/* Left: form */}
+      <div className="flex w-full flex-col justify-center px-6 sm:px-10 lg:w-1/2 lg:px-[8%]">
+        <div className="mx-auto w-full max-w-[420px]">
+          <div className="mb-8 flex items-center gap-3">
+            <Image
+              src="/images/logo-image.png"
+              alt="Varona Academy"
+              width={160}
+              height={64}
+              className="h-12 w-auto object-contain"
+              priority
+              unoptimized
+            />
+            <span className="text-[11px] font-black uppercase tracking-[0.3em] text-[#7520C8]">
+              Admin
+            </span>
+          </div>
+
+          <h1 className="text-4xl font-black leading-tight tracking-tight text-[#1e1b2e]">
+            Welcome back
+          </h1>
+          <p className="mt-2 text-sm text-[#6b6880]">
+            Sign in to the Varona Academy administration dashboard.
+          </p>
 
           <form
             onSubmit={handleSubmit(onSubmit)}
-            style={{ display: "flex", flexDirection: "column", gap: "1.5rem" }}
+            className="mt-10 flex flex-col gap-5"
           >
-            <div
-              style={{
-                display: "flex",
-                flexDirection: "column",
-                gap: "0.5rem",
-              }}
-            >
-              <Text b size="$sm" css={{ color: "#1a1a1a" }}>
-                Email
-              </Text>
-              <Input
-                {...register("email", { required: "Email is required" })}
-                bordered
-                fullWidth
-                size="lg"
-                type="email"
-                placeholder="Enter your email"
-                color={errors.email ? "error" : "default"}
-                helperText={errors.email?.message as string}
-                css={{
-                  borderRadius: "8px",
-                  "& input": { backgroundColor: "#f9f9f9", padding: "1rem" },
-                }}
-              />
+            {/* Email */}
+            <div className="flex flex-col gap-1.5">
+              <label className="text-xs font-bold text-[#1e1b2e]">Email</label>
+              <div className="relative">
+                <Mail className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-[#9b97ad]" />
+                <input
+                  {...register("email", { required: "Email is required" })}
+                  type="email"
+                  placeholder="Enter your email"
+                  className="w-full rounded-xl border border-[#e6e3f0] bg-white py-3 pl-11 pr-4 text-sm outline-none transition-all placeholder:text-[#b4b0c4] focus:border-[#7520C8] focus:ring-4 focus:ring-[#7520C8]/10"
+                />
+              </div>
+              {errors.email && (
+                <span className="text-xs font-medium text-red-500">
+                  {errors.email.message as string}
+                </span>
+              )}
             </div>
 
-            <div
-              style={{
-                display: "flex",
-                flexDirection: "column",
-                gap: "0.5rem",
-              }}
-            >
-              <Text b size="$sm" css={{ color: "#1a1a1a" }}>
+            {/* Password */}
+            <div className="flex flex-col gap-1.5">
+              <label className="text-xs font-bold text-[#1e1b2e]">
                 Password
-              </Text>
-              <Input.Password
-                {...register("password", {
-                  required: "Password is required",
-                  minLength: {
-                    value: 8,
-                    message: "Password must be at least 8 characters",
-                  },
-                })}
-                bordered
-                fullWidth
-                size="lg"
-                placeholder="*********"
-                color={errors.password ? "error" : "default"}
-                helperText={errors.password?.message as string}
-                css={{
-                  borderRadius: "8px",
-                  "& input": {
-                    backgroundColor: "#f9f9f9",
-                    padding: "1rem",
-                    letterSpacing: "2px",
-                  },
-                }}
-              />
+              </label>
+              <div className="relative">
+                <Lock className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-[#9b97ad]" />
+                <input
+                  {...register("password", {
+                    required: "Password is required",
+                    minLength: {
+                      value: 8,
+                      message: "Password must be at least 8 characters",
+                    },
+                  })}
+                  type={showPassword ? "text" : "password"}
+                  placeholder="*********"
+                  className="w-full rounded-xl border border-[#e6e3f0] bg-white py-3 pl-11 pr-11 text-sm tracking-widest outline-none transition-all placeholder:text-[#b4b0c4] focus:border-[#7520C8] focus:ring-4 focus:ring-[#7520C8]/10"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword((v) => !v)}
+                  className="absolute right-3.5 top-1/2 -translate-y-1/2 text-[#9b97ad] transition-colors hover:text-[#7520C8]"
+                  aria-label={showPassword ? "Hide password" : "Show password"}
+                >
+                  {showPassword ? (
+                    <EyeOff className="h-4 w-4" />
+                  ) : (
+                    <Eye className="h-4 w-4" />
+                  )}
+                </button>
+              </div>
+              {errors.password && (
+                <span className="text-xs font-medium text-red-500">
+                  {errors.password.message as string}
+                </span>
+              )}
             </div>
 
-            <Row
-              justify="space-between"
-              align="center"
-              css={{ mt: "$2", mb: "$6" }}
-            >
-              <Checkbox
-                size="sm"
-                onChange={(isSelected: boolean) => {
-                  form.setValue("rememberMe", isSelected);
-                }}
-                css={{
-                  "& .nextui-checkbox-text": {
-                    color: "#444",
-                    fontWeight: "500",
-                  },
-                }}
-              >
+            {/* Row */}
+            <div className="flex items-center justify-between">
+              <label className="flex cursor-pointer items-center gap-2 text-sm text-[#6b6880]">
+                <input
+                  type="checkbox"
+                  onChange={(e) => form.setValue("rememberMe", e.target.checked)}
+                  className="h-4 w-4 rounded border-[#d6d2e4] text-[#7520C8] accent-[#7520C8]"
+                />
                 Remember me
-              </Checkbox>
-              <Text
-                size="$sm"
-                css={{
-                  color: "#444",
-                  fontWeight: "600",
-                  cursor: "pointer",
-                  "&:hover": { textDecoration: "underline" },
-                }}
-              >
+              </label>
+              <span className="cursor-pointer text-sm font-semibold text-[#7520C8] hover:underline">
                 Forgot password
-              </Text>
-            </Row>
+              </span>
+            </div>
 
             {error && (
-              <Text
-                color="error"
-                size="$sm"
-                css={{
-                  textAlign: "center",
-                  backgroundColor: "#fee2e2",
-                  padding: "0.75rem",
-                  borderRadius: "8px",
-                  fontWeight: "600",
-                }}
-              >
+              <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-center text-sm font-semibold text-red-600">
                 {error}
-              </Text>
+              </div>
             )}
 
-            <Button
+            <button
               type="submit"
-              css={{
-                width: "100%",
-                borderRadius: "8px",
-                fontWeight: "bold",
-                backgroundColor: "#ef4444", // Red color from the design request
-                color: "white",
-                "&:hover": { backgroundColor: "#dc2626" },
-              }}
               disabled={loading}
-              size="lg"
+              className="group mt-1 flex h-12 w-full items-center justify-center gap-2 rounded-full bg-[#7520C8] font-bold text-white shadow-lg shadow-[#7520C8]/25 transition-all hover:bg-[#6418ad] hover:shadow-[#7520C8]/35 disabled:opacity-60"
             >
               {loading ? (
-                <Loading type="points" color="currentColor" size="sm" />
+                <Loader2 className="h-5 w-5 animate-spin" />
               ) : (
-                "Sign in"
+                <>
+                  Sign in
+                  <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
+                </>
               )}
-            </Button>
+            </button>
           </form>
         </div>
       </div>
 
-      {/* Right Side - Hero Image */}
-      <div
-        style={{
-          flex: "0 0 50%",
-          display: "flex",
-          flexDirection: "column",
-          justifyContent: "center",
-          alignItems: "center",
-          background: "url('https://static.vecteezy.com/system/resources/thumbnails/005/526/658/small_2x/close-up-of-businessman-hand-holding-to-lms-learning-management-system-web-icon-for-lesson-and-online-education-course-application-study-e-learning-knowledge-everywhere-and-every-time-photo.jpg') no-repeat center center",
-          backgroundSize: "cover",
-          position: "relative",
-          padding: "2rem",
-        }}
-      >
-        {/* Subtle dark overlay for better text contrast */}
+      {/* Right: brand panel */}
+      <div className="relative hidden lg:flex lg:w-1/2 lg:flex-col lg:items-center lg:justify-center overflow-hidden bg-gradient-to-br from-[#7520C8] via-[#8b1fb8] to-[#4a1878] p-12">
+        {/* Subtle grid overlay, echoing the website hero */}
         <div
+          className="absolute inset-0 opacity-[0.15]"
           style={{
-            position: "absolute",
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            background: "linear-gradient(135deg, rgba(15, 23, 42, 0.3) 0%, rgba(15, 23, 42, 0.7) 100%)",
-            zIndex: 1,
+            backgroundImage:
+              "linear-gradient(rgba(255,255,255,0.4) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.4) 1px, transparent 1px)",
+            backgroundSize: "44px 44px",
           }}
         />
+        {/* Glow accents */}
+        <div className="absolute -left-24 -top-24 h-80 w-80 rounded-full bg-[#b026a9]/40 blur-3xl" />
+        <div className="absolute -bottom-24 -right-16 h-80 w-80 rounded-full bg-[#ffd36b]/20 blur-3xl" />
 
-        {/* Premium Glassmorphic Card */}
-        <div
-          style={{
-            position: "relative",
-            zIndex: 2,
-            maxWidth: "460px",
-            textAlign: "center",
-            padding: "3rem 2.5rem",
-            borderRadius: "24px",
-            background: "rgba(255, 255, 255, 0.03)",
-            backdropFilter: "blur(16px)",
-            WebkitBackdropFilter: "blur(16px)",
-            border: "1px solid rgba(255, 255, 255, 0.08)",
-            boxShadow: "0 20px 40px rgba(0, 0, 0, 0.3)",
-            display: "flex",
-            flexDirection: "column",
-            gap: "1.25rem",
-          }}
-        >
-          <Text
-            h2
-            css={{
-              color: "#ffffff",
-              fontWeight: "800",
-              fontSize: "2rem",
-              margin: 0,
-              letterSpacing: "0.5px",
-              textShadow: "0 2px 4px rgba(0, 0, 0, 0.2)",
-            }}
-          >
+        <div className="relative z-10 max-w-md text-center">
+          <div className="mx-auto mb-8 flex h-24 items-center justify-center rounded-2xl bg-white/95 px-6 backdrop-blur-md ring-1 ring-white/20">
+            <Image
+              src="/images/logo-image.png"
+              alt="Varona Academy"
+              width={200}
+              height={80}
+              className="h-14 w-auto object-contain"
+              unoptimized
+            />
+          </div>
+          <h2 className="text-3xl font-black tracking-tight text-white drop-shadow">
             Varona Academy
-          </Text>
-          <Text
-            css={{
-              color: "rgba(255, 255, 255, 0.75)",
-              fontSize: "1rem",
-              lineHeight: "1.6",
-              margin: 0,
-              fontWeight: "400",
-            }}
-          >
-            Access the centralized administration dashboard to manage courses, instructors, students, and system analytics.
-          </Text>
+          </h2>
+          <p className="mt-4 text-base leading-relaxed text-white/75">
+            Manage courses, instructors, students, payments, and system
+            analytics — all from one centralized dashboard.
+          </p>
+
+          <div className="mt-10 flex items-center justify-center gap-6 text-white/60">
+            <div className="text-center">
+              <p className="text-2xl font-black text-white">Secure</p>
+              <p className="text-[11px] uppercase tracking-widest">Access</p>
+            </div>
+            <span className="h-8 w-px bg-white/20" />
+            <div className="text-center">
+              <p className="text-2xl font-black text-white">Realtime</p>
+              <p className="text-[11px] uppercase tracking-widest">Insights</p>
+            </div>
+          </div>
         </div>
       </div>
     </div>

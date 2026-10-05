@@ -11,6 +11,7 @@ import {
   Plus,
   Eye,
   EyeOff,
+  Loader2,
 } from "lucide-react";
 import Image from "next/image";
 
@@ -46,6 +47,13 @@ export default function ProductTable() {
   const [productToDelete, setProductToDelete] = useState<string | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
 
+  /**
+   * Rows with a status change in flight, so the spinner and the disabled
+   * state land on that button only. A Set rather than a single id: two rows
+   * can be toggled before either request returns.
+   */
+  const [togglingIds, setTogglingIds] = useState<Set<string>>(new Set());
+
   // Filters State
   const [selectedSize, setSelectedSize] = useState("");
   const [selectedStatus, setSelectedStatus] = useState("all");
@@ -63,9 +71,19 @@ export default function ProductTable() {
   }, [search]);
 
   const fetchProducts = useCallback(
-    async (page: number, limit: number, searchTerm: string, size: string, status: string) => {
+    async (
+      page: number,
+      limit: number,
+      searchTerm: string,
+      size: string,
+      status: string,
+      // `silent` refreshes the rows without swapping the table for the
+      // page-sized spinner — used after an inline action, where blanking the
+      // whole list to confirm one row is jarring and loses scroll position.
+      options?: { silent?: boolean },
+    ) => {
       try {
-        setLoading(true);
+        if (!options?.silent) setLoading(true);
         const isActive =
           status === "active"
             ? true
@@ -92,7 +110,7 @@ export default function ProductTable() {
       } catch (error) {
         console.error("Error fetching products:", error);
       } finally {
-        setLoading(false);
+        if (!options?.silent) setLoading(false);
       }
     },
     [],
@@ -132,12 +150,46 @@ export default function ProductTable() {
   };
 
   const toggleStatus = async (id: string, currentStatus: boolean) => {
+    // Ignore a second click while the first is still in flight.
+    if (togglingIds.has(id)) return;
+
+    setTogglingIds((prev) => new Set(prev).add(id));
+
+    // Flip the row immediately. The request is a single boolean write, so
+    // showing the result now and reverting on failure reads far better than
+    // reloading the whole list to learn what we already know.
+    setProducts((prev) =>
+      prev.map((p) => (p._id === id ? { ...p, isActive: !currentStatus } : p)),
+    );
+
     try {
       await adminService.toggleProductStatus(id, !currentStatus);
-      fetchProducts(currentPage, entriesPerPage, debouncedSearch, selectedSize, selectedStatus);
+
+      // With a status filter applied the row may no longer belong in the
+      // list, so refresh — quietly, without blanking the table.
+      if (selectedStatus !== "all") {
+        await fetchProducts(
+          currentPage,
+          entriesPerPage,
+          debouncedSearch,
+          selectedSize,
+          selectedStatus,
+          { silent: true },
+        );
+      }
     } catch (error) {
       console.error("Error toggling status:", error);
+      // Put the row back the way it was; the server never accepted the change.
+      setProducts((prev) =>
+        prev.map((p) => (p._id === id ? { ...p, isActive: currentStatus } : p)),
+      );
       alert("Failed to update status");
+    } finally {
+      setTogglingIds((prev) => {
+        const next = new Set(prev);
+        next.delete(id);
+        return next;
+      });
     }
   };
 
@@ -304,12 +356,16 @@ export default function ProductTable() {
                       <td className="p-3">
                         <button
                           onClick={() => toggleStatus(p._id, p.isActive)}
-                          className={`px-3 py-1 rounded-full text-xs font-medium transition ${
+                          disabled={togglingIds.has(p._id)}
+                          className={`px-3 py-1 rounded-full text-xs font-medium transition inline-flex items-center gap-1.5 disabled:opacity-70 ${
                             p.isActive
                               ? "bg-green-100 text-green-600"
                               : "bg-pink-100 text-pink-600"
                           }`}
                         >
+                          {togglingIds.has(p._id) && (
+                            <Loader2 size={12} className="animate-spin" />
+                          )}
                           {p.isActive ? "Active" : "Inactive"}
                         </button>
                       </td>
@@ -317,14 +373,18 @@ export default function ProductTable() {
                       <td className="p-3 flex gap-2">
                         <button
                           onClick={() => toggleStatus(p._id, p.isActive)}
-                          className={`p-2 rounded-lg transition ${
+                          disabled={togglingIds.has(p._id)}
+                          className={`p-2 rounded-lg transition disabled:cursor-not-allowed ${
                             p.isActive
                               ? "hover:bg-amber-100 text-amber-600"
                               : "hover:bg-green-100 text-green-600"
                           }`}
                           title={p.isActive ? "Deactivate" : "Activate"}
+                          aria-busy={togglingIds.has(p._id)}
                         >
-                          {p.isActive ? (
+                          {togglingIds.has(p._id) ? (
+                            <Loader2 size={16} className="animate-spin" />
+                          ) : p.isActive ? (
                             <EyeOff size={16} />
                           ) : (
                             <Eye size={16} />

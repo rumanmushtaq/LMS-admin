@@ -1,60 +1,29 @@
-import {Card, Text} from '@nextui-org/react';
 import React from 'react';
-import {Community} from '../icons/community';
-import {Box} from '../styles/box';
-import {Flex} from '../styles/flex';
+import { Community } from '../icons/community';
+import { StatTile } from './stat-tile';
 
-export const CardBalance1 = ({ totalTutors, activeUsers }: { totalTutors?: number, activeUsers?: number }) => {
-   return (
-      <Card
-         css={{
-            mw: '375px',
-            bg: '$blue600',
-            borderRadius: '$xl',
-            px: '$6',
-         }}
-      >
-         <Card.Body css={{ paddingTop: '$10', paddingBottom: '$10' }}>
-            <Flex css={{gap: '$5'}}>
-               <Community />
-               <Flex direction={'column'}>
-                  <Text span css={{color: 'white'}}>
-                     Total Teachers
-                  </Text>
-                  <Text span css={{color: 'white'}} size={'$xs'}>
-                     {totalTutors || 0} Registered
-                  </Text>
-               </Flex>
-            </Flex>
-            <Flex css={{gap: '$6', py: '$4'}} align={'center'}>
-               <Text
-                  span
-                  size={'$xl'}
-                  css={{color: 'white'}}
-                  weight={'semibold'}
-               >
-                  {totalTutors || 0}
-               </Text>
-               <Text span css={{color: '$green600'}} size={'$xs'}>
-                  Teachers
-               </Text>
-            </Flex>
-            <Flex css={{gap: '$12'}} align={'center'}>
-               <Box>
-                  <Text
-                     span
-                     size={'$xs'}
-                     css={{color: '$green600'}}
-                     weight={'semibold'}
-                  >
-                     {'↑'}
-                  </Text>
-                  <Text span size={'$xs'} css={{color: '$white'}}>
-                     {activeUsers || 0} Active Platform Users
-                  </Text>
-               </Box>
-            </Flex>
-         </Card.Body>
-      </Card>
-   );
-};
+export const CardBalance1 = ({
+   totalTutors,
+   activeUsers,
+   teacherDelta,
+   loading,
+   href,
+}: {
+   totalTutors?: number;
+   activeUsers?: number;
+   teacherDelta?: number;
+   loading?: boolean;
+   href?: string;
+}) => (
+   <StatTile
+      label="Total teachers"
+      caption="Registered on the platform"
+      value={totalTutors || 0}
+      delta={{ value: teacherDelta ?? 0, period: 'this month' }}
+      hint={{ text: `${activeUsers || 0} active platform users`, tone: 'good' }}
+      accent="purple"
+      icon={<Community color="#6D4AE8" />}
+      loading={loading}
+      href={href}
+   />
+);

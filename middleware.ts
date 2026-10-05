@@ -20,7 +20,11 @@ export function middleware(request: NextRequest) {
 }
 
 export const config = {
+  // Exclude API, Next internals, and any request for a file with an extension
+  // (images, fonts, css, …). Without the extension exclusion, static assets
+  // like the logo were caught by the auth check and redirected to /login for
+  // logged-out visitors, so they never loaded.
   matcher: [
-    '/((?!api|_next/static|_next/image|favicon.ico).*)',
+    '/((?!api|_next/static|_next/image|favicon.ico|.*\\.[^/]+$).*)',
   ],
 };

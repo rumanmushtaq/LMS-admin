@@ -23,6 +23,7 @@ import { Breadcrumbs, Crumb, CrumbLink } from "../breadcrumb/breadcrumb.styled";
 import { HouseIcon } from "../icons/breadcrumb/house-icon";
 import { UsersIcon } from "../icons/breadcrumb/users-icon";
 import Link from "next/link";
+import { formatDate } from "../../utils/formatDate";
 import {
   Award,
   BookOpen,
@@ -313,7 +314,7 @@ export const TeacherDetail = () => {
                       </Text>
                     </Flex>
                     <Text size={14} b>
-                      {new Date(teacher.createdAt).toLocaleDateString()}
+                      {formatDate(teacher.createdAt)}
                     </Text>
                   </Flex>
                   <Flex justify="between" align="center">

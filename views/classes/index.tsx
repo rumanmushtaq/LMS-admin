@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { getAllClasses, deleteClassAsAdmin, ClassSession } from '../../services/classes';
+import { formatDateTime } from "../../utils/formatDate";
 
 const AdminClasses: React.FC = () => {
   const [classes, setClasses] = useState<ClassSession[]>([]);
@@ -72,7 +73,7 @@ const AdminClasses: React.FC = () => {
                     </span>
                   </td>
                   <td className="px-6 py-4">
-                    {new Date(cls.startTime).toLocaleString()}
+                    {formatDateTime(cls.startTime)}
                   </td>
                   <td className="px-6 py-4">{cls.students?.length || 0}</td>
                   <td className="px-6 py-4">

@@ -6,10 +6,12 @@ export const CardBalance2 = ({
    totalStudents,
    pendingUsers,
    studentDelta,
+   loading,
 }: {
    totalStudents?: number;
    pendingUsers?: number;
    studentDelta?: number;
+   loading?: boolean;
 }) => (
    <StatTile
       label="Total students"
@@ -22,5 +24,6 @@ export const CardBalance2 = ({
       }}
       accent="teal"
       icon={<Community color="#0EA5A4" />}
+      loading={loading}
    />
 );

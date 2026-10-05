@@ -21,6 +21,7 @@ import { HouseIcon } from "../icons/breadcrumb/house-icon";
 import { UsersIcon } from "../icons/breadcrumb/users-icon";
 import Link from "next/link";
 import { Calendar, ShieldCheck, Mail, MessageCircle } from "lucide-react";
+import { formatDate } from "../../utils/formatDate";
 
 export const StudentDetail = () => {
   const router = useRouter();
@@ -217,7 +218,7 @@ export const StudentDetail = () => {
                       </Text>
                     </Flex>
                     <Text size={14} b>
-                      {new Date(student.createdAt).toLocaleDateString()}
+                      {formatDate(student.createdAt)}
                     </Text>
                   </Flex>
                   <Flex justify="between" align="center">

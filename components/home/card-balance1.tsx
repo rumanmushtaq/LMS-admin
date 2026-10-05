@@ -6,10 +6,12 @@ export const CardBalance1 = ({
    totalTutors,
    activeUsers,
    teacherDelta,
+   loading,
 }: {
    totalTutors?: number;
    activeUsers?: number;
    teacherDelta?: number;
+   loading?: boolean;
 }) => (
    <StatTile
       label="Total teachers"
@@ -19,5 +21,6 @@ export const CardBalance1 = ({
       hint={{ text: `${activeUsers || 0} active platform users`, tone: 'good' }}
       accent="purple"
       icon={<Community color="#6D4AE8" />}
+      loading={loading}
    />
 );

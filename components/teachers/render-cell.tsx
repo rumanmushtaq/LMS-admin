@@ -122,7 +122,7 @@ export const RenderCell = ({
     case "createdAt":
       return (
         <Text b size={14} color="$accents8">
-          {cellValue ? new Date(cellValue).toLocaleDateString() : "N/A"}
+          {cellValue ? formatDate(cellValue) : "N/A"}
         </Text>
       );
     case "status":
@@ -405,3 +405,4 @@ export const RenderCell = ({
 };
 
 import { Flex } from "../styles/flex";
+import { formatDate } from "../../utils/formatDate";

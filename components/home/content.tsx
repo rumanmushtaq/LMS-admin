@@ -28,6 +28,7 @@ const todayLabel = () =>
 export const Content = () => {
    const [stats, setStats] = useState<any>(null);
    const [growth, setGrowth] = useState<any>(null);
+   const [statsLoading, setStatsLoading] = useState(true);
    const [chartLoading, setChartLoading] = useState(true);
 
    useEffect(() => {
@@ -37,6 +38,8 @@ export const Content = () => {
             if (data) setStats(unwrap(data));
          } catch (error) {
             console.error('Failed to fetch dashboard stats', error);
+         } finally {
+            setStatsLoading(false);
          }
       };
       const fetchGrowth = async () => {
@@ -88,13 +91,18 @@ export const Content = () => {
                totalTutors={stats?.totalTutors || 0}
                activeUsers={stats?.activeUsers || 0}
                teacherDelta={growth?.teacherDelta || 0}
+               loading={statsLoading}
             />
             <CardBalance2
                totalStudents={stats?.totalStudents || 0}
                pendingUsers={stats?.pendingUsers || 0}
                studentDelta={growth?.studentDelta || 0}
+               loading={statsLoading}
             />
-            <CardBalance3 totalTransactions={stats?.recentSignups || 0} />
+            <CardBalance3
+               totalTransactions={stats?.recentSignups || 0}
+               loading={statsLoading}
+            />
          </Flex>
 
          {/* Growth chart */}

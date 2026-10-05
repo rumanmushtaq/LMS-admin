@@ -3,6 +3,7 @@ import React, { useState } from "react";
 import { DeleteIcon } from "../icons/table/delete-icon";
 import { IconButton, StyledBadge } from "../table/table.styled";
 import { cancelClassAsAdmin, ClassSession, ClassStatus } from "../../services/classes";
+import { formatDateTime } from "../../utils/formatDate";
 
 interface Props {
   classItem: ClassSession;
@@ -105,9 +106,9 @@ export const RenderCell = ({ classItem, columnKey, onRefresh }: Props) => {
     case "time":
       return (
         <Col>
-          <Text size={13}>Start: {new Date(classItem.startTime).toLocaleString()}</Text>
+          <Text size={13}>Start: {formatDateTime(classItem.startTime)}</Text>
           <Text size={13} css={{ color: "$accents7" }}>
-            End: {new Date(classItem.endTime).toLocaleString()}
+            End: {formatDateTime(classItem.endTime)}
           </Text>
         </Col>
       );

@@ -4,15 +4,21 @@ import { Sidebar } from "./sidebar.styles";
 import { Avatar, Tooltip } from "@nextui-org/react";
 import { Flex } from "../styles/flex";
 import { CompaniesDropdown } from "./companies-dropdown";
-import { HomeIcon } from "../icons/sidebar/home-icon";
-import { AccountsIcon } from "../icons/sidebar/accounts-icon";
 import { SidebarItem } from "./sidebar-item";
 import { SidebarMenu } from "./sidebar-menu";
-import { FilterIcon } from "../icons/sidebar/filter-icon";
-import { ProductsIcon } from "../icons/sidebar/products-icon";
-import { CategoryIcon } from "../icons/sidebar/category-icon";
-import { SecurityIcon } from "../icons/sidebar/security-icon";
-import { PaymentsIcon } from "../icons/sidebar/payments-icon";
+import {
+  LayoutDashboard,
+  GraduationCap,
+  Users,
+  ShieldCheck,
+  MonitorPlay,
+  MessageSquareText,
+  Images,
+  Tags,
+  Receipt,
+  ShoppingBag,
+  Settings,
+} from "lucide-react";
 import { useSidebarContext } from "../layout/layout-context";
 import { useRouter } from "next/router";
 import { SidebarCollapseItem } from "./sidebar-collapse-item";
@@ -46,7 +52,7 @@ export const SidebarWrapper = () => {
           <Sidebar.Body className="body sidebar">
             <SidebarItem
               title="Home"
-              icon={<HomeIcon />}
+              icon={<LayoutDashboard size={21} strokeWidth={2} />}
               isActive={router.pathname === "/"}
               href="/"
             />
@@ -54,49 +60,49 @@ export const SidebarWrapper = () => {
               <SidebarItem
                 isActive={router.pathname === "/teachers"}
                 title="Teachers"
-                icon={<AccountsIcon />}
+                icon={<GraduationCap size={21} strokeWidth={2} />}
                 href="/teachers"
               />
               <SidebarItem
                 isActive={router.pathname === "/students"}
                 title="Students"
-                icon={<AccountsIcon />}
+                icon={<Users size={21} strokeWidth={2} />}
                 href="/students"
               />
               <SidebarItem
                 isActive={router.pathname === "/security"}
                 title="Security"
-                icon={<SecurityIcon />}
+                icon={<ShieldCheck size={21} strokeWidth={2} />}
                 href="/security"
               />
               <SidebarItem
                 isActive={router.pathname === "/classes"}
                 title="Classes"
-                icon={<ProductsIcon />}
+                icon={<MonitorPlay size={21} strokeWidth={2} />}
                 href="/classes"
               />
               <SidebarItem
                 isActive={router.pathname === "/chat"}
                 title="Chat & Support"
-                icon={<AccountsIcon />}
+                icon={<MessageSquareText size={21} strokeWidth={2} />}
                 href="/chat"
               />
               <SidebarItem
                 isActive={router.pathname === "/hero-banner"}
                 title="Banners"
-                icon={<FilterIcon />}
+                icon={<Images size={21} strokeWidth={2} />}
                 href="/hero-banner"
               />
               <SidebarItem
                 isActive={router.pathname === "/categories"}
                 title="Categories"
-                icon={<CategoryIcon />}
+                icon={<Tags size={21} strokeWidth={2} />}
                 href="/categories"
               />
               <SidebarItem
                 isActive={router.pathname === "/transactions"}
                 title="Transactions"
-                icon={<PaymentsIcon />}
+                icon={<Receipt size={21} strokeWidth={2} />}
                 href="/transactions"
               />
               <SidebarCollapseItem
@@ -105,7 +111,7 @@ export const SidebarWrapper = () => {
                   router.pathname === "/create-product"
                 }
                 title="Shop"
-                icon={<ProductsIcon />}
+                icon={<ShoppingBag size={21} strokeWidth={2} />}
                 items={[
                   { title: "Product List", href: "/shop" },
                   { title: "Add Product", href: "/create-product" },
@@ -115,8 +121,12 @@ export const SidebarWrapper = () => {
           </Sidebar.Body>
           <Sidebar.Footer>
             <Tooltip content={"Settings"} rounded color="primary">
-              <div className="p-2 rounded-lg hover:bg-white/5 transition-colors cursor-pointer group">
-                <FilterIcon className="group-hover:scale-110 transition-transform [&_path]:fill-[#94a3b8]" />
+              <div className="p-2 rounded-lg hover:bg-[#7047EB]/10 transition-colors cursor-pointer group text-[#94a3b8] hover:text-[#7047EB]">
+                <Settings
+                  size={20}
+                  strokeWidth={2}
+                  className="group-hover:scale-110 transition-transform"
+                />
               </div>
             </Tooltip>
             <Tooltip content={"Profile"} rounded color="primary">

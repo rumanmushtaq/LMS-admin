@@ -1,4 +1,5 @@
 import { RowUser } from './data';
+import { formatDate } from '../../utils/formatDate';
 
 /**
  * Pure helpers behind the users table, kept free of React/NextUI so they can
@@ -69,16 +70,12 @@ export const colorFor = (name: string) => {
    return AVATAR_COLORS[h % AVATAR_COLORS.length];
 };
 
-/** "Joined 12 Jun 2026", or an em dash for a missing/invalid date. */
+/** "Joined 12/06/2026", or an em dash for a missing/invalid date. */
 export const formatJoined = (iso?: string): string => {
    if (!iso) return '—';
    const d = new Date(iso);
    if (isNaN(d.getTime())) return '—';
-   return `Joined ${d.toLocaleDateString(undefined, {
-      day: 'numeric',
-      month: 'short',
-      year: 'numeric',
-   })}`;
+   return `Joined ${formatDate(d)}`;
 };
 
 /** Route to the management page appropriate for a user's role. */

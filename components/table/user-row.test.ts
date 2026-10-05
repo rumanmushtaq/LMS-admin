@@ -111,10 +111,7 @@ describe('formatJoined', () => {
       // Order/separators depend on the runtime locale, so assert on the parts,
       // not a fixed layout. Midday UTC avoids a day slipping across a boundary.
       const out = formatJoined('2026-06-12T12:00:00.000Z');
-      expect(out.startsWith('Joined ')).toBe(true);
-      expect(out).toContain('12');
-      expect(out).toContain('Jun');
-      expect(out).toContain('2026');
+      expect(out).toBe('Joined 12/06/2026');
    });
    it('dashes a missing or invalid date', () => {
       expect(formatJoined(undefined)).toBe('—');

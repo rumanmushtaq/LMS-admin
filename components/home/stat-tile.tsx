@@ -27,7 +27,28 @@ export interface StatTileProps {
   hint?: { text: string; tone?: keyof typeof HINT_DOT };
   accent: TileAccent;
   icon: React.ReactNode;
+  /** While true, the value/delta/hint are replaced by shimmer placeholders. */
+  loading?: boolean;
 }
+
+/** A pulsing grey block used as a loading placeholder. */
+const Skeleton = ({ w, h }: { w: string | number; h: string | number }) => (
+  <Box
+    css={{
+      width: w,
+      height: h,
+      borderRadius: "8px",
+      background:
+        "linear-gradient(90deg, $accents1 25%, $accents2 37%, $accents1 63%)",
+      backgroundSize: "400% 100%",
+      animation: "statTileShimmer 1.4s ease infinite",
+      "@keyframes statTileShimmer": {
+        "0%": { backgroundPosition: "100% 50%" },
+        "100%": { backgroundPosition: "0% 50%" },
+      },
+    }}
+  />
+);
 
 /**
  * A number with its context. The value is the hero; everything else is quiet
@@ -42,6 +63,7 @@ export const StatTile = ({
   hint,
   accent,
   icon,
+  loading = false,
 }: StatTileProps) => {
   const tint = ACCENT[accent];
 
@@ -107,23 +129,36 @@ export const StatTile = ({
         </Box>
       </Flex>
 
-      <Flex align="end" wrap="wrap" css={{ gap: "$5", mt: "$8" }}>
-        <Box
-          as="span"
-          css={{
-            fontSize: "32px",
-            fontWeight: 700,
-            lineHeight: 1,
-            letterSpacing: "-0.02em",
-            color: "$text",
-          }}
-        >
-          {value.toLocaleString()}
-        </Box>
-        {delta ? <DeltaPill value={delta.value} period={delta.period} /> : null}
-      </Flex>
+      {loading ? (
+        <Flex align="end" wrap="wrap" css={{ gap: "$5", mt: "$8" }}>
+          <Skeleton w={96} h={32} />
+          {delta ? <Skeleton w={84} h={22} /> : null}
+        </Flex>
+      ) : (
+        <Flex align="end" wrap="wrap" css={{ gap: "$5", mt: "$8" }}>
+          <Box
+            as="span"
+            css={{
+              fontSize: "32px",
+              fontWeight: 700,
+              lineHeight: 1,
+              letterSpacing: "-0.02em",
+              color: "$text",
+            }}
+          >
+            {value.toLocaleString()}
+          </Box>
+          {delta ? (
+            <DeltaPill value={delta.value} period={delta.period} />
+          ) : null}
+        </Flex>
+      )}
 
-      {hint ? (
+      {loading && hint ? (
+        <Box css={{ mt: "$6" }}>
+          <Skeleton w={140} h={13} />
+        </Box>
+      ) : hint ? (
         <Flex align="center" css={{ gap: "$4", mt: "$6" }}>
           <Box
             css={{

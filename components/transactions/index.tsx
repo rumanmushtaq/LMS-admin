@@ -19,6 +19,11 @@ import {
 import { Spinner } from "@nextui-org/react";
 import paymentsService, { TransactionQuery } from "../../services/payments";
 import { formatMinor } from "../../utils/formatMoney";
+import { formatDate, formatDateTime } from "../../utils/formatDate";
+
+/** Shared classes for the themed native <select> controls. */
+const SELECT_CLASS =
+  "appearance-none cursor-pointer rounded-xl border border-[#e6e3f0] bg-white px-4 py-2 pr-9 text-sm text-gray-700 shadow-sm outline-none transition-all hover:border-[#7047EB]/40 focus:border-[#7047EB] focus:ring-4 focus:ring-[#7047EB]/10 bg-[url('data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2216%22%20height%3D%2216%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22%237047EB%22%20stroke-width%3D%222.5%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22m6%209%206%206%206-6%22%2F%3E%3C%2Fsvg%3E')] bg-[length:16px] bg-[right_0.65rem_center] bg-no-repeat";
 
 const STATUS_TABS = [
   "all",
@@ -267,7 +272,7 @@ export default function TransactionsView() {
                 setArea(e.target.value);
                 setPage(1);
               }}
-              className="px-4 py-2 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-purple-400 shadow-sm bg-white text-gray-600 min-w-[120px]"
+              className={`${SELECT_CLASS} min-w-[120px]`}
             >
               <option value="">All Areas</option>
               <option value="shop">Shop</option>
@@ -280,7 +285,7 @@ export default function TransactionsView() {
                 setProvider(e.target.value);
                 setPage(1);
               }}
-              className="px-4 py-2 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-purple-400 shadow-sm bg-white text-gray-600 min-w-[120px]"
+              className={`${SELECT_CLASS} min-w-[120px]`}
             >
               <option value="">All Providers</option>
               <option value="stripe">Stripe</option>
@@ -293,7 +298,7 @@ export default function TransactionsView() {
                 setFrom(e.target.value);
                 setPage(1);
               }}
-              className="px-3 py-2 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-purple-400 shadow-sm bg-white text-gray-600"
+              className="cursor-pointer rounded-xl border border-[#e6e3f0] bg-white px-3 py-2 text-sm text-gray-700 shadow-sm outline-none transition-all hover:border-[#7047EB]/40 focus:border-[#7047EB] focus:ring-4 focus:ring-[#7047EB]/10"
             />
             <input
               type="date"
@@ -302,7 +307,7 @@ export default function TransactionsView() {
                 setTo(e.target.value);
                 setPage(1);
               }}
-              className="px-3 py-2 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-purple-400 shadow-sm bg-white text-gray-600"
+              className="cursor-pointer rounded-xl border border-[#e6e3f0] bg-white px-3 py-2 text-sm text-gray-700 shadow-sm outline-none transition-all hover:border-[#7047EB]/40 focus:border-[#7047EB] focus:ring-4 focus:ring-[#7047EB]/10"
             />
           </div>
         </div>
@@ -333,9 +338,7 @@ export default function TransactionsView() {
                     className="border-b border-gray-100 hover:bg-gray-50 transition cursor-pointer"
                   >
                     <td className="p-3 text-gray-600">
-                      {t.createdAt
-                        ? new Date(t.createdAt).toLocaleDateString()
-                        : "—"}
+                      {formatDate(t.createdAt)}
                     </td>
                     <td className="p-3 font-medium text-gray-800">
                       {buyerLabel(t)}
@@ -385,7 +388,7 @@ export default function TransactionsView() {
                     setLimit(Number(e.target.value));
                     setPage(1);
                   }}
-                  className="px-2 py-1 rounded-md border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-purple-400 bg-white text-gray-600"
+                  className={`${SELECT_CLASS} py-1`}
                 >
                   <option value={10}>10</option>
                   <option value={20}>20</option>
@@ -530,13 +533,11 @@ function DetailDrawer({
           <Row label="Payout" value={<span className="capitalize">{txn.payoutStatus}</span>} />
           <Row
             label="Paid at"
-            value={txn.paidAt ? new Date(txn.paidAt).toLocaleString() : "—"}
+            value={formatDateTime(txn.paidAt)}
           />
           <Row
             label="Created"
-            value={
-              txn.createdAt ? new Date(txn.createdAt).toLocaleString() : "—"
-            }
+            value={formatDateTime(txn.createdAt)}
           />
           {txn.failureReason && (
             <Row label="Note" value={txn.failureReason} />

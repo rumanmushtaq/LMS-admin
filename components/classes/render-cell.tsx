@@ -41,6 +41,9 @@ export const RenderCell = ({ classItem, columnKey, onRefresh }: Props) => {
     ? `${classItem.tutorId.firstName || ""} ${classItem.tutorId.lastName || ""}`.trim() || "Unknown Tutor"
     : "Unknown Tutor";
 
+  // Render one cell, but never let a single malformed record take the page
+  // down: a throw in any cell falls back to "—" and logs what broke.
+  const renderCell = (): React.ReactNode => {
   switch (columnKey) {
     case "title": {
       // Coerce to strings: a non-string title/description (bad or legacy data)
@@ -173,5 +176,18 @@ export const RenderCell = ({ classItem, columnKey, onRefresh }: Props) => {
       );
     default:
       return <div>{classItem[columnKey as keyof ClassSession] as any}</div>;
+  }
+  };
+
+  try {
+    return renderCell();
+  } catch (err) {
+    console.error(
+      "Classes cell render failed:",
+      columnKey,
+      err,
+      classItem,
+    );
+    return <span>—</span>;
   }
 };

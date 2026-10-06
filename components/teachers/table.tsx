@@ -1,10 +1,8 @@
 import {
   Table,
   Text,
-  Row,
   Col,
   Input,
-  Spinner,
   Pagination,
 } from "@nextui-org/react";
 import React, { useEffect, useState, useCallback } from "react";
@@ -13,6 +11,7 @@ import { columns, statusOptions } from "./data";
 import { RenderCell } from "./render-cell";
 import adminService from "../../services/admin";
 import { TableFilters } from "../table/filters";
+import { TableSkeleton } from "../table/table-skeleton";
 import { Flex } from "../styles/flex";
 import { TeacherVerificationModal } from "./verification-modal";
 import { useRouter } from "next/router";
@@ -327,9 +326,21 @@ export const TableWrapper = ({ addButton }: Props) => {
       />
 
       {loading ? (
-        <Row justify="center" align="center" css={{ height: "400px" }}>
-          <Spinner size="lg" color="primary" />
-        </Row>
+        <TableSkeleton cols={columns.length} rows={8} />
+      ) : teachers.length === 0 ? (
+        <Flex
+          direction="column"
+          align="center"
+          justify="center"
+          css={{ height: "320px", gap: "$4" }}
+        >
+          <Text b size={16} color="$accents7">
+            No teachers found
+          </Text>
+          <Text size={13} color="$accents6">
+            Try adjusting your search or filters.
+          </Text>
+        </Flex>
       ) : (
         <>
           <Table

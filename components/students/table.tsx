@@ -1,10 +1,8 @@
 import {
   Table,
   Text,
-  Row,
   Col,
   Input,
-  Spinner,
   Pagination,
 } from "@nextui-org/react";
 import React, { useEffect, useState, useCallback } from "react";
@@ -13,6 +11,7 @@ import { columns, statusOptions } from "./data";
 import { RenderCell } from "./render-cell";
 import adminService from "../../services/admin";
 import { TableFilters } from "../table/filters";
+import { TableSkeleton } from "../table/table-skeleton";
 import { Flex } from "../styles/flex";
 
 interface Student {
@@ -202,9 +201,21 @@ export const TableWrapper = ({ addButton }: Props) => {
       />
 
       {loading ? (
-        <Row justify="center" align="center" css={{ height: "400px" }}>
-          <Spinner size="lg" />
-        </Row>
+        <TableSkeleton cols={columns.length} rows={8} />
+      ) : students.length === 0 ? (
+        <Flex
+          direction="column"
+          align="center"
+          justify="center"
+          css={{ height: "320px", gap: "$4" }}
+        >
+          <Text b size={16} color="$accents7">
+            No students found
+          </Text>
+          <Text size={13} color="$accents6">
+            Try adjusting your search or filters.
+          </Text>
+        </Flex>
       ) : (
         <>
           <Table

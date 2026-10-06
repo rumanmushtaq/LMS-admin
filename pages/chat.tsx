@@ -48,8 +48,8 @@ const AdminChatPage = () => {
   } = useAdminChat();
 
   return (
-    <div className="w-full max-w-[1400px] mx-auto px-6 py-6 h-[calc(100vh-80px)] flex flex-col">
-      <div className="flex items-start justify-between gap-4 mb-5">
+    <div className="w-full px-4 sm:px-5 py-4 h-[calc(100vh-72px)] flex flex-col">
+      <div className="flex items-start justify-between gap-4 mb-4">
         <div className="min-w-0">
           <Text h3 css={{ m: 0, fontSize: '22px', letterSpacing: '-0.01em' }}>
             Support &amp; Moderation

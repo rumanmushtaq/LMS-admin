@@ -13,10 +13,17 @@ const AdminClasses: React.FC = () => {
   const fetchClasses = async () => {
     try {
       setLoading(true);
-      const data = await getAllClasses();
-      setClasses(data);
+      const res = await getAllClasses();
+      // The API wraps the payload as { success, data: [...] } (and sometimes
+      // { data: { data: [...] } }). Storing that object made classes.map crash
+      // with "classes.map is not a function". Unwrap to the array defensively.
+      const list = Array.isArray(res)
+        ? res
+        : (res?.data?.data ?? res?.data ?? []);
+      setClasses(Array.isArray(list) ? list : []);
     } catch (error) {
       console.error('Error fetching all classes:', error);
+      setClasses([]);
     } finally {
       setLoading(false);
     }

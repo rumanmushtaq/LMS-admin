@@ -284,12 +284,18 @@ export const RenderCell = ({
               onAction={(action) => {
                 if (action === "verify") {
                   if (onVerify) onVerify();
-                } else if (action === "view") {
+                } else if (action === "view" || action === "edit") {
+                  // No separate edit page yet: both open the detail view, where
+                  // the profile is edited. "edit" was previously a no-op.
                   const id = teacher._id || teacher.id;
+                  const target =
+                    action === "edit"
+                      ? `/teachers/${id}?edit=1`
+                      : `/teachers/${id}`;
                   if (router) {
-                    router.push(`/teachers/${id}`);
+                    router.push(target);
                   } else {
-                    window.location.href = `/teachers/${id}`;
+                    window.location.href = target;
                   }
                 } else if (action === "delete") {
                   if (

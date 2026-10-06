@@ -82,12 +82,15 @@ export const TableFilters = ({
           <Dropdown>
             <Dropdown.Button
               flat
-              color="primary"
               css={{
                 tt: "capitalize",
                 borderRadius: "14px",
                 height: "$14",
                 px: "$8",
+                bg: "rgba(112, 71, 235, 0.1)",
+                color: "#7047EB",
+                "& svg": { color: "#7047EB" },
+                "&:hover": { bg: "rgba(112, 71, 235, 0.18)" },
               }}
               iconRight={<ChevronDown size={16} />}
             >
@@ -112,12 +115,15 @@ export const TableFilters = ({
           <Dropdown>
             <Dropdown.Button
               flat
-              color="primary"
               css={{
                 tt: "capitalize",
                 borderRadius: "14px",
                 height: "$14",
                 px: "$8",
+                bg: "rgba(112, 71, 235, 0.1)",
+                color: "#7047EB",
+                "& svg": { color: "#7047EB" },
+                "&:hover": { bg: "rgba(112, 71, 235, 0.18)" },
               }}
               iconRight={<ChevronDown size={16} />}
             >

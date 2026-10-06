@@ -27,8 +27,14 @@ export interface ClassSession {
   updatedAt: string;
 }
 
-export const getAllClasses = async () => {
-  const response = await api.get('/api/v1/classes/all');
+/**
+ * Admin: all classes, optionally filtered by status. The backend
+ * `GET /classes/all` (admin-only) forwards the query straight to the finder,
+ * so `?status=COMPLETED|ONGOING|SCHEDULED|...` narrows server-side.
+ */
+export const getAllClasses = async (status?: string) => {
+  const q = status && status !== 'all' ? `?status=${encodeURIComponent(status)}` : '';
+  const response = await api.get(`/api/v1/classes/all${q}`);
   return response.data;
 };
 

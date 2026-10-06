@@ -42,18 +42,24 @@ export const RenderCell = ({ classItem, columnKey, onRefresh }: Props) => {
     : "Unknown Tutor";
 
   switch (columnKey) {
-    case "title":
+    case "title": {
+      // Coerce to strings: a non-string title/description (bad or legacy data)
+      // would throw "x.substring is not a function" or render an object.
+      const title = classItem.title == null ? "" : String(classItem.title);
+      const description =
+        classItem.description == null ? "" : String(classItem.description);
       return (
         <Col>
           <Text b size={14} css={{ tt: "capitalize" }}>
-            {classItem.title}
+            {title}
           </Text>
           <Text size={13} css={{ color: "$accents7" }}>
-            {classItem.description?.substring(0, 40)}
-            {classItem.description?.length > 40 ? "..." : ""}
+            {description.substring(0, 40)}
+            {description.length > 40 ? "..." : ""}
           </Text>
         </Col>
       );
+    }
     case "tutor":
       return (
         <Text size={14} css={{ tt: "capitalize" }}>

@@ -6,6 +6,7 @@ import { HouseIcon } from "../icons/breadcrumb/house-icon";
 import { ProductsIcon } from "../icons/sidebar/products-icon";
 import { Flex } from "../styles/flex";
 import { TableWrapper } from "./table";
+import { ErrorBoundary } from "../common/error-boundary";
 
 export const Classes = () => {
   return (
@@ -42,7 +43,9 @@ export const Classes = () => {
           </Crumb>
         </Breadcrumbs>
       </Flex>
-      <TableWrapper />
+      <ErrorBoundary>
+        <TableWrapper />
+      </ErrorBoundary>
     </Flex>
   );
 };

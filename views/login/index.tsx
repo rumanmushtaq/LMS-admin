@@ -7,7 +7,7 @@ import { useLogin } from "./useLogin";
 
 /**
  * Admin sign-in, styled to match the Varona Academy website:
- * deep-purple primary (#7520C8), clean cool-white surfaces, rounded inputs,
+ * deep-purple primary (#7047EB), clean cool-white surfaces, rounded inputs,
  * a pill primary action, and a gradient brand panel with a subtle grid.
  */
 export const LoginView = () => {
@@ -35,7 +35,7 @@ export const LoginView = () => {
               priority
               unoptimized
             />
-            <span className="text-[11px] font-black uppercase tracking-[0.3em] text-[#7520C8]">
+            <span className="text-[11px] font-black uppercase tracking-[0.3em] text-[#7047EB]">
               Admin
             </span>
           </div>
@@ -60,7 +60,7 @@ export const LoginView = () => {
                   {...register("email", { required: "Email is required" })}
                   type="email"
                   placeholder="Enter your email"
-                  className="w-full rounded-xl border border-[#e6e3f0] bg-white py-3 pl-11 pr-4 text-sm outline-none transition-all placeholder:text-[#b4b0c4] focus:border-[#7520C8] focus:ring-4 focus:ring-[#7520C8]/10"
+                  className="w-full rounded-xl border border-[#e6e3f0] bg-white py-3 pl-11 pr-4 text-sm outline-none transition-all placeholder:text-[#b4b0c4] focus:border-[#7047EB] focus:ring-4 focus:ring-[#7047EB]/10"
                 />
               </div>
               {errors.email && (
@@ -87,12 +87,12 @@ export const LoginView = () => {
                   })}
                   type={showPassword ? "text" : "password"}
                   placeholder="*********"
-                  className="w-full rounded-xl border border-[#e6e3f0] bg-white py-3 pl-11 pr-11 text-sm tracking-widest outline-none transition-all placeholder:text-[#b4b0c4] focus:border-[#7520C8] focus:ring-4 focus:ring-[#7520C8]/10"
+                  className="w-full rounded-xl border border-[#e6e3f0] bg-white py-3 pl-11 pr-11 text-sm tracking-widest outline-none transition-all placeholder:text-[#b4b0c4] focus:border-[#7047EB] focus:ring-4 focus:ring-[#7047EB]/10"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword((v) => !v)}
-                  className="absolute right-3.5 top-1/2 -translate-y-1/2 text-[#9b97ad] transition-colors hover:text-[#7520C8]"
+                  className="absolute right-3.5 top-1/2 -translate-y-1/2 text-[#9b97ad] transition-colors hover:text-[#7047EB]"
                   aria-label={showPassword ? "Hide password" : "Show password"}
                 >
                   {showPassword ? (
@@ -115,11 +115,11 @@ export const LoginView = () => {
                 <input
                   type="checkbox"
                   onChange={(e) => form.setValue("rememberMe", e.target.checked)}
-                  className="h-4 w-4 rounded border-[#d6d2e4] text-[#7520C8] accent-[#7520C8]"
+                  className="h-4 w-4 rounded border-[#d6d2e4] text-[#7047EB] accent-[#7047EB]"
                 />
                 Remember me
               </label>
-              <span className="cursor-pointer text-sm font-semibold text-[#7520C8] hover:underline">
+              <span className="cursor-pointer text-sm font-semibold text-[#7047EB] hover:underline">
                 Forgot password
               </span>
             </div>
@@ -133,7 +133,7 @@ export const LoginView = () => {
             <button
               type="submit"
               disabled={loading}
-              className="group mt-1 flex h-12 w-full items-center justify-center gap-2 rounded-full bg-[#7520C8] font-bold text-white shadow-lg shadow-[#7520C8]/25 transition-all hover:bg-[#6418ad] hover:shadow-[#7520C8]/35 disabled:opacity-60"
+              className="group mt-1 flex h-12 w-full items-center justify-center gap-2 rounded-full bg-[#7047EB] font-bold text-white shadow-lg shadow-[#7047EB]/25 transition-all hover:bg-[#5f37d4] hover:shadow-[#7047EB]/35 disabled:opacity-60"
             >
               {loading ? (
                 <Loader2 className="h-5 w-5 animate-spin" />
@@ -149,7 +149,7 @@ export const LoginView = () => {
       </div>
 
       {/* Right: brand panel */}
-      <div className="relative hidden lg:flex lg:w-1/2 lg:flex-col lg:items-center lg:justify-center overflow-hidden bg-gradient-to-br from-[#7520C8] via-[#8b1fb8] to-[#4a1878] p-12">
+      <div className="relative hidden lg:flex lg:w-1/2 lg:flex-col lg:items-center lg:justify-center overflow-hidden bg-gradient-to-br from-[#7047EB] via-[#5f37d4] to-[#3a1d8a] p-12">
         {/* Subtle grid overlay, echoing the website hero */}
         <div
           className="absolute inset-0 opacity-[0.15]"

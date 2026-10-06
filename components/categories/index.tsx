@@ -1,11 +1,5 @@
-import { Button, Input, Table, Tooltip, User } from "@nextui-org/react";
-import Link from "next/link";
 import React, { useEffect, useState } from "react";
-import { Flex } from "../styles/flex";
-import { Box } from "../styles/box";
-import { EditIcon } from "../icons/table/edit-icon";
-import { DeleteIcon } from "../icons/table/delete-icon";
-import { CategoryIcon } from "../icons/sidebar/category-icon";
+import { Tags, Pencil, Trash2, Plus, FolderOpen } from "lucide-react";
 import { categoriesService } from "../../services/categories";
 import { AddCategoryModal } from "./AddCategoryModal";
 import { CategoryDeleteModal } from "./CategoryDeleteModal";
@@ -76,83 +70,98 @@ const CategoriesView = () => {
   };
 
   return (
-    <Flex
-      css={{
-        mt: "$5",
-        px: "$6",
-        "@sm": { mt: "$10", px: "$16" },
-      }}
-      justify={"center"}
-      direction={"column"}
-    >
-      <Flex justify="between" align="center" css={{ mb: "$8" }}>
-        <Flex align="center" css={{ gap: "$5" }}>
-          <CategoryIcon />
-          <Box as="h3" css={{ m: 0 }}>
+    <div className="w-full px-4 sm:px-8 lg:px-12 py-6">
+      <div className="flex items-center justify-between mb-6">
+        <div className="flex items-center gap-3">
+          <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#7047EB]/10 text-[#7047EB]">
+            <Tags className="w-5 h-5" />
+          </span>
+          <h3 className="text-xl font-bold text-gray-800">
             Category Management
-          </Box>
-        </Flex>
-        <Button auto onClick={handleAddClick}>
+          </h3>
+        </div>
+        <button
+          onClick={handleAddClick}
+          className="inline-flex items-center gap-2 rounded-xl bg-[#7047EB] px-5 py-2.5 font-bold text-white shadow-lg shadow-[#7047EB]/20 transition-all hover:bg-[#5f37d4]"
+        >
+          <Plus className="w-4 h-4" />
           Add Category
-        </Button>
-      </Flex>
+        </button>
+      </div>
 
-      <Table
-        aria-label="Category table"
-        css={{
-          height: "auto",
-          minWidth: "100%",
-        }}
-      >
-        <Table.Header>
-          <Table.Column>CATEGORY</Table.Column>
-          <Table.Column>STATUS</Table.Column>
-          <Table.Column>ACTIONS</Table.Column>
-        </Table.Header>
-        <Table.Body>
+      {isLoading ? (
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+          {Array.from({ length: 8 }).map((_, i) => (
+            <div
+              key={i}
+              className="rounded-2xl border border-[#ece9f6] bg-white p-4 animate-pulse"
+            >
+              <div className="h-16 w-16 rounded-full bg-gray-200 mb-3" />
+              <div className="h-4 w-3/4 rounded bg-gray-200" />
+            </div>
+          ))}
+        </div>
+      ) : categories.length === 0 ? (
+        <div className="flex flex-col items-center justify-center gap-3 rounded-2xl border border-dashed border-[#e6e3f0] py-20 text-center">
+          <FolderOpen className="w-10 h-10 text-gray-300" />
+          <p className="font-semibold text-gray-600">No categories yet</p>
+          <p className="text-sm text-gray-400">Add your first category.</p>
+        </div>
+      ) : (
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
           {categories.map((category) => (
-            <Table.Row key={category._id}>
-              <Table.Cell>
-                <User
-                  src={category.image}
-                  name={category.title}
-                  css={{ p: 0 }}
-                />
-              </Table.Cell>
-              <Table.Cell>
-                <Box
-                  as="span"
-                  css={{
-                    borderRadius: "$xs",
-                    px: "$3",
-                    py: "$1",
-                    fontSize: "$xs",
-                    fontWeight: "$bold",
-                    bg: category.isActive ? "$successLight" : "$errorLight",
-                    color: category.isActive ? "$success" : "$error",
-                  }}
+            <div
+              key={category._id}
+              className="group relative rounded-2xl border border-[#ece9f6] bg-white p-4 shadow-sm transition-all hover:shadow-lg hover:-translate-y-0.5"
+            >
+              <div className="flex items-start justify-between">
+                {category.image ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={category.image}
+                    alt={category.title}
+                    className="h-16 w-16 rounded-full object-cover border border-gray-100"
+                  />
+                ) : (
+                  <span className="flex h-16 w-16 items-center justify-center rounded-full bg-[#7047EB]/10 text-[#7047EB] font-bold text-xl">
+                    {category.title?.charAt(0)?.toUpperCase() || "?"}
+                  </span>
+                )}
+                <span
+                  className={`rounded-full px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide ${
+                    category.isActive
+                      ? "bg-green-100 text-green-700"
+                      : "bg-red-100 text-red-600"
+                  }`}
                 >
                   {category.isActive ? "Active" : "Inactive"}
-                </Box>
-              </Table.Cell>
-              <Table.Cell>
-                <Flex align="center" css={{ gap: "$5" }}>
-                  <Tooltip content="Edit category">
-                    <button onClick={() => handleEditClick(category)}>
-                      <EditIcon size={20} fill="#979797" />
-                    </button>
-                  </Tooltip>
-                  <Tooltip content="Delete category" color="error">
-                    <button onClick={() => handleDeleteClick(category._id)}>
-                      <DeleteIcon size={20} fill="#FF0080" />
-                    </button>
-                  </Tooltip>
-                </Flex>
-              </Table.Cell>
-            </Table.Row>
+                </span>
+              </div>
+
+              <h4 className="mt-3 font-bold text-gray-800 truncate" title={category.title}>
+                {category.title}
+              </h4>
+
+              <div className="mt-3 flex items-center gap-1 border-t border-gray-100 pt-3">
+                <button
+                  onClick={() => handleEditClick(category)}
+                  className="inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium text-[#7047EB] hover:bg-[#7047EB]/10 transition-colors"
+                >
+                  <Pencil className="w-4 h-4" />
+                  Edit
+                </button>
+                <button
+                  onClick={() => handleDeleteClick(category._id)}
+                  className="inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium text-red-500 hover:bg-red-50 transition-colors"
+                >
+                  <Trash2 className="w-4 h-4" />
+                  Delete
+                </button>
+              </div>
+            </div>
           ))}
-        </Table.Body>
-      </Table>
+        </div>
+      )}
 
       <AddCategoryModal
         isOpen={isAddModalOpen}
@@ -174,7 +183,7 @@ const CategoriesView = () => {
         onClose={() => setIsSuccessModalOpen(false)}
         message={successMessage}
       />
-    </Flex>
+    </div>
   );
 };
 

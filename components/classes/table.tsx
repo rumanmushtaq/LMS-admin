@@ -12,11 +12,17 @@ export const TableWrapper = () => {
   const fetchClasses = useCallback(async () => {
     try {
       setLoading(true);
-      const data = await getAllClasses();
-      // Adjust according to actual response format (e.g., data.data vs data)
-      setClasses(Array.isArray(data) ? data : data?.data || []);
+      const res = await getAllClasses();
+      // The API wraps the payload as { success, data: [...] } (sometimes
+      // { data: { data: [...] } }). Storing a non-array made the table crash
+      // with "classes.map is not a function". Unwrap to the array defensively.
+      const list = Array.isArray(res)
+        ? res
+        : (res?.data?.data ?? res?.data ?? []);
+      setClasses(Array.isArray(list) ? list : []);
     } catch (error) {
       console.error("Error fetching classes:", error);
+      setClasses([]);
     } finally {
       setLoading(false);
     }

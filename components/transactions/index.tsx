@@ -41,7 +41,7 @@ const STATUS_STYLES: Record<string, string> = {
   processing: "bg-blue-100 text-blue-700",
   failed: "bg-red-100 text-red-700",
   cancelled: "bg-gray-200 text-gray-600",
-  refunded: "bg-purple-100 text-purple-700",
+  refunded: "bg-[#7047EB]/10 text-[#7047EB]",
 };
 
 interface Txn {
@@ -182,15 +182,15 @@ export default function TransactionsView() {
   ];
 
   return (
-    <div className="flex-1 min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-white">
+    <div className="flex-1 min-h-screen bg-gradient-to-br from-[#f7f5ff] via-white to-white">
       <header className="h-16 bg-white/70 backdrop-blur-md border-b flex items-center justify-between px-6 shadow-sm">
         <button
           onClick={() => router.back()}
-          className="p-2 rounded-lg hover:bg-purple-100 transition"
+          className="p-2 rounded-lg hover:bg-[#7047EB]/10 transition"
         >
-          <ArrowLeft className="w-5 h-5 text-purple-600" />
+          <ArrowLeft className="w-5 h-5 text-[#7047EB]" />
         </button>
-        <h5 className="text-lg font-semibold text-purple-700">Transactions</h5>
+        <h5 className="text-lg font-semibold text-[#7047EB]">Transactions</h5>
         <div className="flex gap-2">
           <button
             onClick={refresh}
@@ -202,7 +202,7 @@ export default function TransactionsView() {
           <button
             onClick={exportCsv}
             disabled={rows.length === 0}
-            className="flex items-center gap-2 bg-purple-600 text-white px-4 py-2 rounded-lg shadow hover:bg-purple-700 transition disabled:opacity-50"
+            className="flex items-center gap-2 bg-[#7047EB] text-white px-4 py-2 rounded-lg shadow hover:bg-[#5f37d4] transition disabled:opacity-50"
           >
             <Download className="w-4 h-4" />
             Export CSV
@@ -245,7 +245,7 @@ export default function TransactionsView() {
               }}
               className={`px-3 py-1.5 rounded-full text-xs font-semibold capitalize transition ${
                 status === s
-                  ? "bg-purple-600 text-white"
+                  ? "bg-[#7047EB] text-white"
                   : "bg-white border border-gray-200 text-gray-600 hover:bg-gray-50"
               }`}
             >
@@ -262,7 +262,7 @@ export default function TransactionsView() {
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Search by provider reference..."
-              className="w-full pl-10 pr-4 py-2 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-purple-400 shadow-sm bg-white"
+              className="w-full pl-10 pr-4 py-2 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-[#7047EB] shadow-sm bg-white"
             />
           </div>
           <div className="flex flex-wrap gap-3">
@@ -347,7 +347,7 @@ export default function TransactionsView() {
                     <td className="p-3 uppercase text-gray-600">
                       {t.provider}
                     </td>
-                    <td className="p-3 font-semibold text-purple-600">
+                    <td className="p-3 font-semibold text-[#7047EB]">
                       {formatMinor(t.grossMinor, t.currency)}
                     </td>
                     <td className="p-3">
@@ -400,14 +400,14 @@ export default function TransactionsView() {
               <button
                 disabled={page === 1}
                 onClick={() => setPage((p) => p - 1)}
-                className="px-4 py-2 rounded-lg bg-purple-100 text-purple-600 hover:bg-purple-200 disabled:opacity-50"
+                className="px-4 py-2 rounded-lg bg-[#7047EB]/10 text-[#7047EB] hover:bg-[#7047EB]/20 disabled:opacity-50"
               >
                 Prev
               </button>
               <button
                 disabled={page >= totalPages}
                 onClick={() => setPage((p) => p + 1)}
-                className="px-4 py-2 rounded-lg bg-purple-600 text-white hover:bg-purple-700 disabled:opacity-50"
+                className="px-4 py-2 rounded-lg bg-[#7047EB] text-white hover:bg-[#5f37d4] disabled:opacity-50"
               >
                 Next
               </button>

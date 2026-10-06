@@ -22,7 +22,7 @@ export const CardBalance1 = ({
       delta={{ value: teacherDelta ?? 0, period: 'this month' }}
       hint={{ text: `${activeUsers || 0} active platform users`, tone: 'good' }}
       accent="purple"
-      icon={<Community color="#6D4AE8" />}
+      icon={<Community color="#7047EB" />}
       loading={loading}
       href={href}
    />

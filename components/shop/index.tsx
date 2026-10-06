@@ -194,21 +194,21 @@ export default function ProductTable() {
   };
 
   return (
-    <div className="flex-1 min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-white">
+    <div className="flex-1 min-h-screen bg-gradient-to-br from-[#f7f5ff] via-white to-white">
       {/* Header */}
       <header className="h-16 bg-white/70 backdrop-blur-md border-b flex items-center justify-between px-6 shadow-sm">
         <button
           onClick={() => router.back()}
-          className="p-2 rounded-lg hover:bg-purple-100 transition"
+          className="p-2 rounded-lg hover:bg-[#7047EB]/10 transition"
         >
-          <ArrowLeft className="w-5 h-5 text-purple-600" />
+          <ArrowLeft className="w-5 h-5 text-[#7047EB]" />
         </button>
 
-        <h5 className="text-lg font-semibold text-purple-700">Product</h5>
+        <h5 className="text-lg font-semibold text-[#7047EB]">Product</h5>
 
         <button
           onClick={() => router.push("/create-product")}
-          className="flex items-center gap-2 bg-purple-600 text-white px-4 py-2 rounded-lg shadow hover:bg-purple-700 transition"
+          className="flex items-center gap-2 bg-[#7047EB] text-white px-4 py-2 rounded-lg shadow hover:bg-[#5f37d4] transition"
         >
           <Plus className="w-4 h-4" />
           Add Product
@@ -227,7 +227,7 @@ export default function ProductTable() {
                 setCurrentPage(1);
               }}
               placeholder="Search products by name or description..."
-              className="w-full pl-10 pr-4 py-2 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-purple-400 shadow-sm bg-white"
+              className="w-full pl-10 pr-4 py-2 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-[#7047EB] shadow-sm bg-white"
             />
           </div>
 
@@ -238,7 +238,7 @@ export default function ProductTable() {
                 setSelectedSize(e.target.value);
                 setCurrentPage(1);
               }}
-              className="px-4 py-2 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-purple-400 shadow-sm bg-white text-gray-600 appearance-none min-w-[120px]"
+              className="px-4 py-2 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-[#7047EB] shadow-sm bg-white text-gray-600 appearance-none min-w-[120px]"
             >
               <option value="">All Sizes</option>
               <option value="XS">XS</option>
@@ -255,7 +255,7 @@ export default function ProductTable() {
                 setSelectedStatus(e.target.value);
                 setCurrentPage(1);
               }}
-              className="px-4 py-2 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-purple-400 shadow-sm bg-white text-gray-600 appearance-none min-w-[120px]"
+              className="px-4 py-2 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-[#7047EB] shadow-sm bg-white text-gray-600 appearance-none min-w-[120px]"
             >
               <option value="all">All Status</option>
               <option value="active">Active</option>
@@ -313,7 +313,7 @@ export default function ProductTable() {
                         />
                       </td>
 
-                      <td className="p-3 font-semibold text-purple-600">
+                      <td className="p-3 font-semibold text-[#7047EB]">
                         ${p.price}
                       </td>
                       <td className="p-3">
@@ -322,7 +322,7 @@ export default function ProductTable() {
                             p.sizes.map((size, index) => (
                               <span
                                 key={index}
-                                className="px-2 py-0.5 rounded-md bg-purple-100 text-purple-700 text-[10px] font-bold uppercase tracking-wider border border-purple-200"
+                                className="px-2 py-0.5 rounded-md bg-[#7047EB]/10 text-[#7047EB] text-[10px] font-bold uppercase tracking-wider border border-[#7047EB]/20"
                               >
                                 {size}
                               </span>
@@ -360,7 +360,7 @@ export default function ProductTable() {
                           className={`px-3 py-1 rounded-full text-xs font-medium transition inline-flex items-center gap-1.5 disabled:opacity-70 ${
                             p.isActive
                               ? "bg-green-100 text-green-600"
-                              : "bg-pink-100 text-pink-600"
+                              : "bg-red-100 text-red-600"
                           }`}
                         >
                           {togglingIds.has(p._id) && (
@@ -392,14 +392,14 @@ export default function ProductTable() {
                         </button>
                         <button
                           onClick={() => router.push(`/edit-product/${p._id}`)}
-                          className="p-2 rounded-lg hover:bg-purple-100 text-purple-600"
+                          className="p-2 rounded-lg hover:bg-[#7047EB]/10 text-[#7047EB]"
                           title="Edit"
                         >
                           <Pencil size={16} />
                         </button>
                         <button
                           onClick={() => handleDeleteClick(p._id)}
-                          className="p-2 rounded-lg hover:bg-pink-100 text-pink-600"
+                          className="p-2 rounded-lg hover:bg-red-100 text-red-600"
                           title="Permanent Delete"
                         >
                           <Trash2 size={16} />
@@ -438,7 +438,7 @@ export default function ProductTable() {
                     setEntriesPerPage(Number(e.target.value));
                     setCurrentPage(1);
                   }}
-                  className="px-2 py-1 rounded-md border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-purple-400 bg-white text-gray-600"
+                  className="px-2 py-1 rounded-md border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-[#7047EB] bg-white text-gray-600"
                 >
                   <option value={5}>5</option>
                   <option value={10}>10</option>
@@ -452,7 +452,7 @@ export default function ProductTable() {
               <button
                 disabled={currentPage === 1}
                 onClick={() => setCurrentPage((p) => p - 1)}
-                className="px-4 py-2 rounded-lg bg-purple-100 text-purple-600 hover:bg-purple-200 disabled:opacity-50"
+                className="px-4 py-2 rounded-lg bg-[#7047EB]/10 text-[#7047EB] hover:bg-[#7047EB]/20 disabled:opacity-50"
               >
                 Prev
               </button>
@@ -460,7 +460,7 @@ export default function ProductTable() {
               <button
                 disabled={currentPage === totalPages}
                 onClick={() => setCurrentPage((p) => p + 1)}
-                className="px-4 py-2 rounded-lg bg-purple-600 text-white hover:bg-purple-700 disabled:opacity-50"
+                className="px-4 py-2 rounded-lg bg-[#7047EB] text-white hover:bg-[#5f37d4] disabled:opacity-50"
               >
                 Next
               </button>

@@ -24,12 +24,12 @@ export default function NotFound() {
               className="h-11 w-auto object-contain"
               unoptimized
             />
-            <span className="text-[11px] font-black uppercase tracking-[0.3em] text-[#7520C8]">
+            <span className="text-[11px] font-black uppercase tracking-[0.3em] text-[#7047EB]">
               Admin
             </span>
           </div>
 
-          <p className="text-sm font-black uppercase tracking-[0.3em] text-[#7520C8]">
+          <p className="text-sm font-black uppercase tracking-[0.3em] text-[#7047EB]">
             Error 404
           </p>
           <h1 className="mt-2 text-4xl font-black leading-tight tracking-tight text-[#1e1b2e]">
@@ -43,7 +43,7 @@ export default function NotFound() {
           <div className="mt-8 flex flex-wrap gap-3">
             <Link
               href="/"
-              className="inline-flex h-11 items-center gap-2 rounded-full bg-[#7520C8] px-6 font-bold text-white shadow-lg shadow-[#7520C8]/25 transition-all hover:bg-[#6418ad]"
+              className="inline-flex h-11 items-center gap-2 rounded-full bg-[#7047EB] px-6 font-bold text-white shadow-lg shadow-[#7047EB]/25 transition-all hover:bg-[#5f37d4]"
             >
               <Home className="h-4 w-4" />
               Go to dashboard
@@ -59,7 +59,7 @@ export default function NotFound() {
         </div>
 
         {/* Right: brand panel */}
-        <div className="relative hidden items-center justify-center overflow-hidden bg-gradient-to-br from-[#7520C8] via-[#8b1fb8] to-[#4a1878] p-12 md:flex">
+        <div className="relative hidden items-center justify-center overflow-hidden bg-gradient-to-br from-[#7047EB] via-[#5f37d4] to-[#3a1d8a] p-12 md:flex">
           <div
             className="absolute inset-0 opacity-[0.15]"
             style={{

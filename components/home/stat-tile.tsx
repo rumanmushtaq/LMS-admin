@@ -6,7 +6,7 @@ import { Flex } from "../styles/flex";
 export type TileAccent = "purple" | "teal" | "amber";
 
 const ACCENT: Record<TileAccent, { fg: string; bg: string }> = {
-  purple: { fg: "#6D4AE8", bg: "rgba(109, 74, 232, 0.12)" },
+  purple: { fg: "#7047EB", bg: "rgba(109, 74, 232, 0.12)" },
   teal: { fg: "#0EA5A4", bg: "rgba(14, 165, 164, 0.12)" },
   amber: { fg: "#C98500", bg: "rgba(201, 133, 0, 0.14)" },
 };

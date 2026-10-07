@@ -1,10 +1,4 @@
-import {
-  Table,
-  Text,
-  Col,
-  Input,
-  Pagination,
-} from "@nextui-org/react";
+import { Text, Pagination } from "@nextui-org/react";
 import React, { useEffect, useState, useCallback } from "react";
 import { Box } from "../styles/box";
 import { columns, statusOptions } from "./data";
@@ -62,6 +56,15 @@ export const TableWrapper = ({ addButton }: Props) => {
   const [endDate, setEndDate] = useState<string>("");
   const [sortBy, setSortBy] = useState("createdAt");
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
+  // Selection driven only by the checkboxes, never a row click.
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+
+  const toggleOne = (id: string) =>
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      next.has(id) ? next.delete(id) : next.add(id);
+      return next;
+    });
 
   // Fetch students with pagination and filters
   const fetchStudents = useCallback(
@@ -218,45 +221,77 @@ export const TableWrapper = ({ addButton }: Props) => {
         </Flex>
       ) : (
         <>
-          <Table
-            aria-label="Students table"
-            css={{
-              height: "auto",
-              minWidth: "100%",
-              boxShadow: "none",
-              width: "100%",
-              px: 0,
-            }}
-            selectionMode="multiple"
-          >
-            <Table.Header columns={columns}>
-              {(column) => (
-                <Table.Column
-                  key={column.uid}
-                  hideHeader={column.uid === "actions"}
-                  align={column.uid === "actions" ? "center" : "start"}
-                  allowsSorting={column.uid !== "actions"}
-                >
-                  {column.name}
-                </Table.Column>
-              )}
-            </Table.Header>
-            <Table.Body items={students}>
-              {(item: any) => (
-                <Table.Row key={item._id}>
-                  {(columnKey: any) => (
-                    <Table.Cell>
+          <div className="overflow-x-auto rounded-2xl border border-gray-200 bg-white shadow-sm">
+            <table className="w-full text-sm">
+              <thead className="border-b border-gray-200 bg-[#f4f4f5] text-xs font-semibold uppercase tracking-wider text-gray-500">
+                <tr>
+                  <th className="w-10 p-3 text-left">
+                    <input
+                      type="checkbox"
+                      aria-label="Select all"
+                      className="h-4 w-4 cursor-pointer rounded border-gray-300 accent-[#7047EB]"
+                      checked={
+                        students.length > 0 &&
+                        students.every((s) => selectedIds.has(s._id))
+                      }
+                      onChange={(e) =>
+                        setSelectedIds(
+                          e.target.checked
+                            ? new Set(students.map((s) => s._id))
+                            : new Set(),
+                        )
+                      }
+                    />
+                  </th>
+                  {columns
+                    .filter((c) => c.uid !== "actions")
+                    .map((c) => (
+                      <th key={c.uid} className="p-3 text-left">
+                        {c.name}
+                      </th>
+                    ))}
+                  <th className="p-3" />
+                </tr>
+              </thead>
+              <tbody>
+                {students.map((item: any) => (
+                  <tr
+                    key={item._id}
+                    className="border-b border-gray-100 transition hover:bg-[#7047EB]/5"
+                  >
+                    <td className="p-3">
+                      <input
+                        type="checkbox"
+                        aria-label="Select row"
+                        className="h-4 w-4 cursor-pointer rounded border-gray-300 accent-[#7047EB]"
+                        checked={selectedIds.has(item._id)}
+                        onChange={() => toggleOne(item._id)}
+                        onClick={(e) => e.stopPropagation()}
+                      />
+                    </td>
+                    {columns
+                      .filter((c) => c.uid !== "actions")
+                      .map((c) => (
+                        <td key={c.uid} className="p-3 align-middle">
+                          {RenderCell({
+                            student: item,
+                            columnKey: c.uid,
+                            onRefresh: handleRefresh,
+                          })}
+                        </td>
+                      ))}
+                    <td className="p-3 text-center align-middle">
                       {RenderCell({
                         student: item,
-                        columnKey: columnKey,
+                        columnKey: "actions",
                         onRefresh: handleRefresh,
                       })}
-                    </Table.Cell>
-                  )}
-                </Table.Row>
-              )}
-            </Table.Body>
-          </Table>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
           <Flex justify="center" css={{ mt: "$10" }}>
             <Pagination
               color="secondary"

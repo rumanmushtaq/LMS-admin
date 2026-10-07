@@ -151,121 +151,68 @@ export const RenderCell = ({
     case "actions":
       return (
         <Row justify="center" align="center" css={{ gap: "$4" }}>
-          {/* Verify Account button — opens verification review modal */}
-          <Tooltip
-            content="Verify Account"
-            rounded
-            color="secondary"
-            // NextUI opens the tooltip on `focus` and only closes it on
-            // `blur`, and React's onFocus is a bubbling focusin — so
-            // clicking the icon focuses it and the tooltip stays stuck
-            // open over the table. These rest props are spread AFTER
-            // NextUI's own handlers, so they replace them. Hover still
-            // works; the accessible name now comes from aria-label,
-            // which is what assistive tech should have been reading.
-            onFocus={undefined}
+          {/* Plain buttons, not NextUI <Tooltip><Button>: the tooltip's
+              overlay swallowed the first click, so every action needed two
+              clicks. `title` gives the hover hint; one onClick fires once. */}
+          <button
+            type="button"
+            title="Verify Account"
+            aria-label="Verify account"
+            onClick={(e) => {
+              e.stopPropagation();
+              if (onVerify) onVerify();
+            }}
+            className="p-2 rounded-lg text-[#7047EB] hover:bg-[#7047EB]/10 transition-colors"
           >
-            <Button
-              auto
-              light
-              ripple={false}
-              className="min-w-0 p-2"
-              css={{
-                height: "auto",
-                borderRadius: "8px",
-                "&:hover": { bg: "rgba(124, 58, 237, 0.1)" },
-                color: "$secondary",
-              }}
-              onClickCapture={(e) => {
-                e.stopPropagation();
-                if (onVerify) onVerify();
-              }}
-              aria-label="Verify account"
-            >
-              <ShieldCheck size={18} />
-            </Button>
-          </Tooltip>
+            <ShieldCheck size={18} />
+          </button>
 
-          <Tooltip
-            content="Chat with Tutor"
-            rounded
-            color="secondary"
-            // NextUI opens the tooltip on `focus` and only closes it on
-            // `blur`, and React's onFocus is a bubbling focusin — so
-            // clicking the icon focuses it and the tooltip stays stuck
-            // open over the table. These rest props are spread AFTER
-            // NextUI's own handlers, so they replace them. Hover still
-            // works; the accessible name now comes from aria-label,
-            // which is what assistive tech should have been reading.
-            onFocus={undefined}
-          >
-            <Button
-              auto
-              light
-              ripple={false}
-              className="min-w-0 p-2"
-              css={{
-                height: "auto",
-                borderRadius: "8px",
-                "&:hover": { bg: "rgba(112, 71, 235, 0.1)" },
-                color: "$secondary",
-              }}
-              onClickCapture={async (e) => {
-                e.stopPropagation();
-                try {
-                  const id = teacher._id || teacher.id;
-                  const res = await chatService.initConversation(id);
-                  const convId = res?.data?._id || res?._id;
-                  const targetUrl = convId ? `/chat?openConversation=${convId}` : "/chat";
-                  if (router) {
-                    router.push(targetUrl);
-                  } else {
-                    window.location.href = targetUrl;
-                  }
-                } catch (err) {
-                  console.error(err);
-                  alert("Failed to initiate chat.");
-                }
-              }}
-              aria-label="Chat with tutor"
-            >
-              <MessageCircle size={18} />
-            </Button>
-          </Tooltip>
-
-          <Tooltip
-            content="Review Detail"
-            rounded
-            color="primary"
-            // See the note on the Verify tooltip above.
-            onFocus={undefined}
-          >
-            <Button
-              auto
-              light
-              ripple={false}
-              className="min-w-0 p-2"
-              css={{
-                height: "auto",
-                borderRadius: "8px",
-                "&:hover": { bg: "$primaryLight" },
-                color: "$primary",
-              }}
-              onClickCapture={(e) => {
-                e.stopPropagation();
+          <button
+            type="button"
+            title="Chat with Tutor"
+            aria-label="Chat with tutor"
+            onClick={async (e) => {
+              e.stopPropagation();
+              try {
                 const id = teacher._id || teacher.id;
-                const targetUrl = `/teachers/${id}`;
+                const res = await chatService.initConversation(id);
+                const convId = res?.data?._id || res?._id;
+                const targetUrl = convId
+                  ? `/chat?openConversation=${convId}`
+                  : "/chat";
                 if (router) {
                   router.push(targetUrl);
                 } else {
                   window.location.href = targetUrl;
                 }
-              }}
-              aria-label="Review detail"
-            >
-              <Eye size={18} />
-            </Button>
-          </Tooltip>
+              } catch (err) {
+                console.error(err);
+                alert("Failed to initiate chat.");
+              }
+            }}
+            className="p-2 rounded-lg text-[#7047EB] hover:bg-[#7047EB]/10 transition-colors"
+          >
+            <MessageCircle size={18} />
+          </button>
+
+          <button
+            type="button"
+            title="Review Detail"
+            aria-label="Review detail"
+            onClick={(e) => {
+              e.stopPropagation();
+              const id = teacher._id || teacher.id;
+              const targetUrl = `/teachers/${id}`;
+              if (router) {
+                router.push(targetUrl);
+              } else {
+                window.location.href = targetUrl;
+              }
+            }}
+            className="p-2 rounded-lg text-[#7047EB] hover:bg-[#7047EB]/10 transition-colors"
+          >
+            <Eye size={18} />
+          </button>
 
           <Dropdown placement="bottom-right">
             <Dropdown.Trigger>

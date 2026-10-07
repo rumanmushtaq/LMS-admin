@@ -89,57 +89,60 @@ export const RenderCell = ({ student, columnKey, onRefresh }: Props) => {
           align="center"
           css={{ gap: "$8", "@md": { gap: 0 } }}
         >
-          <Col css={{ d: "flex" }}>
-            <Tooltip content="Chat with student">
-              <IconButton
-                onClickCapture={async (e) => {
-                  e.stopPropagation();
-                  try {
-                    const res = await chatService.initConversation(student._id || student.id);
-                    const convId = res?.data?._id || res?._id;
-                    if (convId) {
-                      router.push(`/chat?openConversation=${convId}`);
-                    } else {
-                      router.push("/chat");
-                    }
-                  } catch (err) {
-                    console.error(err);
-                    alert("Failed to initiate chat.");
-                  }
-                }}
-              >
-                <MessageCircle size={20} color="#979797" />
-              </IconButton>
-            </Tooltip>
-          </Col>
-          <Col css={{ d: "flex" }}>
-            <Tooltip content="Details">
-              <IconButton
-                onClickCapture={(e) => {
-                  e.stopPropagation();
-                  const targetUrl = `/students/${student._id || student.id}`;
-                  if (router) {
-                    router.push(targetUrl);
-                  } else {
-                    window.location.href = targetUrl;
-                  }
-                }}
-              >
-                <EyeIcon size={20} fill="#979797" />
-              </IconButton>
-            </Tooltip>
-          </Col>
-          <Col css={{ d: "flex" }}>
-            <Tooltip content="Edit student">
-              <IconButton
-                onClick={() =>
-                  console.log("Edit student", student._id || student.id)
-                }
-              >
-                <EditIcon size={20} fill="#979797" />
-              </IconButton>
-            </Tooltip>
-          </Col>
+          {/* Plain buttons, not <Tooltip><IconButton>: the tooltip overlay
+              swallowed the first click. `title` gives the hover hint. */}
+          <button
+            type="button"
+            title="Chat with student"
+            aria-label="Chat with student"
+            onClick={async (e) => {
+              e.stopPropagation();
+              try {
+                const res = await chatService.initConversation(
+                  student._id || student.id,
+                );
+                const convId = res?.data?._id || res?._id;
+                router.push(
+                  convId ? `/chat?openConversation=${convId}` : "/chat",
+                );
+              } catch (err) {
+                console.error(err);
+                alert("Failed to initiate chat.");
+              }
+            }}
+            className="p-2 rounded-lg text-[#7047EB] hover:bg-[#7047EB]/10 transition-colors"
+          >
+            <MessageCircle size={20} />
+          </button>
+          <button
+            type="button"
+            title="Details"
+            aria-label="Details"
+            onClick={(e) => {
+              e.stopPropagation();
+              const targetUrl = `/students/${student._id || student.id}`;
+              if (router) {
+                router.push(targetUrl);
+              } else {
+                window.location.href = targetUrl;
+              }
+            }}
+            className="p-2 rounded-lg text-[#7047EB] hover:bg-[#7047EB]/10 transition-colors"
+          >
+            <EyeIcon size={20} />
+          </button>
+          <button
+            type="button"
+            title="Edit student"
+            aria-label="Edit student"
+            onClick={(e) => {
+              e.stopPropagation();
+              router.push(`/students/${student._id || student.id}?edit=1`);
+            }}
+            className="p-2 rounded-lg text-[#7047EB] hover:bg-[#7047EB]/10 transition-colors"
+          >
+            <EditIcon size={20} fill="currentColor" />
+          </button>
           <Col css={{ d: "flex" }}>
             <Dropdown>
               <Dropdown.Trigger>

@@ -11,7 +11,11 @@ interface Props {
   onRefresh: () => void;
 }
 
-export const RenderCell = ({ classItem, columnKey, onRefresh }: Props) => {
+export const RenderCell = ({
+  classItem,
+  columnKey,
+  onRefresh,
+}: Props): React.ReactElement => {
   const [isCancelling, setIsCancelling] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
   const [cancelReason, setCancelReason] = useState("");
@@ -43,7 +47,7 @@ export const RenderCell = ({ classItem, columnKey, onRefresh }: Props) => {
 
   // Render one cell, but never let a single malformed record take the page
   // down: a throw in any cell falls back to "—" and logs what broke.
-  const renderCell = (): React.ReactNode => {
+  const renderCell = (): React.ReactElement => {
   switch (columnKey) {
     case "title": {
       // Coerce to strings: a non-string title/description (bad or legacy data)

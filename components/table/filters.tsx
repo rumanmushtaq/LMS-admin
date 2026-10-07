@@ -77,7 +77,7 @@ export const TableFilters = ({
 
   const statusLabel =
     statusActive && statusOptions
-      ? statusOptions.find((o) => o.key === status)?.label || status
+      ? statusOptions.find((o) => o.key === status)?.label || status || "Status"
       : "Status";
 
   const verifiedLabel =

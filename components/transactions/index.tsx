@@ -7,18 +7,10 @@ import {
   useQueryClient,
   keepPreviousData,
 } from "@tanstack/react-query";
-import {
-  ArrowLeft,
-  Search,
-  Loader2,
-  Download,
-  RefreshCw,
-  Undo2,
-  X,
-} from "lucide-react";
+import { ArrowLeft, Search, Download, RefreshCw } from "lucide-react";
 import paymentsService, { TransactionQuery } from "../../services/payments";
 import { formatMinor } from "../../utils/formatMoney";
-import { formatDate, formatDateTime } from "../../utils/formatDate";
+import { formatDate } from "../../utils/formatDate";
 
 /** Shared classes for the themed native <select> controls. */
 const SELECT_CLASS =
@@ -82,7 +74,6 @@ export default function TransactionsView() {
   const [to, setTo] = useState("");
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(20);
-  const [selected, setSelected] = useState<Txn | null>(null);
 
   useEffect(() => {
     const h = setTimeout(() => {
@@ -354,7 +345,7 @@ export default function TransactionsView() {
                   rows.map((t) => (
                     <tr
                       key={t._id}
-                      onClick={() => setSelected(t)}
+                      onClick={() => router.push(`/transactions/${t._id}`)}
                       className="border-b border-gray-100 hover:bg-gray-50 transition cursor-pointer"
                     >
                       <td className="p-3 text-gray-600">
@@ -429,207 +420,7 @@ export default function TransactionsView() {
         )}
       </div>
 
-      {selected && (
-        <DetailDrawer
-          txn={selected}
-          onClose={() => setSelected(null)}
-          onChanged={(fresh) => {
-            setSelected(fresh);
-            refresh();
-          }}
-        />
-      )}
     </div>
   );
 }
 
-function DetailDrawer({
-  txn,
-  onClose,
-  onChanged,
-}: {
-  txn: Txn;
-  onClose: () => void;
-  onChanged: (fresh: Txn) => void;
-}) {
-  const [busy, setBusy] = useState<null | "refund" | "reconcile">(null);
-  const [error, setError] = useState<string | null>(null);
-  const [confirmRefund, setConfirmRefund] = useState(false);
-  const [reason, setReason] = useState("");
-
-  const canRefund = txn.status === "paid";
-  const pseRefund = txn.provider === "pse";
-  const canReconcile = ["pending", "processing"].includes(txn.status);
-
-  async function doRefund() {
-    setBusy("refund");
-    setError(null);
-    try {
-      const fresh = await paymentsService.refund(txn._id, {
-        reason: reason || undefined,
-      });
-      setConfirmRefund(false);
-      onChanged(fresh as Txn);
-    } catch (e: any) {
-      const m = e?.response?.data?.message || "Refund failed.";
-      setError(Array.isArray(m) ? m.join(" · ") : m);
-    } finally {
-      setBusy(null);
-    }
-  }
-
-  async function doReconcile() {
-    setBusy("reconcile");
-    setError(null);
-    try {
-      const fresh = await paymentsService.reconcile(txn._id);
-      onChanged(fresh as Txn);
-    } catch (e: any) {
-      const m = e?.response?.data?.message || "Reconcile failed.";
-      setError(Array.isArray(m) ? m.join(" · ") : m);
-    } finally {
-      setBusy(null);
-    }
-  }
-
-  const Row = ({ label, value }: { label: string; value: React.ReactNode }) => (
-    <div className="flex justify-between gap-4 py-2 border-b border-gray-100 text-sm">
-      <span className="text-gray-500">{label}</span>
-      <span className="text-gray-900 font-medium text-right break-all">
-        {value}
-      </span>
-    </div>
-  );
-
-  return (
-    <div
-      className="fixed inset-0 bg-black/40 z-50 flex justify-end"
-      onClick={onClose}
-    >
-      <div
-        className="h-full w-full max-w-md bg-white shadow-2xl overflow-y-auto"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <div className="flex items-center justify-between p-5 border-b">
-          <h3 className="text-lg font-bold text-gray-800">Transaction</h3>
-          <button
-            onClick={onClose}
-            className="p-2 rounded-lg hover:bg-gray-100 text-gray-500"
-          >
-            <X className="w-5 h-5" />
-          </button>
-        </div>
-
-        <div className="p-5">
-          <Row label="ID" value={txn._id} />
-          <Row label="Buyer" value={buyerLabel(txn)} />
-          <Row label="Buyer email" value={txn.buyerId?.email || "—"} />
-          <Row label="Area" value={<span className="capitalize">{txn.area}</span>} />
-          <Row label="Provider" value={txn.provider.toUpperCase()} />
-          <Row label="Provider ref" value={txn.providerRef || "—"} />
-          <Row label="Gross" value={formatMinor(txn.grossMinor, txn.currency)} />
-          <Row label="Commission" value={formatMinor(txn.commissionMinor, txn.currency)} />
-          <Row label="Net (seller)" value={formatMinor(txn.netMinor, txn.currency)} />
-          <Row label="Currency" value={txn.currency} />
-          <Row
-            label="Status"
-            value={
-              <span
-                className={`px-2 py-0.5 rounded-full text-xs capitalize ${
-                  STATUS_STYLES[txn.status] || "bg-gray-100 text-gray-600"
-                }`}
-              >
-                {txn.status}
-              </span>
-            }
-          />
-          <Row label="Payout" value={<span className="capitalize">{txn.payoutStatus}</span>} />
-          <Row
-            label="Paid at"
-            value={formatDateTime(txn.paidAt)}
-          />
-          <Row
-            label="Created"
-            value={formatDateTime(txn.createdAt)}
-          />
-          {txn.failureReason && (
-            <Row label="Note" value={txn.failureReason} />
-          )}
-
-          {error && (
-            <div className="mt-4 rounded-lg bg-red-50 border border-red-200 p-3 text-sm text-red-600">
-              {error}
-            </div>
-          )}
-
-          {/* Actions */}
-          <div className="mt-6 space-y-3">
-            {canReconcile && (
-              <button
-                onClick={doReconcile}
-                disabled={busy !== null}
-                className="w-full flex items-center justify-center gap-2 bg-blue-600 text-white h-11 rounded-xl font-semibold hover:bg-blue-700 disabled:opacity-50"
-              >
-                {busy === "reconcile" ? (
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                ) : (
-                  <RefreshCw className="w-4 h-4" />
-                )}
-                Reconcile with provider
-              </button>
-            )}
-
-            {canRefund && !confirmRefund && (
-              <button
-                onClick={() => setConfirmRefund(true)}
-                disabled={pseRefund}
-                title={
-                  pseRefund
-                    ? "Refund PSE payments in the Wompi dashboard"
-                    : undefined
-                }
-                className="w-full flex items-center justify-center gap-2 bg-red-600 text-white h-11 rounded-xl font-semibold hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                <Undo2 className="w-4 h-4" />
-                {pseRefund ? "Refund via Wompi dashboard" : "Refund"}
-              </button>
-            )}
-
-            {canRefund && confirmRefund && (
-              <div className="rounded-xl border border-red-200 bg-red-50 p-4 space-y-3">
-                <p className="text-sm font-semibold text-red-700">
-                  This refunds real money and cannot be undone.
-                </p>
-                <input
-                  value={reason}
-                  onChange={(e) => setReason(e.target.value)}
-                  placeholder="Reason (optional)"
-                  className="w-full px-3 py-2 rounded-lg border border-red-200 text-sm focus:outline-none focus:ring-2 focus:ring-red-300 bg-white"
-                />
-                <div className="flex gap-2">
-                  <button
-                    onClick={() => setConfirmRefund(false)}
-                    disabled={busy !== null}
-                    className="flex-1 h-10 rounded-lg border border-gray-200 text-gray-600 font-medium hover:bg-gray-50"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    onClick={doRefund}
-                    disabled={busy !== null}
-                    className="flex-1 h-10 rounded-lg bg-red-600 text-white font-semibold hover:bg-red-700 disabled:opacity-50 flex items-center justify-center gap-2"
-                  >
-                    {busy === "refund" && (
-                      <Loader2 className="w-4 h-4 animate-spin" />
-                    )}
-                    Confirm refund
-                  </button>
-                </div>
-              </div>
-            )}
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}

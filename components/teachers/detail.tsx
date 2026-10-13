@@ -18,6 +18,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import adminService from "../../services/admin";
 import chatService from "../../services/chat";
 import { StatusConfirmModal } from "./status-confirm-modal";
+import { EarningsSection } from "./earnings-section";
 import { Flex } from "../styles/flex";
 import { Breadcrumbs, Crumb, CrumbLink } from "../breadcrumb/breadcrumb.styled";
 import { HouseIcon } from "../icons/breadcrumb/house-icon";
@@ -889,6 +890,11 @@ export const TeacherDetail = () => {
               </Grid.Container>
             </Card>
           </Flex>
+        </Grid>
+
+        {/* Earnings & payouts (full width) */}
+        <Grid xs={12}>
+          <EarningsSection tutorId={id as string} />
         </Grid>
       </Grid.Container>
 

@@ -121,7 +121,14 @@ export const SidebarWrapper = () => {
           </Sidebar.Body>
           <Sidebar.Footer>
             <Tooltip content={"Settings"} rounded color="primary">
-              <div className="p-2 rounded-lg hover:bg-[#7047EB]/10 transition-colors cursor-pointer group text-[#94a3b8] hover:text-[#7047EB]">
+              <div
+                onClick={() => router.push("/settings")}
+                className={`p-2 rounded-lg hover:bg-[#7047EB]/10 transition-colors cursor-pointer group hover:text-[#7047EB] ${
+                  router.pathname === "/settings"
+                    ? "text-[#7047EB] bg-[#7047EB]/10"
+                    : "text-[#94a3b8]"
+                }`}
+              >
                 <Settings
                   size={20}
                   strokeWidth={2}

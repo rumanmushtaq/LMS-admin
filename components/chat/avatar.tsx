@@ -60,14 +60,23 @@ interface PeopleAvatarProps {
  */
 export const PeopleAvatar = ({ people, size = 40, online }: PeopleAvatarProps) => {
   if (people.length >= 2) {
-    const small = Math.round(size * 0.68);
+    const small = Math.round(size * 0.74);
     return (
-      <div className="relative shrink-0" style={{ width: size, height: size }}>
-        <UserAvatar user={people[0]} size={small} className="absolute left-0 top-0" />
+      // Overlapped pair that fans apart on hover so both faces read clearly.
+      <div
+        className="group/av relative flex shrink-0 items-center"
+        style={{ height: size }}
+        title={`${nameOf(people[0])} · ${nameOf(people[1])}`}
+      >
+        <UserAvatar
+          user={people[0]}
+          size={small}
+          className="rounded-full ring-2 ring-[var(--nextui-colors-backgroundContrast)] transition-all duration-200 group-hover/av:-translate-y-0.5"
+        />
         <UserAvatar
           user={people[1]}
           size={small}
-          className="absolute right-0 bottom-0 rounded-full ring-2 ring-[var(--nextui-colors-backgroundContrast)]"
+          className="-ml-3.5 rounded-full ring-2 ring-[var(--nextui-colors-backgroundContrast)] transition-all duration-200 group-hover/av:ml-1 group-hover/av:-translate-y-0.5"
         />
       </div>
     );

@@ -273,19 +273,19 @@ export const TableWrapper = ({ addButton }: Props) => {
                       .filter((c) => c.uid !== "actions")
                       .map((c) => (
                         <td key={c.uid} className="p-3 align-middle">
-                          {RenderCell({
-                            student: item,
-                            columnKey: c.uid,
-                            onRefresh: handleRefresh,
-                          })}
+                          <RenderCell
+                            student={item}
+                            columnKey={c.uid}
+                            onRefresh={handleRefresh}
+                          />
                         </td>
                       ))}
                     <td className="p-3 text-center align-middle">
-                      {RenderCell({
-                        student: item,
-                        columnKey: "actions",
-                        onRefresh: handleRefresh,
-                      })}
+                      <RenderCell
+                        student={item}
+                        columnKey="actions"
+                        onRefresh={handleRefresh}
+                      />
                     </td>
                   </tr>
                 ))}

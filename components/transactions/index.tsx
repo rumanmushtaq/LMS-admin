@@ -16,7 +16,6 @@ import {
   Undo2,
   X,
 } from "lucide-react";
-import { Spinner } from "@nextui-org/react";
 import paymentsService, { TransactionQuery } from "../../services/payments";
 import { formatMinor } from "../../utils/formatMoney";
 import { formatDate, formatDateTime } from "../../utils/formatDate";
@@ -223,12 +222,21 @@ export default function TransactionsView() {
                 <p className="text-xs uppercase tracking-wider text-gray-500 font-semibold">
                   {c.label}
                 </p>
-                <p className="text-2xl font-bold text-gray-800 mt-1">
-                  {s?.count ?? 0}
-                </p>
-                <p className="text-xs text-gray-500 mt-0.5">
-                  {formatMinor(s?.grossMinor ?? 0, "USD")}
-                </p>
+                {summaryQuery.isFetching ? (
+                  <>
+                    <div className="mt-2 h-7 w-10 rounded bg-gray-200 animate-pulse" />
+                    <div className="mt-1.5 h-3 w-16 rounded bg-gray-200 animate-pulse" />
+                  </>
+                ) : (
+                  <>
+                    <p className="text-2xl font-bold text-gray-800 mt-1">
+                      {s?.count ?? 0}
+                    </p>
+                    <p className="text-xs text-gray-500 mt-0.5">
+                      {formatMinor(s?.grossMinor ?? 0, "USD")}
+                    </p>
+                  </>
+                )}
               </div>
             );
           })}
@@ -314,12 +322,7 @@ export default function TransactionsView() {
 
         {/* Table */}
         <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden shadow-sm">
-          {listQuery.isLoading ? (
-            <div className="p-20 flex justify-center">
-              <Spinner size="lg" color="secondary" />
-            </div>
-          ) : (
-            <table className="w-full text-sm">
+          <table className="w-full text-sm">
               <thead className="bg-[#f4f4f5] text-gray-500 text-xs uppercase font-semibold border-b border-gray-200">
                 <tr>
                   <th className="p-3 text-left">Date</th>
@@ -331,46 +334,56 @@ export default function TransactionsView() {
                 </tr>
               </thead>
               <tbody>
-                {rows.map((t) => (
-                  <tr
-                    key={t._id}
-                    onClick={() => setSelected(t)}
-                    className="border-b border-gray-100 hover:bg-gray-50 transition cursor-pointer"
-                  >
-                    <td className="p-3 text-gray-600">
-                      {formatDate(t.createdAt)}
-                    </td>
-                    <td className="p-3 font-medium text-gray-800">
-                      {buyerLabel(t)}
-                    </td>
-                    <td className="p-3 capitalize text-gray-600">{t.area}</td>
-                    <td className="p-3 uppercase text-gray-600">
-                      {t.provider}
-                    </td>
-                    <td className="p-3 font-semibold text-[#7047EB]">
-                      {formatMinor(t.grossMinor, t.currency)}
-                    </td>
-                    <td className="p-3">
-                      <span
-                        className={`px-3 py-1 rounded-full text-xs font-medium capitalize ${
-                          STATUS_STYLES[t.status] || "bg-gray-100 text-gray-600"
-                        }`}
-                      >
-                        {t.status}
-                      </span>
-                    </td>
-                  </tr>
-                ))}
-                {rows.length === 0 && (
+                {listQuery.isFetching ? (
+                  Array.from({ length: 8 }).map((_, i) => (
+                    <tr key={`sk-${i}`} className="border-b border-gray-100">
+                      {Array.from({ length: 6 }).map((__, j) => (
+                        <td key={j} className="p-3">
+                          <div className="h-4 w-full max-w-[140px] rounded bg-gray-200 animate-pulse" />
+                        </td>
+                      ))}
+                    </tr>
+                  ))
+                ) : rows.length === 0 ? (
                   <tr>
                     <td colSpan={6} className="p-10 text-center text-gray-500">
                       No transactions found.
                     </td>
                   </tr>
+                ) : (
+                  rows.map((t) => (
+                    <tr
+                      key={t._id}
+                      onClick={() => setSelected(t)}
+                      className="border-b border-gray-100 hover:bg-gray-50 transition cursor-pointer"
+                    >
+                      <td className="p-3 text-gray-600">
+                        {formatDate(t.createdAt)}
+                      </td>
+                      <td className="p-3 font-medium text-gray-800">
+                        {buyerLabel(t)}
+                      </td>
+                      <td className="p-3 capitalize text-gray-600">{t.area}</td>
+                      <td className="p-3 uppercase text-gray-600">
+                        {t.provider}
+                      </td>
+                      <td className="p-3 font-semibold text-[#7047EB]">
+                        {formatMinor(t.grossMinor, t.currency)}
+                      </td>
+                      <td className="p-3">
+                        <span
+                          className={`px-3 py-1 rounded-full text-xs font-medium capitalize ${
+                            STATUS_STYLES[t.status] || "bg-gray-100 text-gray-600"
+                          }`}
+                        >
+                          {t.status}
+                        </span>
+                      </td>
+                    </tr>
+                  ))
                 )}
               </tbody>
             </table>
-          )}
         </div>
 
         {/* Pagination */}

@@ -172,3 +172,21 @@ html :is(p, h1, h2, h3, h4, h5, h6, li) {
       animation: none;
    }
 }
+
+/* Buttons always show a pointer cursor; disabled shows not-allowed. */
+button,
+[role="button"],
+a[href],
+label[for],
+summary,
+.nextui-button,
+select {
+   cursor: pointer;
+}
+
+button:disabled,
+button[disabled],
+[role="button"][aria-disabled="true"],
+.nextui-button:disabled {
+   cursor: not-allowed;
+}

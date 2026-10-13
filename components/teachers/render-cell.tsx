@@ -1,28 +1,8 @@
-import {
-  Col,
-  Row,
-  Text,
-  Tooltip,
-  User,
-  Dropdown,
-  Badge,
-  Button,
-} from "@nextui-org/react";
-import Link from "next/link";
+import { Row, Text, Tooltip, User, Badge } from "@nextui-org/react";
 import React from "react";
-import {
-  Eye,
-  Edit3,
-  MoreVertical,
-  Trash2,
-  Slash,
-  CheckCircle2,
-  ShieldCheck,
-  User as UserIcon,
-  BookOpen,
-  MessageCircle,
-} from "lucide-react";
+import { Eye, ShieldCheck, BookOpen, MessageCircle } from "lucide-react";
 import chatService from "../../services/chat";
+import { TeacherActionsMenu } from "./actions-menu";
 
 interface Props {
   teacher: any;
@@ -214,142 +194,12 @@ export const RenderCell = ({
             <Eye size={18} />
           </button>
 
-          <Dropdown placement="bottom-right">
-            <Dropdown.Trigger>
-              <div
-                role="button"
-                tabIndex={0}
-                aria-label="More actions"
-                className="p-2 rounded-lg hover:bg-accents1 transition-colors cursor-pointer text-accents7"
-              >
-                <MoreVertical size={18} />
-              </div>
-            </Dropdown.Trigger>
-            <Dropdown.Menu
-              aria-label="Teacher Actions"
-              css={{ borderRadius: "16px", minWidth: "180px" }}
-              onAction={(action) => {
-                if (action === "verify") {
-                  if (onVerify) onVerify();
-                } else if (action === "view" || action === "edit") {
-                  // No separate edit page yet: both open the detail view, where
-                  // the profile is edited. "edit" was previously a no-op.
-                  const id = teacher._id || teacher.id;
-                  const target =
-                    action === "edit"
-                      ? `/teachers/${id}?edit=1`
-                      : `/teachers/${id}`;
-                  if (router) {
-                    router.push(target);
-                  } else {
-                    window.location.href = target;
-                  }
-                } else if (action === "delete") {
-                  if (
-                    confirm(`Are you sure you want to delete ${getFullName()}?`)
-                  ) {
-                    import("../../services/admin").then(
-                      async ({ default: adminService }) => {
-                        try {
-                          await adminService.deleteUser(
-                            teacher._id || teacher.id,
-                          );
-                          alert("Teacher deleted successfully");
-                          if (onRefresh) onRefresh();
-                        } catch (error) {
-                          alert("Failed to delete teacher");
-                        }
-                      },
-                    );
-                  }
-                } else if (action === "suspend") {
-                  import("../../services/admin").then(
-                    async ({ default: adminService }) => {
-                      try {
-                        await adminService.suspendUser(
-                          teacher._id || teacher.id,
-                        );
-                        alert("Teacher suspended successfully");
-                        if (onRefresh) onRefresh();
-                      } catch (error) {
-                        alert("Failed to suspend teacher");
-                      }
-                    },
-                  );
-                } else if (action === "activate") {
-                  import("../../services/admin").then(
-                    async ({ default: adminService }) => {
-                      try {
-                        await adminService.activateUser(
-                          teacher._id || teacher.id,
-                        );
-                        alert("Teacher activated successfully");
-                        if (onRefresh) onRefresh();
-                      } catch (error) {
-                        alert("Failed to activate teacher");
-                      }
-                    },
-                  );
-                }
-              }}
-            >
-              <Dropdown.Section title="General">
-                <Dropdown.Item key="view" icon={<Eye size={18} />}>
-                  View Detail
-                </Dropdown.Item>
-                <Dropdown.Item key="edit" icon={<Edit3 size={18} />}>
-                  Edit Profile
-                </Dropdown.Item>
-              </Dropdown.Section>
-              <Dropdown.Section title="Verification">
-                <Dropdown.Item
-                  key="verify"
-                  color="secondary"
-                  icon={<ShieldCheck size={18} />}
-                  withDivider
-                >
-                  Verify Account
-                </Dropdown.Item>
-              </Dropdown.Section>
-              <Dropdown.Section title="Management">
-                {/*
-                  Exactly one of these is rendered — never both with one hidden
-                  by CSS. NextUI's Dropdown is a react-stately collection built
-                  from its rendered children, so a `display: none` item is still
-                  a real, focusable member of the list. Moving the pointer down
-                  the menu focuses items by collection index, and focusing a
-                  `display: none` node silently fails, which drops focus out of
-                  the menu's FocusScope and dismisses the whole dropdown before
-                  you can reach the items below it.
-                */}
-                {teacher.status === "active" ? (
-                  <Dropdown.Item
-                    key="suspend"
-                    color="warning"
-                    icon={<Slash size={18} />}
-                  >
-                    Suspend
-                  </Dropdown.Item>
-                ) : (
-                  <Dropdown.Item
-                    key="activate"
-                    color="success"
-                    icon={<CheckCircle2 size={18} />}
-                  >
-                    Activate
-                  </Dropdown.Item>
-                )}
-                <Dropdown.Item
-                  key="delete"
-                  color="error"
-                  icon={<Trash2 size={18} />}
-                  withDivider
-                >
-                  Delete Profile
-                </Dropdown.Item>
-              </Dropdown.Section>
-            </Dropdown.Menu>
-          </Dropdown>
+          <TeacherActionsMenu
+            teacher={teacher}
+            onRefresh={onRefresh}
+            onVerify={onVerify}
+            router={router}
+          />
         </Row>
       );
     default:

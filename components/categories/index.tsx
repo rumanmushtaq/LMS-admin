@@ -90,14 +90,17 @@ const CategoriesView = () => {
       </div>
 
       {isLoading ? (
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
-          {Array.from({ length: 8 }).map((_, i) => (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+          {Array.from({ length: 9 }).map((_, i) => (
             <div
               key={i}
-              className="rounded-2xl border border-[#ece9f6] bg-white p-4 animate-pulse"
+              className="flex items-center gap-3 rounded-2xl border border-[#ece9f6] bg-white p-3 animate-pulse"
             >
-              <div className="h-16 w-16 rounded-full bg-gray-200 mb-3" />
-              <div className="h-4 w-3/4 rounded bg-gray-200" />
+              <div className="h-14 w-14 shrink-0 rounded-full bg-gray-200" />
+              <div className="flex-1 space-y-2">
+                <div className="h-4 w-3/4 rounded bg-gray-200" />
+                <div className="h-3 w-1/2 rounded bg-gray-200" />
+              </div>
             </div>
           ))}
         </div>
@@ -108,55 +111,60 @@ const CategoriesView = () => {
           <p className="text-sm text-gray-400">Add your first category.</p>
         </div>
       ) : (
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
           {categories.map((category) => (
             <div
               key={category._id}
-              className="group relative rounded-2xl border border-[#ece9f6] bg-white p-4 shadow-sm transition-all hover:shadow-lg hover:-translate-y-0.5"
+              className="group relative flex items-center gap-3 rounded-2xl border border-[#ece9f6] bg-white p-3 pr-4 shadow-sm transition-all hover:shadow-md hover:border-[#7047EB]/30"
             >
-              <div className="flex items-start justify-between">
-                {category.image ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img
-                    src={category.image}
-                    alt={category.title}
-                    className="h-16 w-16 rounded-full object-cover border border-gray-100"
-                  />
-                ) : (
-                  <span className="flex h-16 w-16 items-center justify-center rounded-full bg-[#7047EB]/10 text-[#7047EB] font-bold text-xl">
-                    {category.title?.charAt(0)?.toUpperCase() || "?"}
-                  </span>
-                )}
-                <span
-                  className={`rounded-full px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide ${
-                    category.isActive
-                      ? "bg-green-100 text-green-700"
-                      : "bg-red-100 text-red-600"
-                  }`}
-                >
-                  {category.isActive ? "Active" : "Inactive"}
+              {category.image ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={category.image}
+                  alt={category.title}
+                  className="h-14 w-14 shrink-0 rounded-full object-cover border border-gray-100"
+                />
+              ) : (
+                <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-[#7047EB]/10 text-[#7047EB] font-bold text-lg">
+                  {category.title?.charAt(0)?.toUpperCase() || "?"}
                 </span>
-              </div>
+              )}
 
-              <h4 className="mt-3 font-bold text-gray-800 truncate" title={category.title}>
-                {category.title}
-              </h4>
+              <div className="min-w-0 flex-1">
+                <div className="flex items-center justify-between gap-2">
+                  <h4
+                    className="truncate text-sm font-bold text-gray-800"
+                    title={category.title}
+                  >
+                    {category.title}
+                  </h4>
+                  <span
+                    className={`shrink-0 rounded-full px-2 py-0.5 text-[9px] font-bold uppercase tracking-wide ${
+                      category.isActive
+                        ? "bg-green-100 text-green-700"
+                        : "bg-red-100 text-red-600"
+                    }`}
+                  >
+                    {category.isActive ? "Active" : "Inactive"}
+                  </span>
+                </div>
 
-              <div className="mt-3 flex items-center gap-1 border-t border-gray-100 pt-3">
-                <button
-                  onClick={() => handleEditClick(category)}
-                  className="inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium text-[#7047EB] hover:bg-[#7047EB]/10 transition-colors"
-                >
-                  <Pencil className="w-4 h-4" />
-                  Edit
-                </button>
-                <button
-                  onClick={() => handleDeleteClick(category._id)}
-                  className="inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium text-red-500 hover:bg-red-50 transition-colors"
-                >
-                  <Trash2 className="w-4 h-4" />
-                  Delete
-                </button>
+                <div className="mt-2 flex items-center gap-1">
+                  <button
+                    onClick={() => handleEditClick(category)}
+                    className="inline-flex items-center gap-1 rounded-lg px-2 py-1 text-xs font-medium text-[#7047EB] hover:bg-[#7047EB]/10 transition-colors"
+                  >
+                    <Pencil className="w-3.5 h-3.5" />
+                    Edit
+                  </button>
+                  <button
+                    onClick={() => handleDeleteClick(category._id)}
+                    className="inline-flex items-center gap-1 rounded-lg px-2 py-1 text-xs font-medium text-red-500 hover:bg-red-50 transition-colors"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
+                    Delete
+                  </button>
+                </div>
               </div>
             </div>
           ))}

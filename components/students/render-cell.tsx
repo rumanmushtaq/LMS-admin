@@ -1,11 +1,16 @@
-import { Col, Row, Text, Tooltip, User, Dropdown } from "@nextui-org/react";
+import { Col, Row, Text, Tooltip, User } from "@nextui-org/react";
 import React from "react";
 import { useRouter } from "next/router";
-import { DeleteIcon } from "../icons/table/delete-icon";
 import { EditIcon } from "../icons/table/edit-icon";
 import { EyeIcon } from "../icons/table/eye-icon";
-import { IconButton } from "../table/table.styled";
-import { MessageCircle } from "lucide-react";
+import {
+  MessageCircle,
+  Eye,
+  Slash,
+  CheckCircle2,
+  Trash2,
+} from "lucide-react";
+import { RowActionsMenu } from "../table/row-actions-menu";
 import chatService from "../../services/chat";
 import { formatDate } from "../../utils/formatDate";
 
@@ -144,102 +149,92 @@ export const RenderCell = ({ student, columnKey, onRefresh }: Props) => {
             <EditIcon size={20} fill="currentColor" />
           </button>
           <Col css={{ d: "flex" }}>
-            <Dropdown>
-              <Dropdown.Trigger>
-                <IconButton>
-                  <svg
-                    fill="none"
-                    height="16"
-                    shapeRendering="geometricPrecision"
-                    stroke="currentColor"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="1.5"
-                    viewBox="0 0 24 24"
-                    width="16"
-                  >
-                    <path d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z"></path>
-                  </svg>
-                </IconButton>
-              </Dropdown.Trigger>
-              <Dropdown.Menu
-                aria-label="Student Actions"
-                onAction={(action) => {
-                  if (action === "view") {
-                    const targetUrl = `/students/${student._id || student.id}`;
-                    if (router) {
-                      router.push(targetUrl);
-                    } else {
-                      window.location.href = targetUrl;
-                    }
-                  } else if (action === "delete") {
-                    if (
-                      confirm(
-                        `Are you sure you want to delete ${getFullName()}?`,
-                      )
-                    ) {
-                      import("../../services/admin").then(
-                        async ({ default: adminService }) => {
-                          try {
-                            await adminService.deleteStudent(
-                              student._id || student.id,
-                            );
-                            alert("Student deleted successfully");
-                            if (onRefresh) onRefresh();
-                          } catch (error) {
-                            console.error("Error deleting student:", error);
-                            alert("Failed to delete student");
-                          }
-                        },
-                      );
-                    }
-                  } else if (action === "suspend") {
-                    import("../../services/admin").then(
+            <RowActionsMenu
+              items={[
+                {
+                  key: "view",
+                  label: "View Student",
+                  icon: <Eye size={16} />,
+                  onSelect: () => {
+                    const url = `/students/${student._id || student.id}`;
+                    if (router) router.push(url);
+                    else window.location.href = url;
+                  },
+                },
+                {
+                  key: "suspend",
+                  label: "Suspend Student",
+                  icon: <Slash size={16} />,
+                  className: "text-amber-600",
+                  dividerBefore: true,
+                  onSelect: () => {
+                    void import("../../services/admin").then(
                       async ({ default: adminService }) => {
                         try {
                           await adminService.suspendStudent(
                             student._id || student.id,
                           );
                           alert("Student suspended successfully");
-                          if (onRefresh) onRefresh();
+                          onRefresh?.();
                         } catch (error) {
                           console.error("Error suspending student:", error);
                           alert("Failed to suspend student");
                         }
                       },
                     );
-                  } else if (action === "activate") {
-                    import("../../services/admin").then(
+                  },
+                },
+                {
+                  key: "activate",
+                  label: "Activate Student",
+                  icon: <CheckCircle2 size={16} />,
+                  className: "text-green-600",
+                  onSelect: () => {
+                    void import("../../services/admin").then(
                       async ({ default: adminService }) => {
                         try {
                           await adminService.activateStudent(
                             student._id || student.id,
                           );
                           alert("Student activated successfully");
-                          if (onRefresh) onRefresh();
+                          onRefresh?.();
                         } catch (error) {
                           console.error("Error activating student:", error);
                           alert("Failed to activate student");
                         }
                       },
                     );
-                  }
-                }}
-              >
-                <Dropdown.Item key="view" color="primary">
-                  View Student
-                </Dropdown.Item>
-                <Dropdown.Item key="suspend" color="warning">
-                  Suspend Student
-                </Dropdown.Item>
-                <Dropdown.Item key="activate" color="success">
-                  Activate Student
-                </Dropdown.Item>
-                <Dropdown.Item key="delete" color="error">
-                  Delete Student
-                </Dropdown.Item>
-              </Dropdown.Menu>
-            </Dropdown>
+                  },
+                },
+                {
+                  key: "delete",
+                  label: "Delete Student",
+                  icon: <Trash2 size={16} />,
+                  className: "text-red-600",
+                  dividerBefore: true,
+                  onSelect: () => {
+                    if (
+                      !confirm(`Are you sure you want to delete ${getFullName()}?`)
+                    )
+                      return;
+                    void import("../../services/admin").then(
+                      async ({ default: adminService }) => {
+                        try {
+                          await adminService.deleteStudent(
+                            student._id || student.id,
+                          );
+                          alert("Student deleted successfully");
+                          onRefresh?.();
+                        } catch (error) {
+                          console.error("Error deleting student:", error);
+                          alert("Failed to delete student");
+                        }
+                      },
+                    );
+                  },
+                },
+              ]}
+            />
           </Col>
         </Row>
       );

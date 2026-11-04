@@ -1,5 +1,6 @@
 import { Button, Input, Modal, Switch, Text } from "@nextui-org/react";
 import React, { useEffect, useState } from "react";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Flex } from "../styles/flex";
 import { categoriesService } from "../../services/categories";
 
@@ -19,7 +20,7 @@ export const AddCategoryModal = ({
   const [title, setTitle] = useState("");
   const [isActive, setIsActive] = useState(true);
   const [image, setImage] = useState<File | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
+  const queryClient = useQueryClient();
 
   useEffect(() => {
     if (editingCategory) {
@@ -31,29 +32,45 @@ export const AddCategoryModal = ({
     }
   }, [editingCategory, isOpen]);
 
-  const handleSubmit = async () => {
-    try {
-      setIsLoading(true);
-      const formData = new FormData();
-      formData.append("title", title);
-      formData.append("isActive", String(isActive));
-      if (image) {
-        formData.append("image", image);
+  const mutation = useMutation({
+    mutationFn: ({ id, formData }: { id?: string; formData: FormData }) =>
+      id
+        ? categoriesService.update(id, formData)
+        : categoriesService.create(formData),
+    onSuccess: (saved, { id }) => {
+      // Put the saved category into the list right away, then quietly
+      // re-sync ["categories"] in the background — the grid never blanks.
+      if (saved?._id) {
+        queryClient.setQueryData<any[]>(["categories"], (old) =>
+          old
+            ? id
+              ? old.map((c) => (c._id === id ? { ...c, ...saved } : c))
+              : [...old, saved]
+            : old,
+        );
       }
+      queryClient.invalidateQueries({ queryKey: ["categories"] });
 
-      if (editingCategory) {
-        await categoriesService.update(editingCategory._id, formData);
-        onSuccess("Category updated successfully");
-      } else {
-        await categoriesService.create(formData);
-        onSuccess("Category created successfully");
-      }
+      onSuccess(
+        id ? "Category updated successfully" : "Category created successfully",
+      );
       onClose();
-    } catch (error) {
+    },
+    onError: (error) => {
       console.error("Error saving category:", error);
-    } finally {
-      setIsLoading(false);
+    },
+  });
+  const isLoading = mutation.isPending;
+
+  const handleSubmit = () => {
+    const formData = new FormData();
+    formData.append("title", title);
+    formData.append("isActive", String(isActive));
+    if (image) {
+      formData.append("image", image);
     }
+
+    mutation.mutate({ id: editingCategory?._id, formData });
   };
 
   return (

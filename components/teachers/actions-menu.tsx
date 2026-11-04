@@ -1,5 +1,10 @@
 import React, { useEffect, useRef, useState } from "react";
 import {
+  useMutation,
+  useQueryClient,
+  type QueryClient,
+} from "@tanstack/react-query";
+import {
   Eye,
   Edit3,
   MoreVertical,
@@ -8,6 +13,37 @@ import {
   CheckCircle2,
   ShieldCheck,
 } from "lucide-react";
+
+/** One cached page of the teachers list, as table.tsx stores it. */
+export interface TeacherPage {
+  teachers: any[];
+  meta: { total: number; page: number; limit: number; totalPages: number };
+}
+
+/**
+ * Edits the rows of every cached ["teachers", ...] page — whichever page or
+ * filter the row is sitting on — so a change shows without a refetch.
+ */
+export const updateTeacherRows = (
+  queryClient: QueryClient,
+  fn: (rows: any[]) => any[],
+) =>
+  queryClient.setQueriesData<TeacherPage>({ queryKey: ["teachers"] }, (old) =>
+    old ? { ...old, teachers: fn(old.teachers) } : old,
+  );
+
+/** Sets one teacher's status in every cached list page. */
+export const setTeacherStatus = (
+  queryClient: QueryClient,
+  id: string,
+  status: string,
+) =>
+  updateTeacherRows(queryClient, (rows) =>
+    rows.map((t) => ((t._id || t.id) === id ? { ...t, status } : t)),
+  );
+
+const loadAdminService = () =>
+  import("../../services/admin").then((m) => m.default);
 
 interface Props {
   teacher: any;
@@ -32,10 +68,83 @@ export const TeacherActionsMenu = ({
   onVerify,
   router,
 }: Props) => {
+  const queryClient = useQueryClient();
   const [open, setOpen] = useState(false);
   const wrapperRef = useRef<HTMLDivElement>(null);
   const id = teacher._id || teacher.id;
   const isActive = teacher.status === "active";
+
+  /** Quietly refetch the list (and this teacher's detail page) in the background. */
+  const refreshQuietly = () => {
+    queryClient.invalidateQueries({ queryKey: ["teachers"] });
+    queryClient.invalidateQueries({ queryKey: ["teacher", id] });
+  };
+
+  const deleteMutation = useMutation({
+    mutationFn: async () => (await loadAdminService()).deleteUser(id),
+    onSuccess: () => {
+      // Drop the row right away; the rest of the table stays put.
+      queryClient.setQueriesData<TeacherPage>(
+        { queryKey: ["teachers"] },
+        (old) => {
+          if (!old) return old;
+          const teachers = old.teachers.filter((t) => (t._id || t.id) !== id);
+          if (teachers.length === old.teachers.length) return old;
+          return {
+            ...old,
+            teachers,
+            meta: { ...old.meta, total: Math.max(0, old.meta.total - 1) },
+          };
+        },
+      );
+      alert("Teacher deleted successfully");
+      refreshQuietly();
+      onRefresh?.();
+    },
+    onError: () => {
+      alert("Failed to delete teacher");
+    },
+  });
+
+  const statusMutation = useMutation({
+    mutationFn: async (action: "suspend" | "activate") => {
+      const adminService = await loadAdminService();
+      return action === "suspend"
+        ? adminService.suspendUser(id)
+        : adminService.activateUser(id);
+    },
+    onMutate: async (action) => {
+      // Flip the badge immediately and keep a snapshot to revert to.
+      await queryClient.cancelQueries({ queryKey: ["teachers"] });
+      const previous = queryClient.getQueriesData<TeacherPage>({
+        queryKey: ["teachers"],
+      });
+      setTeacherStatus(
+        queryClient,
+        id,
+        action === "suspend" ? "suspended" : "active",
+      );
+      return { previous };
+    },
+    onSuccess: (_res, action) => {
+      alert(
+        action === "suspend"
+          ? "Teacher suspended successfully"
+          : "Teacher activated successfully",
+      );
+      // With a status filter applied the row may no longer belong in the
+      // list, so refresh — quietly, without blanking the table.
+      refreshQuietly();
+      onRefresh?.();
+    },
+    onError: (_err, action, context) => {
+      // Put the rows back the way they were; the server never accepted it.
+      context?.previous.forEach(([key, data]) =>
+        queryClient.setQueryData(key, data),
+      );
+      alert(`Failed to ${action} teacher`);
+    },
+  });
 
   const getFullName = () =>
     `${teacher.firstName || ""} ${teacher.lastName || ""}`.trim() ||
@@ -70,32 +179,11 @@ export const TeacherActionsMenu = ({
     if (action === "verify") return onVerify?.();
     if (action === "delete") {
       if (!confirm(`Are you sure you want to delete ${getFullName()}?`)) return;
-      void import("../../services/admin").then(async ({ default: adminService }) => {
-        try {
-          await adminService.deleteUser(id);
-          alert("Teacher deleted successfully");
-          onRefresh?.();
-        } catch {
-          alert("Failed to delete teacher");
-        }
-      });
+      deleteMutation.mutate();
       return;
     }
     // suspend | activate
-    void import("../../services/admin").then(async ({ default: adminService }) => {
-      try {
-        if (action === "suspend") {
-          await adminService.suspendUser(id);
-          alert("Teacher suspended successfully");
-        } else {
-          await adminService.activateUser(id);
-          alert("Teacher activated successfully");
-        }
-        onRefresh?.();
-      } catch {
-        alert(`Failed to ${action} teacher`);
-      }
-    });
+    statusMutation.mutate(action);
   };
 
   const itemClass =

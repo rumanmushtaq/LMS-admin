@@ -1,6 +1,11 @@
 import { Button, Input, Modal, Text } from "@nextui-org/react";
 import React, { useEffect, useState } from "react";
-import { securityService } from "../../services/security";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import {
+  securityService,
+  type IpRow,
+  type WhitelistEntry,
+} from "../../services/security";
 
 interface Props {
   isOpen: boolean;
@@ -19,7 +24,8 @@ export const WhitelistModal = ({
   const [ip, setIp] = useState("");
   const [label, setLabel] = useState("");
   const [error, setError] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
+
+  const queryClient = useQueryClient();
 
   useEffect(() => {
     if (isOpen) {
@@ -29,21 +35,45 @@ export const WhitelistModal = ({
     }
   }, [isOpen, prefillIp]);
 
-  const handleSubmit = async () => {
-    try {
-      setIsLoading(true);
-      setError(null);
-      await securityService.addWhitelist({
-        ip: ip.trim(),
-        label: label.trim(),
-      });
-      onSuccess(`${ip.trim()} whitelisted`);
+  const addMutation = useMutation({
+    mutationFn: (payload: { ip: string; label: string }) =>
+      securityService.addWhitelist(payload),
+    onSuccess: (entry, payload) => {
+      // Add the entry and flag the IP row right away; the quiet refetch
+      // below brings the rest of the page in line.
+      if (entry?._id) {
+        queryClient.setQueryData<WhitelistEntry[]>(
+          ["security", "whitelist"],
+          (old) =>
+            old ? [entry, ...old.filter((w) => w.key !== entry.key)] : old,
+        );
+      }
+      queryClient.setQueriesData<{ items: IpRow[] }>(
+        { queryKey: ["security", "ips"] },
+        (old) =>
+          old
+            ? {
+                ...old,
+                items: old.items.map((row) =>
+                  row.ip === payload.ip ? { ...row, whitelisted: true } : row,
+                ),
+              }
+            : old,
+      );
+      queryClient.invalidateQueries({ queryKey: ["security"] });
+
+      onSuccess(`${payload.ip} whitelisted`);
       onClose();
-    } catch (e: any) {
+    },
+    onError: (e: any) => {
       setError(e?.response?.data?.message ?? "Failed to add to whitelist.");
-    } finally {
-      setIsLoading(false);
-    }
+    },
+  });
+  const isLoading = addMutation.isPending;
+
+  const handleSubmit = () => {
+    setError(null);
+    addMutation.mutate({ ip: ip.trim(), label: label.trim() });
   };
 
   return (

@@ -1,13 +1,13 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { Tags, Pencil, Trash2, Plus, FolderOpen } from "lucide-react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { categoriesService } from "../../services/categories";
 import { AddCategoryModal } from "./AddCategoryModal";
 import { CategoryDeleteModal } from "./CategoryDeleteModal";
 import { CategorySuccessModal } from "./CategorySuccessModal";
 
 const CategoriesView = () => {
-  const [categories, setCategories] = useState<any[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const queryClient = useQueryClient();
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
   const [successMessage, setSuccessMessage] = useState("");
@@ -17,40 +17,52 @@ const CategoriesView = () => {
   const [editingCategory, setEditingCategory] = useState<any | null>(null);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
 
-  const fetchCategories = async () => {
-    try {
-      setIsLoading(true);
-      const data = await categoriesService.getAll();
-      setCategories(data);
-    } catch (error) {
-      console.error("Error fetching categories:", error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  const { data, isPending } = useQuery({
+    queryKey: ["categories"],
+    queryFn: async (): Promise<any[]> => {
+      try {
+        const list = await categoriesService.getAll();
+        return Array.isArray(list) ? list : [];
+      } catch (error) {
+        console.error("Error fetching categories:", error);
+        throw error;
+      }
+    },
+  });
 
-  useEffect(() => {
-    fetchCategories();
-  }, []);
+  const categories = data ?? [];
+  // Skeleton only on the very first load; later refreshes keep the cards.
+  const isLoading = isPending;
+
+  const deleteMutation = useMutation({
+    mutationFn: (id: string) => categoriesService.delete(id),
+    onSuccess: (_res, id) => {
+      // Drop the card right away; the rest of the grid stays put.
+      queryClient.setQueryData<any[]>(["categories"], (old) =>
+        old ? old.filter((c) => c._id !== id) : old,
+      );
+      setSuccessMessage("Category deleted successfully");
+      setIsSuccessModalOpen(true);
+      // Quietly re-sync with the server; the cached cards stay on screen.
+      queryClient.invalidateQueries({ queryKey: ["categories"] });
+    },
+    onError: (error) => {
+      console.error("Error deleting category:", error);
+    },
+    onSettled: () => {
+      setIsDeleteModalOpen(false);
+      setSelectedCategoryId(null);
+    },
+  });
 
   const handleDeleteClick = (id: string) => {
     setSelectedCategoryId(id);
     setIsDeleteModalOpen(true);
   };
 
-  const handleDeleteConfirm = async () => {
+  const handleDeleteConfirm = () => {
     if (!selectedCategoryId) return;
-    try {
-      await categoriesService.delete(selectedCategoryId);
-      setSuccessMessage("Category deleted successfully");
-      setIsSuccessModalOpen(true);
-      fetchCategories();
-    } catch (error) {
-      console.error("Error deleting category:", error);
-    } finally {
-      setIsDeleteModalOpen(false);
-      setSelectedCategoryId(null);
-    }
+    deleteMutation.mutate(selectedCategoryId);
   };
 
   const handleEditClick = (category: any) => {
@@ -63,10 +75,10 @@ const CategoriesView = () => {
     setIsAddModalOpen(true);
   };
 
+  // AddCategoryModal updates the ["categories"] cache itself.
   const handleSuccess = (message: string) => {
     setSuccessMessage(message);
     setIsSuccessModalOpen(true);
-    fetchCategories();
   };
 
   return (

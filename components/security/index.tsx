@@ -9,6 +9,12 @@ import {
   Tooltip,
 } from "@nextui-org/react";
 import React, { useCallback, useEffect, useRef, useState } from "react";
+import {
+  keepPreviousData,
+  useMutation,
+  useQuery,
+  useQueryClient,
+} from "@tanstack/react-query";
 import { Box } from "../styles/box";
 import { Flex } from "../styles/flex";
 import { SecurityIcon } from "../icons/sidebar/security-icon";
@@ -17,8 +23,6 @@ import {
   type AuditEntry,
   type BlockEntry,
   type IpRow,
-  type SecurityStats,
-  type TimeseriesPoint,
   type WhitelistEntry,
 } from "../../services/security";
 import { StatCards } from "./StatCards";
@@ -33,6 +37,8 @@ type Tab = "ips" | "blocked" | "whitelist" | "audit";
 const PAGE_SIZE = 10;
 const REFRESH_MS = 30_000;
 
+type IpPage = Awaited<ReturnType<typeof securityService.listIps>>;
+
 const ACTION_LABEL: Record<
   AuditEntry["action"],
   { text: string; tone: "red" | "purple" | "green" | "blue" | "gray" }
@@ -45,27 +51,18 @@ const ACTION_LABEL: Record<
 };
 
 const SecurityView = () => {
+  const queryClient = useQueryClient();
+
   const [tab, setTab] = useState<Tab>("ips");
-  const [stats, setStats] = useState<SecurityStats | null>(null);
-  const [points, setPoints] = useState<TimeseriesPoint[]>([]);
-  const [myIp, setMyIp] = useState<string | null>(null);
 
   // All IPs tab
-  const [ips, setIps] = useState<IpRow[]>([]);
-  const [ipsError, setIpsError] = useState<string | null>(null);
-  const [ipsTotal, setIpsTotal] = useState(0);
   const [ipsPage, setIpsPage] = useState(1);
   const [search, setSearch] = useState("");
-  const [ipsLoading, setIpsLoading] = useState(true);
+  const [debouncedSearch, setDebouncedSearch] = useState("");
 
   // Other tabs
-  const [blocks, setBlocks] = useState<BlockEntry[]>([]);
-  const [whitelist, setWhitelist] = useState<WhitelistEntry[]>([]);
-  const [audit, setAudit] = useState<AuditEntry[]>([]);
-  const [auditTotal, setAuditTotal] = useState(0);
   const [auditPage, setAuditPage] = useState(1);
   const [auditSearch, setAuditSearch] = useState("");
-  const [tabLoading, setTabLoading] = useState(false);
 
   // Modals
   const [blockTarget, setBlockTarget] = useState<IpRow | null>(null);
@@ -85,109 +82,152 @@ const SecurityView = () => {
     bannerTimer.current = setTimeout(() => setBanner(null), 4000);
   }, []);
 
-  const loadHeadline = useCallback(async () => {
-    try {
-      const [s, ts] = await Promise.all([
-        securityService.stats(24),
-        securityService.timeseries(168),
-      ]);
-      setStats(s);
-      setPoints(ts);
-    } catch {
-      /* headline refresh failing silently is fine; tables surface errors */
-    }
-  }, []);
+  // Headline refresh failing silently is fine; tables surface errors.
+  const { data: stats = null } = useQuery({
+    queryKey: ["security", "stats", 24],
+    queryFn: () => securityService.stats(24),
+    refetchInterval: REFRESH_MS,
+  });
 
-  const loadIps = useCallback(async () => {
-    try {
-      setIpsLoading(true);
-      setIpsError(null);
-      const result = await securityService.listIps({
+  const { data: points = [] } = useQuery({
+    queryKey: ["security", "timeseries", 168],
+    queryFn: () => securityService.timeseries(168),
+    refetchInterval: REFRESH_MS,
+  });
+
+  const { data: myIp = null } = useQuery({
+    queryKey: ["security", "whoami"],
+    queryFn: async () => (await securityService.whoami()).ip,
+    staleTime: Infinity,
+  });
+
+  useEffect(() => {
+    const t = setTimeout(
+      () => {
+        setDebouncedSearch(search.trim());
+      },
+      search ? 350 : 0,
+    ); // debounce typing
+    return () => clearTimeout(t);
+  }, [search]);
+
+  const ipsQuery = useQuery({
+    queryKey: ["security", "ips", ipsPage, debouncedSearch],
+    queryFn: () =>
+      securityService.listIps({
         page: ipsPage,
         limit: PAGE_SIZE,
-        search: search.trim() || undefined,
+        search: debouncedSearch || undefined,
         hours: 24,
         sort: "lastSeen",
-      });
-      setIps(result.items);
-      setIpsTotal(result.total);
-    } catch (err: any) {
-      // A failed load must not masquerade as "no traffic" — surface it so the
-      // real cause (backend down, not an admin, endpoint missing) is visible.
-      const status = err?.response?.status;
-      setIpsError(
-        status === 401 || status === 403
-          ? "Not authorized to view security data. Sign in as an admin."
-          : status
-            ? `Failed to load IP activity (HTTP ${status}). Is the API running?`
-            : "Couldn't reach the API. Check that the backend is running.",
+      }),
+    // Keep the current rows on screen while the next page/search loads, so
+    // only the very first load shows the spinner.
+    placeholderData: keepPreviousData,
+    // Surface a failure straight away rather than after silent retries.
+    retry: false,
+  });
+
+  const ips = ipsQuery.data?.items ?? [];
+  const ipsTotal = ipsQuery.data?.total ?? 0;
+  const ipsLoading = ipsQuery.isPending;
+
+  // A failed load must not masquerade as "no traffic" — surface it so the
+  // real cause (backend down, not an admin, endpoint missing) is visible.
+  const ipsStatus = (ipsQuery.error as any)?.response?.status;
+  const ipsError = !ipsQuery.isError
+    ? null
+    : ipsStatus === 401 || ipsStatus === 403
+      ? "Not authorized to view security data. Sign in as an admin."
+      : ipsStatus
+        ? `Failed to load IP activity (HTTP ${ipsStatus}). Is the API running?`
+        : "Couldn't reach the API. Check that the backend is running.";
+
+  // Each tab only loads once it's opened; on failure the last data stays.
+  const blocksQuery = useQuery({
+    queryKey: ["security", "blocks"],
+    queryFn: () => securityService.listBlocks(),
+    enabled: tab === "blocked",
+  });
+  const blocks = blocksQuery.data ?? [];
+
+  const whitelistQuery = useQuery({
+    queryKey: ["security", "whitelist"],
+    queryFn: () => securityService.listWhitelist(),
+    enabled: tab === "whitelist",
+  });
+  const whitelist = whitelistQuery.data ?? [];
+
+  const auditQuery = useQuery({
+    queryKey: ["security", "audit", auditPage, auditSearch.trim()],
+    queryFn: () =>
+      securityService.audit({
+        page: auditPage,
+        limit: 50,
+        search: auditSearch.trim() || undefined,
+      }),
+    enabled: tab === "audit",
+    placeholderData: keepPreviousData,
+  });
+  const audit = auditQuery.data?.items ?? [];
+  const auditTotal = auditQuery.data?.total ?? 0;
+
+  /** Edits every cached page of the IP list — no refetch, no spinner. */
+  const updateIpRows = (fn: (row: IpRow) => IpRow) =>
+    queryClient.setQueriesData<IpPage>(
+      { queryKey: ["security", "ips"] },
+      (old) => (old ? { ...old, items: old.items.map(fn) } : old),
+    );
+
+  /** Quietly refetch everything security-related; cached rows stay on screen. */
+  const refreshEverything = () =>
+    queryClient.invalidateQueries({ queryKey: ["security"] });
+
+  const unblockMutation = useMutation({
+    mutationFn: ({ key, reason }: { key: string; reason?: string }) =>
+      securityService.unblock(key, reason),
+    onSuccess: (_res, { key }) => {
+      // Drop the block and free the row right away; the rest stays put.
+      queryClient.setQueryData<BlockEntry[]>(["security", "blocks"], (old) =>
+        old ? old.filter((b) => b.key !== key) : old,
       );
-    } finally {
-      setIpsLoading(false);
-    }
-  }, [ipsPage, search]);
-
-  const loadTab = useCallback(async () => {
-    try {
-      setTabLoading(true);
-      if (tab === "blocked") setBlocks(await securityService.listBlocks());
-      if (tab === "whitelist")
-        setWhitelist(await securityService.listWhitelist());
-      if (tab === "audit") {
-        const result = await securityService.audit({
-          page: auditPage,
-          limit: 50,
-          search: auditSearch.trim() || undefined,
-        });
-        setAudit(result.items);
-        setAuditTotal(result.total);
-      }
-    } catch {
-      /* keep last data */
-    } finally {
-      setTabLoading(false);
-    }
-  }, [tab, auditPage, auditSearch]);
-
-  useEffect(() => {
-    loadHeadline();
-    securityService
-      .whoami()
-      .then((w) => setMyIp(w.ip))
-      .catch(() => undefined);
-    const interval = setInterval(loadHeadline, REFRESH_MS);
-    return () => clearInterval(interval);
-  }, [loadHeadline]);
-
-  useEffect(() => {
-    const t = setTimeout(loadIps, search ? 350 : 0); // debounce typing
-    return () => clearTimeout(t);
-  }, [loadIps, search]);
-
-  useEffect(() => {
-    if (tab !== "ips") loadTab();
-  }, [tab, loadTab]);
-
-  const refreshEverything = () => {
-    loadHeadline();
-    loadIps();
-    if (tab !== "ips") loadTab();
-  };
-
-  const handleUnblock = async () => {
-    if (!unblockTarget) return;
-    try {
-      await securityService.unblock(
-        unblockTarget.key,
-        unblockReason.trim() || undefined,
+      updateIpRows((row) =>
+        row.ip === key ? { ...row, status: "active", blockId: null } : row,
       );
-      showBanner(`${unblockTarget.key} unblocked`);
+      showBanner(`${key} unblocked`);
       setUnblockTarget(null);
       setUnblockReason("");
       refreshEverything();
-    } catch {
+    },
+    onError: () => {
       showBanner("Failed to unblock — try again");
-    }
+    },
+  });
+
+  const removeWhitelistMutation = useMutation({
+    mutationFn: (key: string) => securityService.removeWhitelist(key),
+    onSuccess: (_res, key) => {
+      queryClient.setQueryData<WhitelistEntry[]>(
+        ["security", "whitelist"],
+        (old) => (old ? old.filter((w) => w.key !== key) : old),
+      );
+      updateIpRows((row) =>
+        row.ip === key ? { ...row, whitelisted: false } : row,
+      );
+      showBanner(`${key} removed from whitelist`);
+      refreshEverything();
+    },
+    onError: () => {
+      showBanner("Failed to remove entry");
+    },
+  });
+
+  const handleUnblock = () => {
+    if (!unblockTarget) return;
+    unblockMutation.mutate({
+      key: unblockTarget.key,
+      reason: unblockReason.trim() || undefined,
+    });
   };
 
   const tabs: Array<{ id: Tab; label: string }> = [
@@ -332,7 +372,7 @@ const SecurityView = () => {
               <Text css={{ color: "$error", textAlign: "center", m: 0 }}>
                 {ipsError}
               </Text>
-              <Button auto flat size="sm" onPress={() => loadIps()}>
+              <Button auto flat size="sm" onPress={() => ipsQuery.refetch()}>
                 Retry
               </Button>
             </Flex>
@@ -447,7 +487,7 @@ const SecurityView = () => {
 
       {/* ─── Blocked ─────────────────────────────────────────────────────── */}
       {tab === "blocked" &&
-        (tabLoading ? (
+        (blocksQuery.isPending ? (
           <Flex justify="center" css={{ py: "$12" }}>
             <Loading />
           </Flex>
@@ -530,7 +570,7 @@ const SecurityView = () => {
               Add entry
             </Button>
           </Flex>
-          {tabLoading ? (
+          {whitelistQuery.isPending ? (
             <Flex justify="center" css={{ py: "$12" }}>
               <Loading />
             </Flex>
@@ -565,15 +605,11 @@ const SecurityView = () => {
                         light
                         color="error"
                         size="xs"
-                        onClick={async () => {
-                          try {
-                            await securityService.removeWhitelist(entry.key);
-                            showBanner(`${entry.key} removed from whitelist`);
-                            refreshEverything();
-                          } catch {
-                            showBanner("Failed to remove entry");
-                          }
-                        }}
+                        // A second click would send a second DELETE.
+                        disabled={removeWhitelistMutation.isPending}
+                        onClick={() =>
+                          removeWhitelistMutation.mutate(entry.key)
+                        }
                       >
                         Remove
                       </Button>
@@ -604,7 +640,7 @@ const SecurityView = () => {
               aria-label="Search audit log"
             />
           </Flex>
-          {tabLoading ? (
+          {auditQuery.isPending ? (
             <Flex justify="center" css={{ py: "$12" }}>
               <Loading />
             </Flex>
@@ -664,10 +700,7 @@ const SecurityView = () => {
       <BlockIpModal
         isOpen={isBlockOpen}
         onClose={() => setIsBlockOpen(false)}
-        onSuccess={(m) => {
-          showBanner(m);
-          refreshEverything();
-        }}
+        onSuccess={showBanner}
         target={blockTarget}
         myIp={myIp}
       />
@@ -675,10 +708,7 @@ const SecurityView = () => {
       <WhitelistModal
         isOpen={isWhitelistOpen}
         onClose={() => setIsWhitelistOpen(false)}
-        onSuccess={(m) => {
-          showBanner(m);
-          refreshEverything();
-        }}
+        onSuccess={showBanner}
         prefillIp={whitelistPrefill}
       />
 
@@ -712,7 +742,11 @@ const SecurityView = () => {
           <Button auto flat onClick={() => setUnblockTarget(null)}>
             Cancel
           </Button>
-          <Button auto onClick={handleUnblock}>
+          <Button
+            auto
+            disabled={unblockMutation.isPending}
+            onClick={handleUnblock}
+          >
             Unblock
           </Button>
         </Modal.Footer>

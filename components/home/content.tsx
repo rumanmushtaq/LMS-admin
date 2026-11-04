@@ -1,4 +1,5 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { Text, Link, Spinner } from '@nextui-org/react';
 import dynamic from 'next/dynamic';
 import NextLink from 'next/link';
@@ -31,78 +32,70 @@ const todayLabel = () =>
    });
 
 export const Content = () => {
-   const [stats, setStats] = useState<any>(null);
-   const [growth, setGrowth] = useState<any>(null);
-   const [txnSummary, setTxnSummary] = useState<any>(null);
-   const [classesCount, setClassesCount] = useState<number | null>(null);
-   const [productsCount, setProductsCount] = useState<number | null>(null);
-   const [statsLoading, setStatsLoading] = useState(true);
-   const [txnLoading, setTxnLoading] = useState(true);
-   const [classesLoading, setClassesLoading] = useState(true);
-   const [productsLoading, setProductsLoading] = useState(true);
-   const [chartLoading, setChartLoading] = useState(true);
-
-   useEffect(() => {
-      const fetchStats = async () => {
+   // Each tile loads on its own, so a slow or failing source only holds up
+   // its own card. Errors are logged and the card falls back to zero.
+   const { data: stats = null, isPending: statsLoading } = useQuery({
+      queryKey: ['dashboard', 'stats'],
+      queryFn: async () => {
          try {
             const data = await adminService.getDashboardStats();
-            if (data) setStats(unwrap(data));
+            return data ? unwrap(data) : null;
          } catch (error) {
             console.error('Failed to fetch dashboard stats', error);
-         } finally {
-            setStatsLoading(false);
+            throw error;
          }
-      };
-      const fetchGrowth = async () => {
+      },
+   });
+   const { data: growth = null, isPending: chartLoading } = useQuery({
+      queryKey: ['dashboard', 'growth', 12],
+      queryFn: async () => {
          try {
             const data = await adminService.getGrowthAnalytics(12);
-            if (data) setGrowth(unwrap(data));
+            return data ? unwrap(data) : null;
          } catch (error) {
             console.error('Failed to fetch growth analytics', error);
-         } finally {
-            setChartLoading(false);
+            throw error;
          }
-      };
-      const fetchTransactions = async () => {
+      },
+   });
+   const { data: txnSummary = null, isPending: txnLoading } = useQuery({
+      queryKey: ['dashboard', 'transactions-summary'],
+      queryFn: async () => {
          try {
             const data = await paymentsService.getSummary({});
-            if (data) setTxnSummary(data);
+            return data ?? null;
          } catch (error) {
             console.error('Failed to fetch transaction summary', error);
-         } finally {
-            setTxnLoading(false);
+            throw error;
          }
-      };
-      const fetchClasses = async () => {
+      },
+   });
+   const { data: classesCount = null, isPending: classesLoading } = useQuery({
+      queryKey: ['dashboard', 'classes-count'],
+      queryFn: async (): Promise<number> => {
          try {
             const res = await getAllClasses();
             const list = res?.data?.data ?? res?.data ?? res;
-            setClassesCount(
-               Array.isArray(list) ? list.length : list?.total ?? 0,
-            );
+            return Array.isArray(list) ? list.length : list?.total ?? 0;
          } catch (error) {
             console.error('Failed to fetch classes', error);
-         } finally {
-            setClassesLoading(false);
+            throw error;
          }
-      };
-      const fetchProducts = async () => {
+      },
+   });
+   const { data: productsCount = null, isPending: productsLoading } = useQuery({
+      queryKey: ['dashboard', 'products-count'],
+      queryFn: async (): Promise<number> => {
          try {
             const res = await adminService.getProducts({ page: 1, limit: 1 });
             const payload = res?.data ?? res;
-            setProductsCount(payload?.totalCount ?? 0);
+            return payload?.totalCount ?? 0;
          } catch (error) {
             console.error('Failed to fetch products', error);
-         } finally {
-            setProductsLoading(false);
+            throw error;
          }
-      };
-      fetchStats();
-      fetchGrowth();
-      fetchTransactions();
-      fetchClasses();
-      fetchProducts();
-   }, []);
+      },
+   });
 
    const paid = txnSummary?.byStatus?.paid;
    const paidCount = paid?.count ?? 0;

@@ -1,5 +1,6 @@
 import { Text, Tooltip, Row, Col, Modal, Button, Textarea } from "@nextui-org/react";
 import React, { useState } from "react";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { DeleteIcon } from "../icons/table/delete-icon";
 import { IconButton, StyledBadge } from "../table/table.styled";
 import { cancelClassAsAdmin, ClassSession, ClassStatus } from "../../services/classes";
@@ -16,24 +17,43 @@ export const RenderCell = ({
   columnKey,
   onRefresh,
 }: Props): React.ReactElement => {
-  const [isCancelling, setIsCancelling] = useState(false);
+  const queryClient = useQueryClient();
   const [modalVisible, setModalVisible] = useState(false);
   const [cancelReason, setCancelReason] = useState("");
 
   // Cancel (not delete): the record stays, students get notified, and the
   // backend's tutor 3-strike policy keeps its audit trail.
-  const handleCancel = async () => {
-    setIsCancelling(true);
-    try {
-      await cancelClassAsAdmin(classItem._id, cancelReason.trim() || undefined);
+  const cancelMutation = useMutation({
+    mutationFn: (reason?: string) => cancelClassAsAdmin(classItem._id, reason),
+    onSuccess: (_res, reason) => {
+      // Mark the row Cancelled in every cached ["classes", ...] list right
+      // away; onRefresh then re-syncs quietly (a filtered tab drops the row).
+      queryClient.setQueriesData<ClassSession[]>(
+        { queryKey: ["classes"] },
+        (old) =>
+          old?.map((c) =>
+            c._id === classItem._id
+              ? {
+                  ...c,
+                  status: ClassStatus.CANCELLED,
+                  cancelReason: reason ?? null,
+                  cancelledByRole: "admin",
+                }
+              : c,
+          ),
+      );
       setModalVisible(false);
       setCancelReason("");
       onRefresh();
-    } catch (error) {
+    },
+    onError: (error) => {
       console.error("Failed to cancel class:", error);
-    } finally {
-      setIsCancelling(false);
-    }
+    },
+  });
+  const isCancelling = cancelMutation.isPending;
+
+  const handleCancel = () => {
+    cancelMutation.mutate(cancelReason.trim() || undefined);
   };
 
   const isCancellable =

@@ -1,8 +1,31 @@
 import { Row, Text, Tooltip, User, Badge } from "@nextui-org/react";
 import React from "react";
 import { Eye, ShieldCheck, BookOpen, MessageCircle } from "lucide-react";
-import chatService from "../../services/chat";
+import { useStartChat } from "../../hooks/useStartChat";
 import { TeacherActionsMenu } from "./actions-menu";
+
+/**
+ * Its own component so the mutation hook isn't called inside RenderCell's
+ * switch (hooks can't be conditional).
+ */
+const ChatButton = ({ userId, label }: { userId: string; label: string }) => {
+  const startChat = useStartChat();
+  return (
+    <button
+      type="button"
+      title={label}
+      aria-label={label}
+      disabled={startChat.isPending}
+      onClick={(e) => {
+        e.stopPropagation();
+        startChat.mutate(userId);
+      }}
+      className="p-2 rounded-lg text-[#7047EB] hover:bg-[#7047EB]/10 transition-colors disabled:opacity-50"
+    >
+      <MessageCircle size={18} />
+    </button>
+  );
+};
 
 interface Props {
   teacher: any;
@@ -147,33 +170,7 @@ export const RenderCell = ({
             <ShieldCheck size={18} />
           </button>
 
-          <button
-            type="button"
-            title="Chat with Tutor"
-            aria-label="Chat with tutor"
-            onClick={async (e) => {
-              e.stopPropagation();
-              try {
-                const id = teacher._id || teacher.id;
-                const res = await chatService.initConversation(id);
-                const convId = res?.data?._id || res?._id;
-                const targetUrl = convId
-                  ? `/chat?openConversation=${convId}`
-                  : "/chat";
-                if (router) {
-                  router.push(targetUrl);
-                } else {
-                  window.location.href = targetUrl;
-                }
-              } catch (err) {
-                console.error(err);
-                alert("Failed to initiate chat.");
-              }
-            }}
-            className="p-2 rounded-lg text-[#7047EB] hover:bg-[#7047EB]/10 transition-colors"
-          >
-            <MessageCircle size={18} />
-          </button>
+          <ChatButton userId={teacher._id || teacher.id} label="Chat with Tutor" />
 
           <button
             type="button"

@@ -1,6 +1,7 @@
 import { Table, Loading, Text } from "@nextui-org/react";
 import { useRouter } from "next/router";
-import React, { useCallback, useEffect, useState } from "react";
+import React from "react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import adminService from "../../services/admin";
 import { Box } from "../styles/box";
 import { Flex } from "../styles/flex";
@@ -20,42 +21,52 @@ export const TableWrapper = ({
   rowsPerPage = 8,
 }: TableWrapperProps) => {
   const router = useRouter();
-  const [users, setUsers] = useState<RowUser[]>([]);
-  const [loading, setLoading] = useState(true);
+  const queryClient = useQueryClient();
+  const usersKey = ["dashboard", "latest-users", limit] as const;
 
-  const load = useCallback(async () => {
-    setLoading(true);
-    try {
-      const res = await adminService.getUsers({
-        page: 1,
-        limit,
-        sortBy: "createdAt",
-        sortOrder: "desc",
-      });
-      setUsers(extractUsers(res).map(toRow));
-    } catch (error) {
-      console.error("Failed to load users", error);
-      setUsers([]);
-    } finally {
-      setLoading(false);
-    }
-  }, [limit]);
+  const { data, isPending } = useQuery({
+    queryKey: usersKey,
+    queryFn: async (): Promise<RowUser[]> => {
+      try {
+        const res = await adminService.getUsers({
+          page: 1,
+          limit,
+          sortBy: "createdAt",
+          sortOrder: "desc",
+        });
+        return extractUsers(res).map(toRow);
+      } catch (error) {
+        console.error("Failed to load users", error);
+        throw error;
+      }
+    },
+  });
+  const users = data ?? [];
+  const loading = isPending;
 
-  useEffect(() => {
-    load();
-  }, [load]);
+  const deleteMutation = useMutation({
+    mutationFn: (id: string) => adminService.deleteUser(id),
+    onSuccess: (_res, id) => {
+      // Drop the row right away; the rest of the table stays put.
+      queryClient.setQueryData<RowUser[]>(usersKey, (old) =>
+        old ? old.filter((u) => u.id !== id) : old,
+      );
+      // Quietly refresh the list and the dashboard totals it feeds.
+      queryClient.invalidateQueries({ queryKey: ["dashboard"] });
+      queryClient.invalidateQueries({ queryKey: ["students"] });
+      queryClient.invalidateQueries({ queryKey: ["teachers"] });
+    },
+    onError: (error) => {
+      console.error("Failed to delete user", error);
+    },
+  });
 
   const onView = (user: RowUser) => router.push(routeForRole(user.role));
   const onEdit = (user: RowUser) => router.push(routeForRole(user.role));
-  const onDelete = async (user: RowUser) => {
+  const onDelete = (user: RowUser) => {
     if (!user.id) return;
     if (!window.confirm(`Delete ${user.name}? This cannot be undone.`)) return;
-    try {
-      await adminService.deleteUser(user.id);
-      setUsers((prev) => prev.filter((u) => u.id !== user.id));
-    } catch (error) {
-      console.error("Failed to delete user", error);
-    }
+    deleteMutation.mutate(user.id);
   };
 
   if (loading) {

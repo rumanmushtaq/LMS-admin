@@ -15,7 +15,13 @@ import {
 } from "lucide-react";
 import Image from "next/image";
 
-import { useEffect, useCallback, useRef } from "react";
+import { useEffect, useRef } from "react";
+import {
+  keepPreviousData,
+  useMutation,
+  useQuery,
+  useQueryClient,
+} from "@tanstack/react-query";
 import adminService from "../../services/admin";
 import { Spinner } from "@nextui-org/react";
 import { DeleteConfirmModal } from "./DeleteConfirmModal";
@@ -31,21 +37,24 @@ interface Product {
   isActive: boolean;
 }
 
+interface ProductPage {
+  products: Product[];
+  totalCount: number;
+  totalPages: number;
+}
+
 export default function ProductTable() {
   const router = useRouter();
 
-  const [products, setProducts] = useState<Product[]>([]);
-  const [loading, setLoading] = useState(true);
+  const queryClient = useQueryClient();
+
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
-  const [totalCount, setTotalCount] = useState(0);
-  const [totalPages, setTotalPages] = useState(0);
 
   // Delete Modal State
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [productToDelete, setProductToDelete] = useState<string | null>(null);
-  const [isDeleting, setIsDeleting] = useState(false);
 
   /**
    * Rows with a status change in flight, so the spinner and the disabled
@@ -70,83 +79,99 @@ export default function ProductTable() {
     return () => clearTimeout(handler);
   }, [search]);
 
-  const fetchProducts = useCallback(
-    async (
-      page: number,
-      limit: number,
-      searchTerm: string,
-      size: string,
-      status: string,
-      // `silent` refreshes the rows without swapping the table for the
-      // page-sized spinner — used after an inline action, where blanking the
-      // whole list to confirm one row is jarring and loses scroll position.
-      options?: { silent?: boolean },
-    ) => {
-      try {
-        if (!options?.silent) setLoading(true);
-        const isActive =
-          status === "active"
-            ? true
-            : status === "inactive"
-              ? false
-              : undefined;
-
-        const response = await adminService.getProducts({
-          page,
-          limit,
-          search: searchTerm,
-          size: size || undefined,
-          isActive,
-        });
-
-        if (response && response.success && response.data) {
-          const productData = response.data;
-          if (Array.isArray(productData.data)) {
-            setProducts(productData.data);
-            setTotalCount(productData.totalCount);
-            setTotalPages(productData.totalPages);
-          }
-        }
-      } catch (error) {
-        console.error("Error fetching products:", error);
-      } finally {
-        if (!options?.silent) setLoading(false);
-      }
-    },
-    [],
-  );
-
-  useEffect(() => {
-    fetchProducts(currentPage, entriesPerPage, debouncedSearch, selectedSize, selectedStatus);
-  }, [
+  const productsKey = [
+    "admin-products",
     currentPage,
     entriesPerPage,
     debouncedSearch,
     selectedSize,
     selectedStatus,
-    fetchProducts,
-  ]);
+  ] as const;
+
+  const { data, isPending } = useQuery({
+    queryKey: productsKey,
+    queryFn: async (): Promise<ProductPage> => {
+      const isActive =
+        selectedStatus === "active"
+          ? true
+          : selectedStatus === "inactive"
+            ? false
+            : undefined;
+
+      const response = await adminService.getProducts({
+        page: currentPage,
+        limit: entriesPerPage,
+        search: debouncedSearch,
+        size: selectedSize || undefined,
+        isActive,
+      });
+
+      // A failed response is an error, not an empty page.
+      if (!response?.success) {
+        throw new Error(response?.message || "Error fetching products");
+      }
+      const productData = response.data;
+      return {
+        products: Array.isArray(productData?.data) ? productData.data : [],
+        totalCount: productData?.totalCount ?? 0,
+        totalPages: productData?.totalPages ?? 0,
+      };
+    },
+    // Keep the current rows on screen while the next page/filter loads, so
+    // only the very first load shows the page-sized spinner.
+    placeholderData: keepPreviousData,
+  });
+
+  const products = data?.products ?? [];
+  const totalCount = data?.totalCount ?? 0;
+  const totalPages = data?.totalPages ?? 0;
+  const loading = isPending;
+
+  /** Edits the rows of the page on screen in the cache — no refetch, no spinner. */
+  const updateRows = (fn: (rows: Product[]) => Product[]) =>
+    queryClient.setQueryData<ProductPage>(productsKey, (old) =>
+      old ? { ...old, products: fn(old.products) } : old,
+    );
+
+  const deleteMutation = useMutation({
+    mutationFn: (id: string) => adminService.permanentDeleteProduct(id),
+    onSuccess: (_res, id) => {
+      // Drop the row right away; the rest of the table stays put.
+      queryClient.setQueryData<ProductPage>(productsKey, (old) =>
+        old
+          ? {
+              ...old,
+              products: old.products.filter((p) => p._id !== id),
+              totalCount: Math.max(0, old.totalCount - 1),
+            }
+          : old,
+      );
+      setIsDeleteModalOpen(false);
+      setProductToDelete(null);
+
+      // Deleting the last row of a later page leaves it empty — step back.
+      if (products.length === 1 && currentPage > 1) {
+        setCurrentPage((p) => p - 1);
+      }
+      // Quietly refill this page (and stale neighbours) from the server;
+      // the cached rows stay on screen while it runs.
+      queryClient.invalidateQueries({ queryKey: ["admin-products"] });
+    },
+    onError: (error) => {
+      console.error("Error deleting product:", error);
+      alert("Failed to delete product");
+    },
+  });
+  const isDeleting = deleteMutation.isPending;
 
   const handleDeleteClick = (id: string) => {
     setProductToDelete(id);
     setIsDeleteModalOpen(true);
   };
 
-  const confirmDelete = async () => {
+  const confirmDelete = () => {
     if (!productToDelete) return;
-
-    try {
-      setIsDeleting(true);
-      await adminService.permanentDeleteProduct(productToDelete);
-      fetchProducts(currentPage, entriesPerPage, debouncedSearch, selectedSize, selectedStatus);
-      setIsDeleteModalOpen(false);
-      setProductToDelete(null);
-    } catch (error) {
-      console.error("Error deleting product:", error);
-      alert("Failed to delete product");
-    } finally {
-      setIsDeleting(false);
-    }
+    deleteMutation.mutate(productToDelete);
   };
 
   const toggleStatus = async (id: string, currentStatus: boolean) => {
@@ -158,8 +183,8 @@ export default function ProductTable() {
     // Flip the row immediately. The request is a single boolean write, so
     // showing the result now and reverting on failure reads far better than
     // reloading the whole list to learn what we already know.
-    setProducts((prev) =>
-      prev.map((p) => (p._id === id ? { ...p, isActive: !currentStatus } : p)),
+    updateRows((rows) =>
+      rows.map((p) => (p._id === id ? { ...p, isActive: !currentStatus } : p)),
     );
 
     try {
@@ -168,20 +193,13 @@ export default function ProductTable() {
       // With a status filter applied the row may no longer belong in the
       // list, so refresh — quietly, without blanking the table.
       if (selectedStatus !== "all") {
-        await fetchProducts(
-          currentPage,
-          entriesPerPage,
-          debouncedSearch,
-          selectedSize,
-          selectedStatus,
-          { silent: true },
-        );
+        await queryClient.invalidateQueries({ queryKey: ["admin-products"] });
       }
     } catch (error) {
       console.error("Error toggling status:", error);
       // Put the row back the way it was; the server never accepted the change.
-      setProducts((prev) =>
-        prev.map((p) => (p._id === id ? { ...p, isActive: currentStatus } : p)),
+      updateRows((rows) =>
+        rows.map((p) => (p._id === id ? { ...p, isActive: currentStatus } : p)),
       );
       alert("Failed to update status");
     } finally {

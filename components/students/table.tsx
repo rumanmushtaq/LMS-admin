@@ -1,5 +1,10 @@
 import { Text, Pagination } from "@nextui-org/react";
-import React, { useEffect, useState, useCallback } from "react";
+import React, { useMemo, useState } from "react";
+import {
+  keepPreviousData,
+  useQuery,
+  useQueryClient,
+} from "@tanstack/react-query";
 import { Box } from "../styles/box";
 import { columns, statusOptions } from "./data";
 import { RenderCell } from "./render-cell";
@@ -25,6 +30,12 @@ interface Meta {
   totalPages: number;
 }
 
+/** Shape cached under ["students", ...] — RenderCell edits rows in place. */
+interface StudentPage {
+  students: Student[];
+  meta: Meta;
+}
+
 // Simple debounce function
 function debounce<T extends (...args: any[]) => any>(
   func: T,
@@ -42,15 +53,10 @@ interface Props {
 }
 
 export const TableWrapper = ({ addButton }: Props) => {
-  const [students, setStudents] = useState<Student[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [meta, setMeta] = useState<Meta>({
-    total: 0,
-    page: 1,
-    limit: 10,
-    totalPages: 0,
-  });
+  const queryClient = useQueryClient();
+  const [page, setPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
   const [status, setStatus] = useState<string>("all");
   const [startDate, setStartDate] = useState<string>("");
   const [endDate, setEndDate] = useState<string>("");
@@ -66,119 +72,83 @@ export const TableWrapper = ({ addButton }: Props) => {
       return next;
     });
 
-  // Fetch students with pagination and filters
-  const fetchStudents = useCallback(
-    async (
-      page = 1,
-      search = "",
-      statusFilter = "all",
-      start = "",
-      end = "",
-      sortField = "createdAt",
-      sortOrder = "desc",
-    ) => {
-      try {
-        setLoading(true);
-        const response = await adminService.getStudents({
-          page,
-          limit: 10,
-          search,
-          status: statusFilter === "all" ? undefined : statusFilter,
-          startDate: start || undefined,
-          endDate: end || undefined,
-          sortBy: sortField,
-          sortOrder: sortOrder as "asc" | "desc",
-        });
-
-        setStudents(response.data.data || []);
-        setMeta(response.data.meta);
-      } catch (error) {
-        console.error("Error fetching students:", error);
-      } finally {
-        setLoading(false);
-      }
-    },
+  // Debounced search — the query key only follows the settled term, and a
+  // new term starts again from page 1.
+  const updateSearch = useMemo(
+    () =>
+      debounce((term: string) => {
+        setDebouncedSearch(term);
+        setPage(1);
+      }, 400),
     [],
   );
 
-  // Initial load
-  useEffect(() => {
-    fetchStudents(1, searchTerm, status, startDate, endDate, sortBy, sortOrder);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [
-    fetchStudents,
-    searchTerm,
-    status,
-    startDate,
-    endDate,
-    sortBy,
-    sortOrder,
-  ]);
-
-  // Debounced search
-  const debouncedSearch = useCallback(
-    (term: string) => {
-      fetchStudents(1, term, status, startDate, endDate, sortBy, sortOrder);
-    },
-    [fetchStudents, status, startDate, endDate, sortBy, sortOrder],
-  );
-
-  useEffect(() => {
-    if (searchTerm) {
-      debouncedSearch(searchTerm);
-    } else {
-      fetchStudents(1, "", status, startDate, endDate, sortBy, sortOrder);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [
-    searchTerm,
-    debouncedSearch,
-    fetchStudents,
-    status,
-    startDate,
-    endDate,
-    sortBy,
-    sortOrder,
-  ]);
-
-  // Effect for filters
-  useEffect(() => {
-    fetchStudents(1, searchTerm, status, startDate, endDate, sortBy, sortOrder);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [
-    status,
-    startDate,
-    endDate,
-    searchTerm,
-    fetchStudents,
-    sortBy,
-    sortOrder,
-  ]);
-
-  // Handle page change
-  const handlePageChange = (page: number) => {
-    fetchStudents(
-      page,
-      searchTerm,
-      status,
-      startDate,
-      endDate,
-      sortBy,
-      sortOrder,
-    );
+  const handleSearchChange = (term: string) => {
+    setSearchTerm(term);
+    updateSearch(term);
   };
 
-  // Handle refresh after actions
+  const studentsKey = [
+    "students",
+    page,
+    debouncedSearch,
+    status,
+    startDate,
+    endDate,
+    sortBy,
+    sortOrder,
+  ] as const;
+
+  // Fetch students with pagination and filters
+  const { data, isPending, isFetching } = useQuery({
+    queryKey: studentsKey,
+    queryFn: async (): Promise<StudentPage> => {
+      try {
+        const response = await adminService.getStudents({
+          page,
+          limit: 10,
+          search: debouncedSearch,
+          status: status === "all" ? undefined : status,
+          startDate: startDate || undefined,
+          endDate: endDate || undefined,
+          sortBy,
+          sortOrder,
+        });
+
+        return {
+          students: response.data.data || [],
+          meta: response.data.meta,
+        };
+      } catch (error) {
+        console.error("Error fetching students:", error);
+        throw error;
+      }
+    },
+    // Keep the current rows on screen while the next page/filter loads, so
+    // only the very first load shows the skeleton.
+    placeholderData: keepPreviousData,
+  });
+
+  const students = data?.students ?? [];
+  const meta: Meta = data?.meta ?? {
+    total: 0,
+    page: 1,
+    limit: 10,
+    totalPages: 0,
+  };
+  const loading = isPending;
+
+  // Handle page change
+  const handlePageChange = (next: number) => setPage(next);
+
+  // Handle refresh after actions. RenderCell has already patched the cache
+  // and queued a quiet refetch; all that is left is stepping back when a
+  // delete emptied a later page.
   const handleRefresh = () => {
-    fetchStudents(
-      meta.page,
-      searchTerm,
-      status,
-      startDate,
-      endDate,
-      sortBy,
-      sortOrder,
-    );
+    const current = queryClient.getQueryData<StudentPage>(studentsKey);
+    if (current && current.students.length === 0 && page > 1) {
+      setPage((p) => p - 1);
+    }
   };
 
   return (
@@ -191,21 +161,30 @@ export const TableWrapper = ({ addButton }: Props) => {
     >
       <TableFilters
         searchTerm={searchTerm}
-        onSearchChange={setSearchTerm}
+        onSearchChange={handleSearchChange}
         status={status}
-        onStatusChange={(key) => setStatus(key as string)}
+        onStatusChange={(key) => {
+          setStatus(key as string);
+          setPage(1);
+        }}
         statusOptions={statusOptions}
         startDate={startDate}
-        onStartDateChange={setStartDate}
+        onStartDateChange={(value) => {
+          setStartDate(value);
+          setPage(1);
+        }}
         endDate={endDate}
-        onEndDateChange={setEndDate}
+        onEndDateChange={(value) => {
+          setEndDate(value);
+          setPage(1);
+        }}
         addButton={addButton}
         onExport={() => console.log("Exporting...")}
       />
 
       {loading ? (
         <TableSkeleton cols={columns.length} rows={8} />
-      ) : students.length === 0 ? (
+      ) : students.length === 0 && !isFetching ? (
         <Flex
           direction="column"
           align="center"
@@ -298,7 +277,7 @@ export const TableWrapper = ({ addButton }: Props) => {
               shadow
               noMargin
               total={meta.totalPages}
-              initialPage={meta.page}
+              page={page}
               onChange={handlePageChange}
             />
           </Flex>

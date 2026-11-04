@@ -1,5 +1,11 @@
 import { Text, Pagination } from "@nextui-org/react";
-import React, { useEffect, useState, useCallback } from "react";
+import React, { useEffect, useState } from "react";
+import {
+  keepPreviousData,
+  useMutation,
+  useQuery,
+  useQueryClient,
+} from "@tanstack/react-query";
 import { Box } from "../styles/box";
 import { columns, statusOptions } from "./data";
 import { RenderCell } from "./render-cell";
@@ -9,6 +15,7 @@ import { TableSkeleton } from "../table/table-skeleton";
 import { Flex } from "../styles/flex";
 import { TeacherVerificationModal } from "./verification-modal";
 import { useRouter } from "next/router";
+import { setTeacherStatus, type TeacherPage } from "./actions-menu";
 
 interface Teacher {
   _id: string;
@@ -31,33 +38,16 @@ interface Meta {
   totalPages: number;
 }
 
-// Simple debounce function
-function debounce<T extends (...args: any[]) => any>(
-  func: T,
-  wait: number,
-): (...args: Parameters<T>) => void {
-  let timeout: NodeJS.Timeout | null = null;
-  return (...args: Parameters<T>) => {
-    if (timeout) clearTimeout(timeout);
-    timeout = setTimeout(() => func(...args), wait);
-  };
-}
-
 interface Props {
   addButton?: React.ReactNode;
 }
 
 export const TableWrapper = ({ addButton }: Props) => {
   const router = useRouter();
-  const [teachers, setTeachers] = useState<Teacher[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [meta, setMeta] = useState<Meta>({
-    total: 0,
-    page: 1,
-    limit: 10,
-    totalPages: 0,
-  });
+  const queryClient = useQueryClient();
+  const [page, setPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
   const [status, setStatus] = useState<string>("all");
   const [startDate, setStartDate] = useState<string>("");
   const [endDate, setEndDate] = useState<string>("");
@@ -76,31 +66,53 @@ export const TableWrapper = ({ addButton }: Props) => {
       return next;
     });
 
+  // Debounced search
+  useEffect(() => {
+    if (searchTerm === debouncedSearch) return;
+    const handler = setTimeout(() => {
+      setDebouncedSearch(searchTerm);
+      setPage(1); // Reset to page 1 on new search
+    }, 500);
+
+    return () => clearTimeout(handler);
+  }, [searchTerm, debouncedSearch]);
+
+  /** Wraps a filter setter so changing the filter also goes back to page 1. */
+  const resetPage =
+    <T,>(setter: (value: T) => void) =>
+    (value: T) => {
+      setter(value);
+      setPage(1);
+    };
+
   // Fetch teachers with pagination and filters
-  const fetchTeachers = useCallback(
-    async (
-      page = 1,
-      search = "",
-      statusFilter = "all",
-      start = "",
-      end = "",
-      verified = "all",
-      sortField = "createdAt",
-      sortOrder = "desc",
-    ) => {
+  const { data, isPending, isFetching } = useQuery({
+    queryKey: [
+      "teachers",
+      page,
+      debouncedSearch,
+      status,
+      startDate,
+      endDate,
+      emailVerified,
+      sortBy,
+      sortOrder,
+    ],
+    queryFn: async (): Promise<TeacherPage> => {
+      const emptyMeta: Meta = { total: 0, page: 1, limit: 10, totalPages: 0 };
       try {
-        setLoading(true);
         // Using getTutors
         const response = await adminService.getTutors({
           page,
           limit: 10,
-          search,
-          status: statusFilter === "all" ? undefined : statusFilter,
-          startDate: start || undefined,
-          endDate: end || undefined,
-          emailVerified: verified === "all" ? undefined : verified === "true",
-          sortBy: sortField,
-          sortOrder: sortOrder as "asc" | "desc",
+          search: debouncedSearch,
+          status: status === "all" ? undefined : status,
+          startDate: startDate || undefined,
+          endDate: endDate || undefined,
+          emailVerified:
+            emailVerified === "all" ? undefined : emailVerified === "true",
+          sortBy,
+          sortOrder,
         });
 
         console.log("Teachers API Response:", response);
@@ -112,179 +124,107 @@ export const TableWrapper = ({ addButton }: Props) => {
           response.data &&
           Array.isArray(response.data.data)
         ) {
-          setTeachers(response.data.data);
-          setMeta(
-            response.data.meta || {
-              total: 0,
-              page: 1,
-              limit: 10,
-              totalPages: 0,
-            },
-          );
+          return {
+            teachers: response.data.data,
+            meta: response.data.meta || emptyMeta,
+          };
         } else if (response && response.data && Array.isArray(response.data)) {
           // Fallback if it's already the inner data object
-          setTeachers(response.data);
-          setMeta(
-            response.meta || { total: 0, page: 1, limit: 10, totalPages: 0 },
-          );
+          return { teachers: response.data, meta: response.meta || emptyMeta };
         } else if (Array.isArray(response)) {
-          setTeachers(response);
+          return { teachers: response, meta: emptyMeta };
         } else {
           console.warn("Unexpected response format from tutors API:", response);
-          setTeachers([]);
+          return { teachers: [], meta: emptyMeta };
         }
       } catch (error) {
         console.error("Error fetching teachers:", error);
-        setTeachers([]);
-      } finally {
-        setLoading(false);
+        throw error;
       }
     },
-    [],
-  );
+    // Keep the current rows on screen while the next page/filter loads, so
+    // only the very first load shows the skeleton.
+    placeholderData: keepPreviousData,
+  });
 
-  // Initial load
+  const teachers: Teacher[] = data?.teachers ?? [];
+  const meta: Meta = data?.meta ?? {
+    total: 0,
+    page: 1,
+    limit: 10,
+    totalPages: 0,
+  };
+  const loading = isPending;
+
+  // Deleting the last row of a later page leaves it empty — step back once
+  // the refreshed page count arrives.
   useEffect(() => {
-    fetchTeachers(
-      1,
-      searchTerm,
-      status,
-      startDate,
-      endDate,
-      emailVerified,
-      sortBy,
-      sortOrder,
-    );
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [
-    fetchTeachers,
-    searchTerm,
-    status,
-    startDate,
-    endDate,
-    emailVerified,
-    sortBy,
-    sortOrder,
-  ]);
-
-  // Debounced search
-  const debouncedSearch = useCallback(
-    (term: string) => {
-      fetchTeachers(1, term, status, sortBy, sortOrder);
-    },
-    [fetchTeachers, status, sortBy, sortOrder],
-  );
-
-  useEffect(() => {
-    if (searchTerm) {
-      debouncedSearch(searchTerm);
-    } else {
-      fetchTeachers(
-        1,
-        "",
-        status,
-        startDate,
-        endDate,
-        emailVerified,
-        sortBy,
-        sortOrder,
-      );
+    if (!isFetching && page > Math.max(1, meta.totalPages)) {
+      setPage(Math.max(1, meta.totalPages));
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [
-    searchTerm,
-    debouncedSearch,
-    fetchTeachers,
-    status,
-    startDate,
-    endDate,
-    emailVerified,
-    sortBy,
-    sortOrder,
-  ]);
-
-  // Effect for filters
-  useEffect(() => {
-    fetchTeachers(
-      1,
-      searchTerm,
-      status,
-      startDate,
-      endDate,
-      emailVerified,
-      sortBy,
-      sortOrder,
-    );
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [
-    status,
-    searchTerm,
-    fetchTeachers,
-    sortBy,
-    sortOrder,
-    startDate,
-    endDate,
-    emailVerified,
-  ]);
+  }, [isFetching, page, meta.totalPages]);
 
   // Handle page change
-  const handlePageChange = (page: number) => {
-    fetchTeachers(
-      page,
-      searchTerm,
-      status,
-      startDate,
-      endDate,
-      emailVerified,
-      sortBy,
-      sortOrder,
+  const handlePageChange = (nextPage: number) => {
+    setPage(nextPage);
+  };
+
+  // Handle refresh after actions — quietly in the background; the cached rows
+  // stay on screen. Joins a refetch already started by the action itself.
+  const handleRefresh = () => {
+    queryClient.invalidateQueries(
+      { queryKey: ["teachers"] },
+      { cancelRefetch: false },
     );
   };
 
-  // Handle refresh after actions
-  const handleRefresh = () => {
-    fetchTeachers(
-      meta.page,
-      searchTerm,
-      status,
-      startDate,
-      endDate,
-      emailVerified,
-      sortBy,
-      sortOrder,
-    );
+  /** Applies an approve/reject result to the cache, then refreshes quietly. */
+  const onReviewed = (id: string, nextStatus: string) => {
+    setIsModalOpen(false);
+    setTeacherStatus(queryClient, id, nextStatus);
+    handleRefresh();
+    queryClient.invalidateQueries({ queryKey: ["teacher", id] });
   };
+
+  const approveMutation = useMutation({
+    mutationFn: (id: string) => adminService.approveTutor(id),
+    onSuccess: (_res, id) => {
+      onReviewed(id, "active");
+      alert("Teacher approved successfully!");
+    },
+    onError: (error) => {
+      console.error("Approve error", error);
+      alert("Failed to approve teacher.");
+    },
+  });
+
+  const rejectMutation = useMutation({
+    mutationFn: ({ id, reason }: { id: string; reason?: string }) =>
+      adminService.rejectTutor(id, reason),
+    onSuccess: (_res, { id }) => {
+      onReviewed(id, "suspended");
+      alert("Teacher application rejected.");
+    },
+    onError: (error) => {
+      console.error("Reject error", error);
+      alert("Failed to reject teacher.");
+    },
+  });
 
   const handleVerify = (teacher: Teacher) => {
     setSelectedTeacher(teacher);
     setIsModalOpen(true);
   };
 
-  const handleApprove = async (id: string) => {
+  const handleApprove = (id: string) => {
     if (!confirm("Are you sure you want to approve this teacher?")) return;
-    try {
-      await adminService.approveTutor(id);
-      setIsModalOpen(false);
-      handleRefresh();
-      alert("Teacher approved successfully!");
-    } catch (error) {
-      console.error("Approve error", error);
-      alert("Failed to approve teacher.");
-    }
+    approveMutation.mutate(id);
   };
 
-  const handleReject = async (id: string) => {
+  const handleReject = (id: string) => {
     const reason = prompt("Please enter rejection reason (optional):");
     if (reason === null) return;
-    try {
-      await adminService.rejectTutor(id, reason);
-      setIsModalOpen(false);
-      handleRefresh();
-      alert("Teacher application rejected.");
-    } catch (error) {
-      console.error("Reject error", error);
-      alert("Failed to reject teacher.");
-    }
+    rejectMutation.mutate({ id, reason });
   };
 
   return (
@@ -316,21 +256,23 @@ export const TableWrapper = ({ addButton }: Props) => {
         searchTerm={searchTerm}
         onSearchChange={setSearchTerm}
         status={status}
-        onStatusChange={(key) => setStatus(key as string)}
+        onStatusChange={(key) => resetPage(setStatus)(key as string)}
         statusOptions={statusOptions}
         startDate={startDate}
-        onStartDateChange={setStartDate}
+        onStartDateChange={resetPage(setStartDate)}
         endDate={endDate}
-        onEndDateChange={setEndDate}
+        onEndDateChange={resetPage(setEndDate)}
         emailVerified={emailVerified}
-        onEmailVerifiedChange={(key) => setEmailVerified(key as string)}
+        onEmailVerifiedChange={(key) =>
+          resetPage(setEmailVerified)(key as string)
+        }
         addButton={addButton}
         onExport={() => console.log("Exporting...")}
       />
 
       {loading ? (
         <TableSkeleton cols={columns.length} rows={8} />
-      ) : teachers.length === 0 ? (
+      ) : teachers.length === 0 && !isFetching ? (
         <Flex
           direction="column"
           align="center"
@@ -427,8 +369,8 @@ export const TableWrapper = ({ addButton }: Props) => {
               shadow
               noMargin
               total={meta.totalPages}
-              initialPage={meta.page}
-              page={meta.page}
+              initialPage={page}
+              page={page}
               onChange={handlePageChange}
               css={{
                 "& .nextui-pagination-highlight": {

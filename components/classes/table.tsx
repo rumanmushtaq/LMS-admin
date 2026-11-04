@@ -1,4 +1,9 @@
-import React, { useEffect, useState, useCallback } from "react";
+import React, { useState } from "react";
+import {
+  keepPreviousData,
+  useQuery,
+  useQueryClient,
+} from "@tanstack/react-query";
 import { columns } from "./data";
 import { RenderCell } from "./render-cell";
 import { getAllClasses, ClassSession } from "../../services/classes";
@@ -13,33 +18,38 @@ const STATUS_TABS = [
 ];
 
 export const TableWrapper = () => {
-  const [classes, setClasses] = useState<ClassSession[]>([]);
-  const [loading, setLoading] = useState(true);
+  const queryClient = useQueryClient();
   const [status, setStatus] = useState("all");
 
-  const fetchClasses = useCallback(async (statusFilter: string) => {
-    try {
-      setLoading(true);
-      const res = await getAllClasses(statusFilter);
-      // The API wraps the payload as { success, data: [...] }. Unwrap to the
-      // array defensively so the list never receives a non-iterable.
-      const list = Array.isArray(res)
-        ? res
-        : (res?.data?.data ?? res?.data ?? []);
-      setClasses(Array.isArray(list) ? list : []);
-    } catch (error) {
-      console.error("Error fetching classes:", error);
-      setClasses([]);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
+  const { data, isPending } = useQuery({
+    queryKey: ["classes", status],
+    queryFn: async (): Promise<ClassSession[]> => {
+      try {
+        const res = await getAllClasses(status);
+        // The API wraps the payload as { success, data: [...] }. Unwrap to the
+        // array defensively so the list never receives a non-iterable.
+        const list = Array.isArray(res)
+          ? res
+          : (res?.data?.data ?? res?.data ?? []);
+        return Array.isArray(list) ? list : [];
+      } catch (error) {
+        console.error("Error fetching classes:", error);
+        throw error;
+      }
+    },
+    // Keep the current rows on screen while another status tab loads, so
+    // only the very first load shows the skeleton.
+    placeholderData: keepPreviousData,
+  });
 
-  useEffect(() => {
-    fetchClasses(status);
-  }, [fetchClasses, status]);
+  const classes = data ?? [];
+  const loading = isPending;
 
-  const handleRefresh = () => fetchClasses(status);
+  // Rows patch the cache themselves (see RenderCell); this just refreshes
+  // quietly in the background without blanking the table.
+  const handleRefresh = () => {
+    queryClient.invalidateQueries({ queryKey: ["classes"] });
+  };
 
   return (
     <div className="w-full mt-6">

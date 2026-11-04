@@ -1,28 +1,106 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useRouter } from 'next/router';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useAuthStore } from '../store/authStore';
 import chatService from '../services/chat';
 import { useChatSocket } from './useChatSocket';
 import { mergeMessages } from '../lib/chat/messages';
 import { useAdminNotifications } from '../store/adminNotifications';
 
+const CONVERSATIONS_KEY = ['admin-conversations'] as const;
+const FLAGGED_KEY = ['admin-flagged-messages'] as const;
+const messagesKey = (conversationId: string | null) =>
+  ['admin-chat-messages', conversationId] as const;
+
+// Stable fallback so effects keyed on these lists don't rerun every render.
+const EMPTY: any[] = [];
+
 export const useAdminChat = () => {
   const router = useRouter();
+  const queryClient = useQueryClient();
   const { accessToken, user } = useAuthStore();
   const { isConnected, messages: socketMessages, moderationMessages, sendMessage, joinConversation, typing, stopTyping, typingUsers, onlineUsers, checkUserStatus } = useChatSocket(accessToken || '');
   // Clears the app-wide unread badge (sidebar tab) for a thread once opened.
   const markConversationRead = useAdminNotifications((s) => s.markConversationRead);
 
   const [activeTab, setActiveTab] = useState<'chats' | 'flagged'>('chats');
-  const [conversations, setConversations] = useState<any[]>([]);
-  const [flaggedMessages, setFlaggedMessages] = useState<any[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
-
   const [activeChatId, setActiveChatId] = useState<string | null>(null);
   const [activeChatUser, setActiveChatUser] = useState<any | null>(null);
-  const [localMessages, setLocalMessages] = useState<any[]>([]);
   const [inputMessage, setInputMessage] = useState('');
-  const [isChatLoading, setIsChatLoading] = useState(false);
+
+  // Only the visible tab's list is fetched, as before. Socket events patch
+  // these caches in place, so a focus refetch must not overwrite them.
+  const conversationsQuery = useQuery({
+    queryKey: CONVERSATIONS_KEY,
+    queryFn: async (): Promise<any[]> => {
+      const res = await chatService.getAllConversations();
+      return res?.data ?? res ?? [];
+    },
+    enabled: !!accessToken && activeTab === 'chats',
+    refetchOnWindowFocus: false,
+    // Live data: never trust the global staleTime, and don't refetch on
+    // reconnect — that would drop socket-merged messages from the cache.
+    staleTime: 0,
+    refetchOnReconnect: false,
+    retry: false,
+  });
+
+  const flaggedQuery = useQuery({
+    queryKey: FLAGGED_KEY,
+    queryFn: async (): Promise<any[]> => {
+      const res = await chatService.getFlaggedMessages();
+      return res?.data ?? res ?? [];
+    },
+    enabled: !!accessToken && activeTab === 'flagged',
+    refetchOnWindowFocus: false,
+    // Live data: never trust the global staleTime, and don't refetch on
+    // reconnect — that would drop socket-merged messages from the cache.
+    staleTime: 0,
+    refetchOnReconnect: false,
+    retry: false,
+  });
+
+  const conversations = conversationsQuery.data ?? EMPTY;
+  const flaggedMessages = flaggedQuery.data ?? EMPTY;
+  const isLoading =
+    activeTab === 'chats' ? conversationsQuery.isFetching : flaggedQuery.isFetching;
+
+  // Message history for the open thread. Socket messages and optimistic sends
+  // are folded into this cache entry; a refetch would drop unechoed ones.
+  const messagesQuery = useQuery({
+    queryKey: messagesKey(activeChatId),
+    queryFn: async (): Promise<any[]> => {
+      const res = await chatService.getMessages(activeChatId as string);
+      return res?.data ?? res ?? [];
+    },
+    enabled: !!activeChatId,
+    refetchOnWindowFocus: false,
+    // Live data: never trust the global staleTime, and don't refetch on
+    // reconnect — that would drop socket-merged messages from the cache.
+    staleTime: 0,
+    refetchOnReconnect: false,
+    retry: false,
+  });
+
+  const localMessages = messagesQuery.data ?? EMPTY;
+  const isChatLoading = messagesQuery.isFetching;
+
+  useEffect(() => {
+    if (conversationsQuery.error) console.error(conversationsQuery.error);
+  }, [conversationsQuery.error]);
+  useEffect(() => {
+    if (flaggedQuery.error) console.error(flaggedQuery.error);
+  }, [flaggedQuery.error]);
+  useEffect(() => {
+    if (messagesQuery.error) console.error(messagesQuery.error);
+  }, [messagesQuery.error]);
+
+  /** Edits the cached conversation list in place — no refetch, no spinner. */
+  const updateConversations = useCallback(
+    (fn: (prev: any[]) => any[]) =>
+      queryClient.setQueryData<any[]>(CONVERSATIONS_KEY, (old) => (old ? fn(old) : old)),
+    [queryClient],
+  );
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -55,33 +133,15 @@ export const useAdminChat = () => {
 
     lastMergedIdRef.current = socketMessages[socketMessages.length - 1]._id;
 
+    // No thread open means nothing on screen to merge into; opening one
+    // fetches its history fresh.
+    if (!activeChatId) return;
+
     const userId = (user as any)?._id || (user as any)?.id || null;
-    setLocalMessages((prev) =>
-      mergeMessages(prev, fresh, { conversationId: activeChatId, currentUserId: userId })
+    queryClient.setQueryData<any[]>(messagesKey(activeChatId), (prev) =>
+      mergeMessages(prev ?? [], fresh, { conversationId: activeChatId, currentUserId: userId })
     );
-  }, [socketMessages, activeChatId, user]);
-
-  const loadData = useCallback(async () => {
-    setIsLoading(true);
-    try {
-      if (activeTab === 'chats') {
-        const res = await chatService.getAllConversations();
-        setConversations(res?.data ?? res ?? []);
-      } else {
-        const res = await chatService.getFlaggedMessages();
-        setFlaggedMessages(res?.data ?? res ?? []);
-      }
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setIsLoading(false);
-    }
-  }, [activeTab]);
-
-  useEffect(() => {
-    if (!accessToken) return;
-    loadData();
-  }, [accessToken, activeTab, loadData]);
+  }, [socketMessages, activeChatId, user, queryClient]);
 
   // Moderation broadcast: bump the conversation list (last message, unread
   // badge, recency order) for every message in the system — including threads
@@ -101,7 +161,12 @@ export const useAdminChat = () => {
 
     const userId = (user as any)?._id || (user as any)?.id || null;
 
-    setConversations((prev) => {
+    // Read before patching: the known ids are the same either way.
+    const knownIds = new Set(
+      (queryClient.getQueryData<any[]>(CONVERSATIONS_KEY) ?? []).map((c) => c._id),
+    );
+
+    updateConversations((prev) => {
       let changed = false;
       const next = prev.map((c) => {
         const forConv = fresh.filter((m) => m.conversationId === c._id);
@@ -129,9 +194,8 @@ export const useAdminChat = () => {
 
     // A message for a conversation not yet in the list means a brand-new
     // thread — reload so it appears (and this admin can moderate it).
-    const knownIds = new Set(conversations.map((c) => c._id));
     if (fresh.some((m) => m.conversationId && !knownIds.has(m.conversationId))) {
-      loadData();
+      queryClient.invalidateQueries({ queryKey: CONVERSATIONS_KEY });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [moderationMessages, activeChatId, user]);
@@ -142,7 +206,7 @@ export const useAdminChat = () => {
     // Opening a thread clears its app-wide unread badge (bell/sidebar counters).
     markConversationRead(conv._id);
     // Also zero the local list count so the "All Chats" tab total stays accurate.
-    setConversations((prev) =>
+    updateConversations((prev) =>
       prev.map((c) => (c._id === conv._id ? { ...c, unreadCount: 0 } : c)),
     );
     const userId = user?._id || user?.id;
@@ -150,7 +214,6 @@ export const useAdminChat = () => {
     const otherUser = otherParticipants.length > 0 ? otherParticipants[0] : conv.participants?.[0];
 
     setActiveChatUser({ ...otherUser, participants: conv.participants });
-    setIsChatLoading(true);
 
     if (otherUser?._id) {
       checkUserStatus(otherUser._id);
@@ -159,15 +222,11 @@ export const useAdminChat = () => {
     // Use joinConversation from the hook which uses socketRef (always the fresh socket)
     joinConversation(conv._id);
 
-    try {
-      const res = await chatService.getMessages(conv._id);
-      setLocalMessages(res?.data ?? res ?? []);
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setIsChatLoading(false);
-    }
-  }, [user, joinConversation, checkUserStatus, markConversationRead]);
+    // Always reload history on open, as before: refetches now if this thread
+    // is already showing, otherwise marks the cached copy stale so the query
+    // fetches it when activeChatId switches over.
+    queryClient.invalidateQueries({ queryKey: messagesKey(conv._id) });
+  }, [user, joinConversation, checkUserStatus, markConversationRead, updateConversations, queryClient]);
 
   // Auto-open a conversation when navigated from teacher/student detail page
   const hasProcessedOpenParam = useRef(false);
@@ -202,21 +261,46 @@ export const useAdminChat = () => {
       createdAt: new Date().toISOString(),
       pending: true,
     };
-    setLocalMessages((prev) => [...prev, optimisticMsg]);
+    queryClient.setQueryData<any[]>(messagesKey(activeChatId), (prev) => [
+      ...(prev ?? []),
+      optimisticMsg,
+    ]);
 
     sendMessage(activeChatId, content);
     stopTyping(activeChatId);
     setInputMessage('');
   };
 
+  const resolveFlagMutation = useMutation({
+    mutationFn: (msgId: string) => chatService.resolveFlaggedMessage(msgId),
+    onSuccess: (_res, msgId) => {
+      queryClient.setQueryData<any[]>(FLAGGED_KEY, (prev) =>
+        prev ? prev.filter((m) => m._id !== msgId) : prev,
+      );
+    },
+    onError: (err) => {
+      console.error(err);
+    },
+  });
+
   const resolveFlag = async (msgId: string) => {
     try {
-      await chatService.resolveFlaggedMessage(msgId);
-      setFlaggedMessages((prev) => prev.filter((m) => m._id !== msgId));
-    } catch (err) {
-      console.error(err);
+      await resolveFlagMutation.mutateAsync(msgId);
+    } catch {
+      // Already logged in onError.
     }
   };
+
+  const blockMutation = useMutation({
+    mutationFn: (convId: string) => chatService.blockConversation(convId),
+    onSuccess: () => {
+      alert('Conversation blocked successfully.');
+    },
+    onError: (err) => {
+      console.error(err);
+      alert('Failed to block the conversation.');
+    },
+  });
 
   const blockConversationAction = async (
     conversation: string | { _id: string } | null | undefined,
@@ -233,11 +317,9 @@ export const useAdminChat = () => {
     }
 
     try {
-      await chatService.blockConversation(convId);
-      alert('Conversation blocked successfully.');
-    } catch (err) {
-      console.error(err);
-      alert('Failed to block the conversation.');
+      await blockMutation.mutateAsync(convId);
+    } catch {
+      // Already reported in onError.
     }
   };
 

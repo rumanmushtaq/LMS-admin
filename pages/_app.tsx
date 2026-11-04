@@ -37,7 +37,22 @@ const darkTheme = createTheme({
 });
 
 function MyApp({ Component, pageProps }: AppProps) {
-  const [queryClient] = useState(() => new QueryClient());
+  const [queryClient] = useState(
+    () =>
+      new QueryClient({
+        defaultOptions: {
+          queries: {
+            // Data counts as fresh for a minute: revisiting a page or
+            // refocusing the tab reuses the cache instead of refetching.
+            // Mutations still refresh at once — invalidateQueries ignores this.
+            staleTime: 60 * 1000,
+            // Three retries with backoff ride out a flaky connection before
+            // a request is shown as failed.
+            retry: 3,
+          },
+        },
+      }),
+  );
   const router = useRouter();
 
   return (

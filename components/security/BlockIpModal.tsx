@@ -1,9 +1,11 @@
 import { Button, Input, Modal, Text, Textarea } from "@nextui-org/react";
 import React, { useEffect, useState } from "react";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Flex } from "../styles/flex";
 import {
   securityService,
   type BlockDuration,
+  type BlockEntry,
   type IpRow,
 } from "../../services/security";
 import { Pill } from "./shared";
@@ -38,7 +40,8 @@ export const BlockIpModal = ({
   const [duration, setDuration] = useState<BlockDuration>("24h");
   const [confirmSelf, setConfirmSelf] = useState("");
   const [error, setError] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
+
+  const queryClient = useQueryClient();
 
   useEffect(() => {
     if (isOpen) {
@@ -55,30 +58,60 @@ export const BlockIpModal = ({
   const canSubmit =
     ip.trim().length > 0 && reason.trim().length > 0 && selfConfirmed;
 
-  const handleSubmit = async () => {
-    try {
-      setIsLoading(true);
-      setError(null);
-      await securityService.block({
-        ip: ip.trim(),
-        reason: reason.trim(),
-        duration,
-      });
+  const blockMutation = useMutation({
+    mutationFn: (payload: {
+      ip: string;
+      reason: string;
+      duration: BlockDuration;
+    }) => securityService.block(payload),
+    onSuccess: (entry, payload) => {
+      // Show the block straight away in the Blocked tab and the IP list;
+      // the quiet refetch below fills in anything we can't know locally.
+      if (entry?._id) {
+        queryClient.setQueryData<BlockEntry[]>(["security", "blocks"], (old) =>
+          old ? [entry, ...old.filter((b) => b.key !== entry.key)] : old,
+        );
+      }
+      queryClient.setQueriesData<{ items: IpRow[] }>(
+        { queryKey: ["security", "ips"] },
+        (old) =>
+          old
+            ? {
+                ...old,
+                items: old.items.map((row) =>
+                  row.ip === payload.ip
+                    ? {
+                        ...row,
+                        status: "blocked",
+                        blockId: entry?._id ?? row.blockId,
+                      }
+                    : row,
+                ),
+              }
+            : old,
+      );
+      queryClient.invalidateQueries({ queryKey: ["security"] });
+
       onSuccess(
-        duration === "permanent"
-          ? `${ip.trim()} blocked permanently`
-          : `${ip.trim()} blocked for ${
-              DURATIONS.find((d) => d.value === duration)?.label
+        payload.duration === "permanent"
+          ? `${payload.ip} blocked permanently`
+          : `${payload.ip} blocked for ${
+              DURATIONS.find((d) => d.value === payload.duration)?.label
             }`,
       );
       onClose();
-    } catch (e: any) {
+    },
+    onError: (e: any) => {
       setError(
         e?.response?.data?.message ?? "Failed to apply the block. Try again.",
       );
-    } finally {
-      setIsLoading(false);
-    }
+    },
+  });
+  const isLoading = blockMutation.isPending;
+
+  const handleSubmit = () => {
+    setError(null);
+    blockMutation.mutate({ ip: ip.trim(), reason: reason.trim(), duration });
   };
 
   return (

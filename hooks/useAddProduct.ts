@@ -2,12 +2,15 @@ import { useRouter } from "next/router";
 import { useEffect, useRef, useState } from "react";
 import { useForm, useFieldArray, SubmitHandler } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { productSchema, ProductFormData } from "../schemas/product";
 import adminService from "../services/admin";
 
 export const useAddProduct = () => {
   const router = useRouter();
-  const isEditing = !!router.query.id;
+  const queryClient = useQueryClient();
+  const productId = router.query.id as string | undefined;
+  const isEditing = !!productId;
   const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
   const fileInputRefs = useRef<Record<string, HTMLInputElement | null>>({});
 
@@ -48,40 +51,46 @@ export const useAddProduct = () => {
     name: "sizes",
   });
 
-  useEffect(() => {
-    if (router.query.id) {
-      const fetchProduct = async () => {
-        try {
-          const response = await adminService.getProductById(
-            router.query.id as string,
-          );
-          if (response && response.success && response.data) {
-            const product = response.data;
-            reset({
-              title: product.title,
-              price: product.price,
-              description: product.description || "",
-              images: product.images.map((img: string) => ({
-                preview: img,
-              })),
-              sizes: product.sizes.map((s: string) => ({
-                value: s,
-              })),
-            });
-          }
-        } catch (error) {
-          console.error("Error fetching product:", error);
-        }
-      };
-      fetchProduct();
-    }
-  }, [router.query.id, reset]);
+  const productQuery = useQuery({
+    queryKey: ["admin-product", productId],
+    queryFn: async () => {
+      const response = await adminService.getProductById(productId as string);
+      return response && response.success && response.data ? response.data : null;
+    },
+    enabled: isEditing,
+    // A focus/reconnect refetch with changed data would reset the form mid-edit.
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: false,
+  });
 
-  const onFormSubmit: SubmitHandler<ProductFormData> = async (data) => {
-    console.log("Form submitted with data:", data);
-    console.log("Image fields:", imageFields);
-    console.log("Size fields:", sizeFields);
-    try {
+  const product = productQuery.data;
+
+  // Fill the form once per product: a later cache update must not wipe edits.
+  const filledForId = useRef<string | null>(null);
+  useEffect(() => {
+    if (!product || filledForId.current === productId) return;
+    filledForId.current = productId as string;
+    reset({
+      title: product.title,
+      price: product.price,
+      description: product.description || "",
+      images: product.images.map((img: string) => ({
+        preview: img,
+      })),
+      sizes: product.sizes.map((s: string) => ({
+        value: s,
+      })),
+    });
+  }, [product, productId, reset]);
+
+  useEffect(() => {
+    if (productQuery.error) {
+      console.error("Error fetching product:", productQuery.error);
+    }
+  }, [productQuery.error]);
+
+  const saveMutation = useMutation({
+    mutationFn: async (data: ProductFormData) => {
       const imageUrls: string[] = [];
 
       for (const img of data.images) {
@@ -108,18 +117,33 @@ export const useAddProduct = () => {
       console.log("Saving product data:", productData);
 
       if (isEditing) {
-        await adminService.updateProduct(
-          router.query.id as string,
-          productData,
-        );
+        return adminService.updateProduct(productId as string, productData);
+      }
+      return adminService.createProduct(productData);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["admin-products"] });
+      if (isEditing) {
+        queryClient.invalidateQueries({ queryKey: ["admin-product", productId] });
         router.push("/shop");
       } else {
-        await adminService.createProduct(productData);
         setIsSuccessModalOpen(true);
       }
-    } catch (error) {
+    },
+    onError: (error) => {
       console.error("Error submitting product:", error);
       alert("Failed to save product. Please try again.");
+    },
+  });
+
+  const onFormSubmit: SubmitHandler<ProductFormData> = async (data) => {
+    console.log("Form submitted with data:", data);
+    console.log("Image fields:", imageFields);
+    console.log("Size fields:", sizeFields);
+    try {
+      await saveMutation.mutateAsync(data);
+    } catch {
+      // Already reported in onError.
     }
   };
 

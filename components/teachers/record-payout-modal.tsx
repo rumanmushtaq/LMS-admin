@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Loader2, X, Wallet } from "lucide-react";
 import paymentsService from "../../services/payments";
 import { formatMinor } from "../../utils/formatMoney";
@@ -23,25 +24,40 @@ export function RecordPayoutModal({
   const [method, setMethod] = useState("bank");
   const [note, setNote] = useState("");
   const [reference, setReference] = useState("");
-  const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const queryClient = useQueryClient();
 
-  async function submit() {
-    setBusy(true);
-    setError(null);
-    try {
-      await paymentsService.recordPayout(tutorId, {
+  const payoutMutation = useMutation({
+    mutationFn: () =>
+      paymentsService.recordPayout(tutorId, {
         paymentIds: "all_owed",
         method,
         note: note || undefined,
         reference: reference || undefined,
-      });
+      }),
+    onSuccess: () => {
       onDone();
-    } catch (e: any) {
+      // Quietly refresh the totals and history behind the closed modal. If
+      // onDone already started these refetches, join them rather than restart.
+      queryClient.invalidateQueries(
+        { queryKey: ["tutor-earnings", tutorId] },
+        { cancelRefetch: false },
+      );
+      queryClient.invalidateQueries(
+        { queryKey: ["tutor-payouts", tutorId] },
+        { cancelRefetch: false },
+      );
+    },
+    onError: (e: any) => {
       const m = e?.response?.data?.message || "Could not record payout.";
       setError(Array.isArray(m) ? m.join(" · ") : m);
-      setBusy(false);
-    }
+    },
+  });
+  const busy = payoutMutation.isPending;
+
+  function submit() {
+    setError(null);
+    payoutMutation.mutate();
   }
 
   return (

@@ -69,7 +69,9 @@ export const RenderCell = ({
           }}
         >
           <User
-            src={teacher.avatar}
+            // Same photo the detail page shows: onboarding stores it in
+            // kycData.photoUrl; top-level avatar is only a fallback.
+            src={teacher.kycData?.photoUrl || teacher.avatar}
             name={getFullName()}
             description={teacher.email}
             css={{

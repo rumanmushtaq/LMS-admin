@@ -62,6 +62,18 @@ class PaymentsService {
     return unwrap(data);
   }
 
+  /**
+   * POST /api/v1/payments/transactions/:id/mark-refunded — records a refund
+   * already made in the provider's dashboard (PSE/Wompi). Moves no money.
+   */
+  async markRefunded(id: string, body: { reason?: string } = {}): Promise<any> {
+    const { data } = await HTTP_CLIENT.post(
+      apiEndpoints.Payments.MARK_REFUNDED(id),
+      body,
+    );
+    return unwrap(data);
+  }
+
   /** POST /api/v1/payments/transactions/:id/reconcile */
   async reconcile(id: string): Promise<any> {
     const { data } = await HTTP_CLIENT.post(

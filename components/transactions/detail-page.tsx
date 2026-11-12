@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/router";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   ArrowLeft,
   Loader2,
@@ -48,12 +48,12 @@ const Row = ({
 
 export default function TransactionDetailPage({ id }: { id: string }) {
   const router = useRouter();
-  const [busy, setBusy] = useState<null | "refund" | "reconcile">(null);
+  const queryClient = useQueryClient();
   const [error, setError] = useState<string | null>(null);
   const [confirmRefund, setConfirmRefund] = useState(false);
   const [reason, setReason] = useState("");
 
-  const { data: txn, isLoading, refetch } = useQuery({
+  const { data: txn, isLoading } = useQuery({
     queryKey: ["transaction", id],
     queryFn: () => paymentsService.getTransaction(id),
     enabled: !!id,
@@ -61,37 +61,56 @@ export default function TransactionDetailPage({ id }: { id: string }) {
 
   const isFirstParty = !txn?.sellerId;
   const canRefund = txn?.status === "paid";
+  // PSE (Wompi) has no refund API: the money goes back in the Wompi
+  // dashboard, and this page records it.
   const pseRefund = txn?.provider === "pse";
   const canReconcile = ["pending", "processing"].includes(txn?.status);
 
-  async function doRefund() {
-    setBusy("refund");
-    setError(null);
-    try {
-      await paymentsService.refund(id, { reason: reason || undefined });
-      setConfirmRefund(false);
-      await refetch();
-    } catch (e: any) {
-      const m = e?.response?.data?.message || "Refund failed.";
-      setError(Array.isArray(m) ? m.join(" · ") : m);
-    } finally {
-      setBusy(null);
-    }
-  }
+  const showError = (e: any, fallback: string) => {
+    const m = e?.response?.data?.message || fallback;
+    setError(Array.isArray(m) ? m.join(" · ") : m);
+  };
 
-  async function doReconcile() {
-    setBusy("reconcile");
-    setError(null);
-    try {
-      await paymentsService.reconcile(id);
-      await refetch();
-    } catch (e: any) {
-      const m = e?.response?.data?.message || "Reconcile failed.";
-      setError(Array.isArray(m) ? m.join(" · ") : m);
-    } finally {
-      setBusy(null);
+  /** Show the new state right away, then refresh this row and the list quietly. */
+  const settle = (updated: any) => {
+    if (updated?._id) {
+      queryClient.setQueryData(["transaction", id], (old: any) =>
+        old ? { ...old, ...updated } : old,
+      );
     }
-  }
+    queryClient.invalidateQueries({ queryKey: ["transaction", id] });
+    queryClient.invalidateQueries({ queryKey: ["transactions"] });
+    queryClient.invalidateQueries({ queryKey: ["transactions-summary"] });
+  };
+
+  const refundMutation = useMutation({
+    mutationFn: () =>
+      pseRefund
+        ? paymentsService.markRefunded(id, { reason: reason || undefined })
+        : paymentsService.refund(id, { reason: reason || undefined }),
+    onMutate: () => setError(null),
+    onSuccess: (updated) => {
+      setConfirmRefund(false);
+      settle(updated);
+    },
+    onError: (e) =>
+      showError(e, pseRefund ? "Could not mark it refunded." : "Refund failed."),
+  });
+
+  const reconcileMutation = useMutation({
+    mutationFn: () => paymentsService.reconcile(id),
+    onMutate: () => setError(null),
+    onSuccess: settle,
+    onError: (e) => showError(e, "Reconcile failed."),
+  });
+
+  const busy: null | "refund" | "reconcile" = refundMutation.isPending
+    ? "refund"
+    : reconcileMutation.isPending
+      ? "reconcile"
+      : null;
+  const doRefund = () => refundMutation.mutate();
+  const doReconcile = () => reconcileMutation.mutate();
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#f7f5ff] via-white to-white">
@@ -256,24 +275,31 @@ export default function TransactionDetailPage({ id }: { id: string }) {
                 {canRefund && !confirmRefund && (
                   <button
                     onClick={() => setConfirmRefund(true)}
-                    disabled={pseRefund}
-                    title={
-                      pseRefund
-                        ? "Refund PSE payments in the Wompi dashboard"
-                        : undefined
-                    }
+                    disabled={busy !== null}
                     className="flex h-11 w-full items-center justify-center gap-2 rounded-xl bg-red-600 font-semibold text-white hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-50"
                   >
                     <Undo2 className="h-4 w-4" />
-                    {pseRefund ? "Refund via Wompi dashboard" : "Refund"}
+                    {pseRefund ? "Mark as refunded" : "Refund"}
                   </button>
                 )}
 
                 {canRefund && confirmRefund && (
                   <div className="space-y-3 rounded-xl border border-red-200 bg-red-50 p-4">
-                    <p className="text-sm font-semibold text-red-700">
-                      This refunds real money and cannot be undone.
-                    </p>
+                    {pseRefund ? (
+                      <div className="space-y-1 text-sm text-red-700">
+                        <p className="font-semibold">
+                          First refund it in the Wompi dashboard.
+                        </p>
+                        <p>
+                          This only records it here: the tutor&apos;s share is
+                          voided and the buyer loses access. No money moves.
+                        </p>
+                      </div>
+                    ) : (
+                      <p className="text-sm font-semibold text-red-700">
+                        This refunds the full amount and cannot be undone.
+                      </p>
+                    )}
                     <input
                       value={reason}
                       onChange={(e) => setReason(e.target.value)}
@@ -296,7 +322,7 @@ export default function TransactionDetailPage({ id }: { id: string }) {
                         {busy === "refund" && (
                           <Loader2 className="h-4 w-4 animate-spin" />
                         )}
-                        Confirm refund
+                        {pseRefund ? "Mark refunded" : "Confirm refund"}
                       </button>
                     </div>
                   </div>

@@ -64,6 +64,8 @@ const apiEndpoints = {
     TRANSACTION_BY_ID: (id: string) => `/api/v1/payments/transactions/${id}`,
     REFUND: (id: string) => `/api/v1/payments/transactions/${id}/refund`,
     RECONCILE: (id: string) => `/api/v1/payments/transactions/${id}/reconcile`,
+    MARK_REFUNDED: (id: string) =>
+      `/api/v1/payments/transactions/${id}/mark-refunded`,
     SETTINGS: "/api/v1/payments/settings",
     TUTOR_EARNINGS: (id: string) => `/api/v1/payments/tutors/${id}/earnings`,
     TUTOR_PAYOUTS: (id: string) => `/api/v1/payments/tutors/${id}/payouts`,

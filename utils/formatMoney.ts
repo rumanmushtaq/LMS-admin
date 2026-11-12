@@ -1,5 +1,8 @@
-/** Currencies Intl treats as having no minor unit. Keep in sync with the backend. */
-const ZERO_DECIMAL = new Set(["COP", "JPY", "KRW", "CLP", "VND"]);
+/**
+ * Currencies with no minor unit. Keep in sync with the backend's money.ts.
+ * COP is not one: Stripe and Wompi both store it in centavos.
+ */
+const ZERO_DECIMAL = new Set(["JPY", "KRW", "CLP", "VND", "PYG", "XAF", "XOF"]);
 
 /** Formats an integer minor-unit amount for display in its currency. */
 export function formatMinor(amountMinor: number, currency: string): string {

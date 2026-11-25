@@ -17,6 +17,7 @@ import React, { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import adminService from "../../services/admin";
 import chatService from "../../services/chat";
+import { TrendingToggle } from "./TrendingToggle";
 import { StatusConfirmModal } from "./status-confirm-modal";
 import { EarningsSection } from "./earnings-section";
 import { Flex } from "../styles/flex";
@@ -419,6 +420,8 @@ export const TeacherDetail = () => {
                     >
                       Chat with Tutor
                     </Button>
+                    {/* Home page "Trending Instructors" section. */}
+                    <TrendingToggle teacher={teacher} variant="button" />
                   </Flex>
                 </Flex>
               </Card.Body>

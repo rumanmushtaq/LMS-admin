@@ -34,6 +34,7 @@ const apiEndpoints = {
     REJECT_TUTOR: (id: string) => `/api/v1/admin/tutors/${id}/reject`,
     TUTORS: "/api/v1/admin/tutors",
     TUTOR_BY_ID: (id: string) => `/api/v1/admin/tutors/${id}`,
+    TUTOR_TRENDING: (id: string) => `/api/v1/admin/tutors/${id}/trending`,
   },
   Students: {
     // Student endpoints

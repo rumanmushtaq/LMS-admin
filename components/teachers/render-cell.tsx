@@ -3,6 +3,7 @@ import React from "react";
 import { Eye, ShieldCheck, BookOpen, MessageCircle } from "lucide-react";
 import { useStartChat } from "../../hooks/useStartChat";
 import { TeacherActionsMenu } from "./actions-menu";
+import { TrendingToggle } from "./TrendingToggle";
 
 /**
  * Its own component so the mutation hook isn't called inside RenderCell's
@@ -172,6 +173,7 @@ export const RenderCell = ({
             <ShieldCheck size={18} />
           </button>
 
+          <TrendingToggle teacher={teacher} />
           <ChatButton userId={teacher._id || teacher.id} label="Chat with Tutor" />
 
           <button

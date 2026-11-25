@@ -361,6 +361,18 @@ class AdminService {
   /**
    * POST /api/v1/admin/tutors/:id/approve
    */
+  /**
+   * PATCH /api/v1/admin/tutors/:id/trending — show or hide the tutor in the
+   * website's home page "Trending Instructors" section.
+   */
+  async setTutorTrending(id: string, trending: boolean): Promise<any> {
+    const { data } = await HTTP_CLIENT.patch(
+      apiEndpoints.Admin.TUTOR_TRENDING(id),
+      { trending },
+    );
+    return data;
+  }
+
   async approveTutor(id: string): Promise<any> {
     const { data } = await HTTP_CLIENT.post(
       apiEndpoints.Admin.APPROVE_TUTOR(id),

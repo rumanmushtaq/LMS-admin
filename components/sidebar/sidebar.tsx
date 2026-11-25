@@ -18,6 +18,7 @@ import {
   Receipt,
   ShoppingBag,
   Settings,
+  Radio,
 } from "lucide-react";
 import { useSidebarContext } from "../layout/layout-context";
 import { useRouter } from "next/router";
@@ -80,6 +81,12 @@ export const SidebarWrapper = () => {
                 title="Classes"
                 icon={<MonitorPlay size={21} strokeWidth={2} />}
                 href="/classes"
+              />
+              <SidebarItem
+                isActive={router.pathname === "/live-streams"}
+                title="Live Streams"
+                icon={<Radio size={21} strokeWidth={2} />}
+                href="/live-streams"
               />
               <SidebarItem
                 isActive={router.pathname === "/chat"}

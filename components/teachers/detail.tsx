@@ -20,7 +20,7 @@ import chatService from "../../services/chat";
 import { TrendingToggle } from "./TrendingToggle";
 import { StatusConfirmModal } from "./status-confirm-modal";
 import { EarningsSection } from "./earnings-section";
-import { IntroVideo } from "./intro-video";
+import { IntroVideo, originalVideoUrl } from "./intro-video";
 import { Flex } from "../styles/flex";
 import { Breadcrumbs, Crumb, CrumbLink } from "../breadcrumb/breadcrumb.styled";
 import { HouseIcon } from "../icons/breadcrumb/house-icon";
@@ -638,7 +638,7 @@ export const TeacherDetail = () => {
                       </Flex>
                       <IntroVideo url={teacher.kycData.introVideoUrl} />
                       <a
-                        href={teacher.kycData.introVideoUrl}
+                        href={originalVideoUrl(teacher.kycData.introVideoUrl)}
                         target="_blank"
                         rel="noreferrer"
                         style={{ fontSize: 13, width: "fit-content" }}

@@ -20,6 +20,7 @@ import chatService from "../../services/chat";
 import { TrendingToggle } from "./TrendingToggle";
 import { StatusConfirmModal } from "./status-confirm-modal";
 import { EarningsSection } from "./earnings-section";
+import { IntroVideo } from "./intro-video";
 import { Flex } from "../styles/flex";
 import { Breadcrumbs, Crumb, CrumbLink } from "../breadcrumb/breadcrumb.styled";
 import { HouseIcon } from "../icons/breadcrumb/house-icon";
@@ -635,21 +636,15 @@ export const TeacherDetail = () => {
                           Introduction Video
                         </Text>
                       </Flex>
-                      <Button
-                        auto
-                        flat
-                        as="a"
+                      <IntroVideo url={teacher.kycData.introVideoUrl} />
+                      <a
                         href={teacher.kycData.introVideoUrl}
                         target="_blank"
-                        css={{
-                          borderRadius: "16px",
-                          px: "$10",
-                          width: "fit-content",
-                        }}
-                        icon={<Video size={20} />}
+                        rel="noreferrer"
+                        style={{ fontSize: 13, width: "fit-content" }}
                       >
-                        Watch Onboarding Video
-                      </Button>
+                        Open video in a new tab
+                      </a>
                     </Flex>
                   </Grid>
                 )}

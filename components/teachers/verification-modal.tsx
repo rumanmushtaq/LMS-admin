@@ -10,6 +10,7 @@ import {
   Divider,
   Image,
 } from "@nextui-org/react";
+import { IntroVideo, isVideoUrl } from "./intro-video";
 
 interface Props {
   user: any;
@@ -27,6 +28,10 @@ export const TeacherVerificationModal = ({
   onReject,
 }: Props) => {
   if (!user) return null;
+  // Onboarding also lists the intro video here; it plays in its own section.
+  const kycImages: string[] = (user.kycDocuments ?? []).filter(
+    (doc: string) => !isVideoUrl(doc),
+  );
 
   return (
     <Modal
@@ -142,6 +147,22 @@ export const TeacherVerificationModal = ({
             </Col>
           </div>
 
+          {/* Intro Video */}
+          {user.kycData?.introVideoUrl && (
+            <Col
+              css={{
+                border: "1px solid #eee",
+                borderRadius: "12px",
+                padding: "16px",
+              }}
+            >
+              <Text b size={14} css={{ mb: "$4" }}>
+                Intro Video
+              </Text>
+              <IntroVideo url={user.kycData.introVideoUrl} />
+            </Col>
+          )}
+
           {/* KYC Documents */}
           <Col
             css={{
@@ -154,8 +175,8 @@ export const TeacherVerificationModal = ({
               KYC Identity Documents
             </Text>
             <Row gap={2} css={{ mt: "$4" }}>
-              {user.kycDocuments && user.kycDocuments.length > 0 ? (
-                user.kycDocuments.map((doc: string, i: number) => (
+              {kycImages.length > 0 ? (
+                kycImages.map((doc: string, i: number) => (
                   <Col
                     key={i}
                     css={{
